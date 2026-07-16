@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — Учёт несоответствующей продукции</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="brand-panel">
+        <div class="brand-content">
+            <div class="brand-logo">
+                БМЗ <span class="accent">СтПЦ-2</span>
+            </div>
+            <p class="brand-description">
+                Единая система учёта, контроля и управления несоответствующей продукцией предприятия.
+            </p>
+        </div>
+    </div>
+
+    <div class="form-panel">
+        <div class="form-wrapper">
+            <div class="mobile-brand">
+                <div class="brand-logo">
+                    БМЗ <span class="accent">СтПЦ-2</span>
+                </div>
+            </div>
+
+            <div class="form-header">
+                <h2>С возвращением</h2>
+                <p>Введите свои данные для доступа к системе</p>
+            </div>
+
+            <div th:if="${error}" class="alert-custom alert-danger-custom" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${error}">Неверный табельный номер или пароль</span>
+            </div>
+
+            <div th:if="${message}" class="alert-custom alert-success-custom" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${message}">Вы успешно вышли из системы</span>
+            </div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username" class="form-label">Табельный номер</label>
+                    <div class="input-wrapper">
+                        <input type="text"
+                               class="form-control"
+                               id="username"
+                               name="username"
+                               placeholder="Например: 12345"
+                               required
+                               autofocus
+                               th:classappend="${error != null ? 'is-invalid' : ''}">
+                        <i class="bi bi-person-badge input-icon"></i>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Пароль</label>
+                    <div class="input-wrapper">
+                        <input type="password"
+                               class="form-control"
+                               id="password"
+                               name="password"
+                               placeholder="Введите ваш пароль"
+                               required
+                               th:classappend="${error != null ? 'is-invalid' : ''}">
+                        <i class="bi bi-lock input-icon"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <span>Войти в систему</span>
+                    <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Система контроля качества СтПЦ-2 © 2026</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
