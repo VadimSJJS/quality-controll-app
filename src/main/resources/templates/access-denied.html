@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доступ запрещён</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container mt-5 text-center">
+    <h1 class="display-1 text-danger">403</h1>
+    <h2 class="mb-4">Доступ запрещён</h2>
+    <p class="text-secondary">У вас недостаточно прав для просмотра этой страницы.</p>
+    <a th:href="@{/}" class="btn btn-primary">Вернуться на главную</a>
+</div>
+</body>
+</html>

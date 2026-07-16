@@ -1,0 +1,88 @@
+body {
+    font-family: 'Times New Roman', serif;
+    background: #f0f4f8;
+}
+
+.sidebar {
+    min-height: 100vh;
+    width: 280px;
+    background: #1a3a5c;
+    color: white;
+}
+
+.sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 4px;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar .nav-link.active {
+    background: #e8b830;
+    color: #1a3a5c;
+    font-weight: 600;
+}
+
+.sidebar .nav-link i {
+    width: 24px;
+    text-align: center;
+}
+
+.top-bar {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 12px 24px;
+}
+
+.badge-role-otk {
+    background: #e8b830;
+    color: #1a3a5c;
+    font-weight: 600;
+}
+
+.badge-role-ppb {
+    background: #7c3aed;
+    color: white;
+}
+
+.badge-role-viewer {
+    background: #64748b;
+    color: white;
+}
+
+.main-content {
+    padding: 24px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a3a5c;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #1a3a5c;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.date-input-sm {
+    width: 140px;
+}
+
+.chart-placeholder {
+    height: 200px;
+}

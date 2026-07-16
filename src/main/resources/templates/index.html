@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная — БМЗ · СтПЦ-2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+    <div class="brand">
+        <div>
+            <span class="logo-text">БМЗ <span class="accent">·</span> СтПЦ-2</span>
+            <span class="logo-sub">Учёт несоответствующей продукции</span>
+        </div>
+    </div>
+    <div class="user-area">
+        <div class="user-info">
+            <div>
+                <div class="user-name" th:text="${fio}">Валуев Вадим Викторович</div>
+                <span class="user-role"
+                      th:class="${roleGroup == 'ROLE_ADMIN' ? 'admin' : (roleGroup == 'ROLE_OTK' ? 'otk' : (roleGroup == 'ROLE_PPB' ? 'ppb' : 'viewer'))}"
+                      th:text="${roles}">ROLE_ADMIN</span>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Выйти
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- ===== MAIN ===== -->
+<div class="main-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="#" class="nav-item active">
+            test
+        </a>
+        <a href="#" class="nav-item">
+             test
+        </a>
+        <a href="#" class="nav-item">
+            test
+        </a>
+        <div class="nav-divider"></div>
+        <a href="#" class="nav-item">
+            test
+        </a>
+        <a href="#" class="nav-item">
+            test
+        </a>
+        <div class="nav-divider"></div>
+
+            <i class=""></i> test
+        </a>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+        <h1 class="page-title">Главная</h1>
+        <p class="page-subtitle">Обзор системы учёта несоответствующей продукции</p>
+
+        <!-- WELCOME CARD -->
+        <div class="welcome-card">
+            <div class="greeting">
+                Добро пожаловать, <span th:text="${fio}">Валуев Вадим Викторович</span>!
+            </div>
+            <div class="details">
+                <span>Табельный номер: <strong th:text="${personalNo}">110804</strong></span>
+                <span class="badge-role" th:text="${roles}">ROLE_ADMIN</span>
+                <span>📅 <span th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy')}">16.07.2026</span></span>
+            </div>
+        </div>
+
+        <!-- CARDS -->
+        <div class="cards-grid">
+            <a href="#" class="card-dash">
+                test
+            </a>
+
+            <a href="#" class="card-dash">
+                test
+            </a>
+
+            <a href="#" class="card-dash">
+                test
+            </a>
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
