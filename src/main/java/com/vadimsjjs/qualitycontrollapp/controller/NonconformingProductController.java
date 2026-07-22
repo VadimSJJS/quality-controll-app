@@ -20,7 +20,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/defects")
+@RequestMapping("/api/defects")
 @RequiredArgsConstructor
 public class NonconformingProductController {
 

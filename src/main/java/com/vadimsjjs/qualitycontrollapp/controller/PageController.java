@@ -3,14 +3,11 @@ package com.vadimsjjs.qualitycontrollapp.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class PageController {
-
-    private static final String ERROR = "error";
-    private static final String LOGOUT = "logout";
-    private static final String EXPIRED = "expired";
 
     @GetMapping("/login")
     public String login(@RequestParam(required = false) String error,
@@ -23,27 +20,60 @@ public class PageController {
         return "login";
     }
 
-    @GetMapping({"/", "/defects", "/defects/add", "/reports", "/charts", "/directories", "/access-denied"})
-    public String pages(String page, Model model) {
-        return resolvePage(page, model);
+    @GetMapping("/")
+    public String index(Model model) {
+        model.addAttribute("currentPage", "index");
+        model.addAttribute("pageTitle", "Главная");
+        return "index";
     }
 
-    private String resolvePage(String page, Model model) {
-        return switch (page != null ? page : "index") {
-            case "index" -> setPage(model, "index", "Главная", "index");
-            case "defects" -> setPage(model, "defects", "Журнал несоответствий", "defects/list");
-            case "defects/add" -> setPage(model, "add-defect", "Добавить запись", "defects/add");
-            case "reports" -> setPage(model, "reports", "Отчёты", "reports/index");
-            case "charts" -> setPage(model, "charts", "Аналитика", "charts/index");
-            case "directories" -> setPage(model, "directories", "Справочники", "directories/index");
-            case "access-denied" -> setPage(model, "index", "Доступ запрещён", "access-denied");
-            default -> "error/404";
-        };
+    @GetMapping("/defects")
+    public String defectsList(Model model) {
+        model.addAttribute("currentPage", "defects");
+        model.addAttribute("pageTitle", "Журнал несоответствий");
+        return "defects/list";
     }
 
-    private String setPage(Model model, String currentPage, String pageTitle, String template) {
-        model.addAttribute("currentPage", currentPage);
-        model.addAttribute("pageTitle", pageTitle);
-        return template;
+    @GetMapping("/defects/add")
+    public String addDefect(Model model) {
+        model.addAttribute("currentPage", "add-defect");
+        model.addAttribute("pageTitle", "Добавление записи");
+        return "defects/add";
+    }
+
+    @GetMapping("/defects/edit/{id}")
+    public String editDefect(@PathVariable Long id, Model model) {
+        model.addAttribute("defectId", id);
+        model.addAttribute("currentPage", "add-defect");
+        model.addAttribute("pageTitle", "Редактирование записи");
+        return "defects/add";
+    }
+
+    @GetMapping("/reports")
+    public String reports(Model model) {
+        model.addAttribute("currentPage", "reports");
+        model.addAttribute("pageTitle", "Отчёты");
+        return "reports/index";
+    }
+
+    @GetMapping("/charts")
+    public String charts(Model model) {
+        model.addAttribute("currentPage", "charts");
+        model.addAttribute("pageTitle", "Аналитика");
+        return "charts/index";
+    }
+
+    @GetMapping("/directories")
+    public String directories(Model model) {
+        model.addAttribute("currentPage", "directories");
+        model.addAttribute("pageTitle", "Справочники");
+        return "directories/index";
+    }
+
+    @GetMapping("/access-denied")
+    public String accessDenied(Model model) {
+        model.addAttribute("currentPage", "index");
+        model.addAttribute("pageTitle", "Доступ запрещён");
+        return "access-denied";
     }
 }

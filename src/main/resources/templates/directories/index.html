@@ -1,13 +1,76 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Справочники</title>
 </head>
 <body>
+<div th:replace="~{layouts/base :: layout(~{::content})}">
+    <div th:fragment="content">
 
+        <h4 class="mb-0 fw-bold text-dark">⚙️ Справочники</h4>
+        <p class="text-secondary small mb-4">Управление справочными данными системы</p>
+
+        <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded-3">
+                                    <i class="bi bi-list-ul fs-3 text-primary"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-0">Виды несоответствий</h5>
+                                    <p class="card-text text-secondary small">Управление справочником дефектов</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-success bg-opacity-10 p-3 rounded-3">
+                                    <i class="bi bi-gear fs-3 text-success"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-0">Причины</h5>
+                                    <p class="card-text text-secondary small">Управление справочником причин</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-warning bg-opacity-10 p-3 rounded-3">
+                                    <i class="bi bi-building fs-3 text-warning"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-0">Участки</h5>
+                                    <p class="card-text text-secondary small">Управление справочником участков</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="!#authorization.expression('hasRole(''ADMIN'')')" class="alert alert-warning border-0">
+            <i class="bi bi-exclamation-triangle"></i>
+            Доступ к справочникам имеют только администраторы.
+        </div>
+
+    </div>
+</div>
 </body>
 </html>

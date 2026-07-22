@@ -1,13 +1,598 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Журнал несоответствий — БМЗ · СтПЦ-2</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+        .topbar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .topbar .brand { display: flex; align-items: center; gap: 12px; }
+        .topbar .brand .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a3a5c;
+            letter-spacing: -0.5px;
+        }
+        .topbar .brand .logo-text .accent { color: #e8b830; }
+        .topbar .brand .logo-sub {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 400;
+            margin-left: 4px;
+        }
+        .topbar .user-area { display: flex; align-items: center; gap: 20px; }
+        .topbar .user-area .user-info { display: flex; align-items: center; gap: 12px; }
+        .topbar .user-area .user-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: #1e293b;
+        }
+        .user-role {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+        .user-role.admin { background: #1a3a5c; color: white; }
+        .user-role.otk { background: #e8b830; color: #1a3a5c; }
+        .user-role.ppb { background: #7c3aed; color: white; }
+        .user-role.viewer { background: #64748b; color: white; }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-logout:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+        .sidebar {
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+            padding: 24px 16px;
+            height: calc(100vh - 73px);
+            position: sticky;
+            top: 73px;
+            width: 240px;
+            flex-shrink: 0;
+        }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.15s;
+            margin-bottom: 2px;
+        }
+        .sidebar .nav-item:hover {
+            background: #f1f5f9;
+            color: #1a3a5c;
+        }
+        .sidebar .nav-item.active {
+            background: #1a3a5c;
+            color: white;
+        }
+        .sidebar .nav-item.active i { color: #e8b830; }
+        .sidebar .nav-item i {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            color: #94a3b8;
+        }
+        .sidebar .nav-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 12px 16px;
+        }
+        .main-wrapper { display: flex; min-height: calc(100vh - 73px); }
+        .content { flex: 1; padding: 0; overflow-y: auto; }
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+        .badge-role-otk { background: #e8b830; color: #1a3a5c; font-weight: 600; }
+        .badge-role-ppb { background: #7c3aed; color: white; }
+        .badge-role-viewer { background: #64748b; color: white; }
+        .main-content { padding: 24px; }
+        .badge-status {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .badge-status.reworked { background: #dcfce7; color: #166534; }
+        .badge-status.pending { background: #fef9c3; color: #854d0e; }
+        .badge-status.defect { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 992px) {
+            .sidebar { display: none; }
+            .topbar .brand .logo-sub { display: none; }
+        }
+        @media (max-width: 640px) {
+            .topbar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
+            .topbar .brand .logo-text { font-size: 18px; }
+            .topbar .user-area .user-name { font-size: 13px; }
+            .main-content { padding: 16px; }
+        }
+    </style>
 </head>
 <body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+    <div class="brand">
+        <div>
+            <span class="logo-text">БМЗ <span class="accent">·</span> СтПЦ-2</span>
+            <span class="logo-sub">Учёт несоответствующей продукции</span>
+        </div>
+    </div>
+    <div class="user-area">
+        <div class="user-info">
+            <div>
+                <div class="user-name" th:text="${fio}">Пользователь</div>
+                <span class="user-role"
+                      th:class="${roleGroup == 'ROLE_ADMIN' ? 'admin' : (roleGroup == 'ROLE_OTK' ? 'otk' : (roleGroup == 'ROLE_PPB' ? 'ppb' : 'viewer'))}"
+                      th:text="${roles}">ROLE_VIEWER</span>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Выйти
+            </button>
+        </form>
+    </div>
+</header>
+
+<!-- MAIN -->
+<div class="main-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a th:href="@{/}" class="nav-item">
+            <i class="bi bi-house-door"></i> Главная
+        </a>
+        <a th:href="@{/defects}" class="nav-item active">
+            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
+        </a>
+        <a th:href="@{/defects/add}" class="nav-item">
+            <i class="bi bi-plus-circle"></i> Добавить запись
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/reports}" class="nav-item">
+            <i class="bi bi-file-earmark-text"></i> Отчёты
+        </a>
+        <a th:href="@{/charts}" class="nav-item">
+            <i class="bi bi-graph-up-arrow"></i> Аналитика
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/directories}" class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <i class="bi bi-gear"></i> Справочники
+        </a>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="content">
+
+        <!-- Top Bar -->
+        <div class="top-bar d-flex justify-content-between align-items-center">
+            <div>
+                <span class="page-title">📋 Журнал несоответствий</span>
+                <nav aria-label="breadcrumb" class="d-inline-block ms-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
+                        <li class="breadcrumb-item active">Журнал несоответствий</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary small">
+                    <i class="bi bi-person"></i>
+                    <span sec:authentication="name"></span>
+                </span>
+                <span class="badge badge-role-otk" th:if="${roleGroup == 'ROLE_OTK'}">ОТК</span>
+                <span class="badge badge-role-ppb" th:if="${roleGroup == 'ROLE_PPB'}">ППБ</span>
+                <span class="badge badge-role-viewer" th:if="${roleGroup == 'ROLE_VIEWER'}">Просмотр</span>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-0 fw-bold text-dark">📋 Журнал несоответствий</h4>
+                    <p class="text-secondary small mb-0">Управление записями о браке и несоответствующей продукции</p>
+                </div>
+                <a th:href="@{/defects/add}" class="btn btn-primary btn-sm px-4">
+                    <i class="bi bi-plus-circle"></i> Добавить запись
+                </a>
+            </div>
+
+            <!-- Фильтры -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-secondary">Дата с</label>
+                            <input type="date" class="form-control form-control-sm" id="dateFrom">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-secondary">Дата по</label>
+                            <input type="date" class="form-control form-control-sm" id="dateTo">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-secondary">Участок</label>
+                            <select class="form-select form-select-sm" id="siteFilter">
+                                <option value="">Все участки</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold small text-secondary">Вид несоответствия</label>
+                            <select class="form-select form-select-sm" id="defectFilter">
+                                <option value="">Все виды</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="applyFilters()">
+                                    <i class="bi bi-search"></i> Применить
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Таблица -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="py-3 px-4 fw-semibold small text-secondary">Дата</th>
+                                <th class="py-3 fw-semibold small text-secondary">Участок</th>
+                                <th class="py-3 fw-semibold small text-secondary">Вид несоотв.</th>
+                                <th class="py-3 fw-semibold small text-secondary text-end">Масса (т)</th>
+                                <th class="py-3 fw-semibold small text-secondary">Кем выявл.</th>
+                                <th class="py-3 fw-semibold small text-secondary">Статус</th>
+                                <th class="py-3 px-4 fw-semibold small text-secondary text-center">Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody id="defectsTableBody">
+                            <tr>
+                                <td colspan="7" class="text-center text-secondary py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Загрузка данных...
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Пагинация -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-secondary small" id="infoText">Загрузка...</span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                        <li class="page-item disabled"><a class="page-link" href="#" onclick="goToPage(-1)">←</a></li>
+                        <li class="page-item active"><a class="page-link" href="#" onclick="goToPage(0)">1</a></li>
+                        <li class="page-item disabled"><a class="page-link" href="#" onclick="goToPage(-1)">→</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let currentPage = 0;
+    const pageSize = 20;
+    let totalPages = 0;
+
+    // ЗАГРУЗКА СПРАВОЧНИКОВ
+    function loadDirectories() {
+        // Участки
+        fetch('/directories/production-sites')
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка загрузки участков');
+                return response.json();
+            })
+            .then(sites => {
+                const select = document.getElementById('siteFilter');
+                select.innerHTML = '<option value="">Все участки</option>';
+                sites.forEach(site => {
+                    const option = document.createElement('option');
+                    option.value = site.id;
+                    option.textContent = site.siteName;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Ошибка загрузки участков:', error));
+
+        // Виды несоответствий
+        fetch('/directories/defect-types')
+            .then(response => {
+                if (!response.ok) throw new Error('Ошибка загрузки видов дефектов');
+                return response.json();
+            })
+            .then(types => {
+                const select = document.getElementById('defectFilter');
+                select.innerHTML = '<option value="">Все виды</option>';
+                types.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.defectName;
+                    select.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Ошибка загрузки видов дефектов:', error));
+    }
+
+    // ЗАГРУЗКА ДАННЫХ
+    function loadDefects() {
+        const tbody = document.getElementById('defectsTableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-secondary py-4">
+                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                    Загрузка данных...
+                </td>
+            </tr>
+        `;
+
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('size', pageSize);
+
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const siteId = document.getElementById('siteFilter').value;
+        const defectTypeId = document.getElementById('defectFilter').value;
+
+        if (dateFrom) params.append('dateFrom', dateFrom);
+        if (dateTo) params.append('dateTo', dateTo);
+        if (siteId) params.append('productionSiteId', siteId);
+        if (defectTypeId) params.append('defectTypeId', defectTypeId);
+
+        console.log('Запрос к API: /api/defects/filter?' + params.toString());
+
+        fetch('/api/defects/filter?' + params.toString())
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Ответ сервера:', text);
+                        throw new Error('Ошибка загрузки данных');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Получены данные:', data);
+                totalPages = data.totalPages || 0;
+                renderTable(data.content || []);
+                renderPagination(data);
+                updateInfo(data);
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-danger py-4">
+                            <i class="bi bi-exclamation-triangle fs-4 d-block mb-2"></i>
+                            Ошибка загрузки данных: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            });
+    }
+
+    // ОТРИСОВКА ТАБЛИЦЫ
+    function renderTable(defects) {
+        const tbody = document.getElementById('defectsTableBody');
+
+        if (!defects || defects.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-secondary py-4">
+                        <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                        Нет записей о несоответствиях
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        const statusMap = {
+            'REWORKED': '<span class="badge badge-status reworked">✅ Восстановлена</span>',
+            'NOT_REWORKED': '<span class="badge badge-status pending">⏳ Ожидает</span>',
+            'DEFECT': '<span class="badge badge-status defect">❌ Брак</span>'
+        };
+
+        tbody.innerHTML = defects.map(d => `
+            <tr>
+                <td class="px-4 py-3">${formatDate(d.detectionDate)}</td>
+                <td class="py-3">${d.productionSiteName || '—'}</td>
+                <td class="py-3">${d.defectTypeName || '—'}</td>
+                <td class="py-3 text-end">${d.weightTonnes ? d.weightTonnes.toFixed(3) : '—'}</td>
+                <td class="py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary">${d.detectionSourceName || '—'}</span></td>
+                <td class="py-3">${statusMap[d.status] || '—'}</td>
+                <td class="px-4 py-3 text-center">
+                    <a href="/defects/edit/${d.id}" class="btn btn-sm btn-outline-primary me-1" title="Редактировать">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDefect(${d.id})" title="Удалить">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ПАГИНАЦИЯ
+    function renderPagination(pageData) {
+        const pagination = document.getElementById('paginationControls');
+        if (!pageData || pageData.totalPages <= 1) {
+            pagination.innerHTML = `
+                <li class="page-item disabled"><a class="page-link" href="#">←</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item disabled"><a class="page-link" href="#">→</a></li>
+            `;
+            return;
+        }
+
+        let html = '';
+        const current = pageData.number;
+        const total = pageData.totalPages;
+
+        html += `<li class="page-item ${current === 0 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${current - 1})">←</a>
+                </li>`;
+
+        const start = Math.max(0, current - 2);
+        const end = Math.min(total - 1, current + 2);
+
+        if (start > 0) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(0)">1</a></li>`;
+            if (start > 1) html += `<li class="page-item disabled"><a class="page-link" href="#">…</a></li>`;
+        }
+
+        for (let i = start; i <= end; i++) {
+            html += `<li class="page-item ${i === current ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="goToPage(${i})">${i + 1}</a>
+                    </li>`;
+        }
+
+        if (end < total - 1) {
+            if (end < total - 2) html += `<li class="page-item disabled"><a class="page-link" href="#">…</a></li>`;
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="goToPage(${total - 1})">${total}</a></li>`;
+        }
+
+        html += `<li class="page-item ${current === total - 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${current + 1})">→</a>
+                </li>`;
+
+        pagination.innerHTML = html;
+    }
+
+    function updateInfo(pageData) {
+        const info = document.getElementById('infoText');
+        if (!pageData || pageData.totalElements === 0) {
+            info.textContent = 'Нет записей';
+            return;
+        }
+        const start = pageData.number * pageData.size + 1;
+        const end = Math.min((pageData.number + 1) * pageData.size, pageData.totalElements);
+        info.textContent = `Показано ${start}–${end} из ${pageData.totalElements} записей`;
+    }
+
+    function goToPage(page) {
+        if (page < 0 || page >= totalPages) return;
+        currentPage = page;
+        loadDefects();
+    }
+
+    function applyFilters() {
+        currentPage = 0;
+        loadDefects();
+    }
+
+    function resetFilters() {
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.getElementById('siteFilter').value = '';
+        document.getElementById('defectFilter').value = '';
+        applyFilters();
+    }
+
+    function deleteDefect(id) {
+        if (!confirm('Вы уверены, что хотите удалить эту запись?')) return;
+        fetch(`/api/defects/${id}`, { method: 'DELETE' })
+            .then(response => {
+                if (response.ok) {
+                    loadDefects();
+                } else {
+                    alert('Ошибка при удалении записи');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка при удалении записи');
+            });
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '—';
+        const d = new Date(dateString);
+        return d.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Страница загружена, загружаем справочники и данные...');
+        loadDirectories();
+        loadDefects();
+    });
+</script>
 
 </body>
 </html>
