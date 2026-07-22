@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Стили из предыдущих версий (опущены для краткости) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -213,11 +214,12 @@
         <!-- Top Bar -->
         <div class="top-bar d-flex justify-content-between align-items-center">
             <div>
-                <span class="page-title">✏️ Добавление записи</span>
+                <span class="page-title" th:text="${pageTitle}">Добавление записи</span>
                 <nav aria-label="breadcrumb" class="d-inline-block ms-3">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
-                        <li class="breadcrumb-item active">Добавление записи</li>
+                        <li class="breadcrumb-item"><a th:href="@{/defects}" href="#">Журнал несоответствий</a></li>
+                        <li class="breadcrumb-item active" th:text="${pageTitle}">Добавление записи</li>
                     </ol>
                 </nav>
             </div>
@@ -237,7 +239,9 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h4 class="mb-0 fw-bold text-dark">✏️ Добавление записи</h4>
+                    <h4 class="mb-0 fw-bold text-dark" th:text="${isEdit ? '✏️ Редактирование записи' : '✏️ Добавление записи'}">
+                        Добавление записи
+                    </h4>
                     <p class="text-secondary small mb-0">Заполните все обязательные поля</p>
                 </div>
                 <a th:href="@{/defects}" class="btn btn-outline-secondary btn-sm px-4">
@@ -248,6 +252,9 @@
             <div class="card shadow-sm border-0">
                 <div class="card-body">
                     <form id="defectForm">
+
+                        <input type="hidden" id="defectId" th:value="${defectId}">
+                        <input type="hidden" id="isEdit" th:value="${isEdit}">
 
                         <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-info-circle"></i> Основная информация</h6>
                         <div class="row g-3 mb-4">
@@ -321,7 +328,7 @@
 
                         <div class="mt-4 pt-3 border-top">
                             <button type="submit" class="btn btn-primary px-5" id="submitBtn">
-                                <i class="bi bi-check2-circle"></i> Сохранить
+                                <i class="bi bi-check2-circle"></i> <span id="submitText">Сохранить</span>
                             </button>
                             <a th:href="@{/defects}" class="btn btn-outline-secondary px-4 ms-2">
                                 <i class="bi bi-x-circle"></i> Отмена
@@ -340,8 +347,15 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // ==========================================
+    // СОСТОЯНИЕ
+    // ==========================================
+    let isEdit = document.getElementById('isEdit').value === 'true';
+    let defectId = document.getElementById('defectId').value;
 
+    // ==========================================
     // ЗАГРУЗКА СПРАВОЧНИКОВ
+    // ==========================================
     function loadDirectories() {
         // Участки
         fetch('/directories/production-sites')
@@ -419,9 +433,40 @@
             .catch(error => console.error('Ошибка загрузки видов доработки:', error));
     }
 
-    // ОБНОВЛЕНИЕ ПОДПРИЧИН
-    document.getElementById('defectCauseId').addEventListener('change', function() {
-        const causeId = this.value;
+    // ==========================================
+    // ЗАГРУЗКА ДАННЫХ ДЛЯ РЕДАКТИРОВАНИЯ
+    // ==========================================
+    function loadDefectData() {
+        if (!isEdit || !defectId) return;
+
+        fetch(`/api/defects/${defectId}`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('detectionDate').value = data.detectionDate;
+                document.getElementById('productionSiteId').value = data.productionSiteId || '';
+                document.getElementById('defectTypeId').value = data.defectTypeId || '';
+                document.getElementById('weightTonnes').value = data.weightTonnes || '';
+                document.getElementById('detectionSourceId').value = data.detectionSourceId || '';
+                document.getElementById('defectCauseId').value = data.defectCauseId || '';
+                document.getElementById('defectSubcauseId').value = data.defectSubcauseId || '';
+                document.getElementById('note').value = data.note || '';
+                document.getElementById('reworkDate').value = data.reworkDate || '';
+                document.getElementById('reworkTypeId').value = data.reworkTypeId || '';
+                document.getElementById('reworkWeightTonnes').value = data.reworkWeightTonnes || '';
+                document.getElementById('irreparableWeightTonnes').value = data.irreparableWeightTonnes || '';
+
+                // Если есть причина — загружаем подпричины
+                if (data.defectCauseId) {
+                    loadSubcauses(data.defectCauseId, data.defectSubcauseId);
+                }
+            })
+            .catch(error => console.error('Ошибка загрузки данных:', error));
+    }
+
+    // ==========================================
+    // ЗАГРУЗКА ПОДПРИЧИН
+    // ==========================================
+    function loadSubcauses(causeId, selectedSubcauseId) {
         const subcauseSelect = document.getElementById('defectSubcauseId');
         subcauseSelect.innerHTML = '<option value="">—</option>';
 
@@ -434,19 +479,32 @@
                     const option = document.createElement('option');
                     option.value = sub.id;
                     option.textContent = sub.causeName;
+                    if (selectedSubcauseId && sub.id === selectedSubcauseId) {
+                        option.selected = true;
+                    }
                     subcauseSelect.appendChild(option);
                 });
             })
             .catch(error => console.error('Ошибка загрузки подпричин:', error));
+    }
+
+    // ==========================================
+    // ОБНОВЛЕНИЕ ПОДПРИЧИН ПРИ ВЫБОРЕ ПРИЧИНЫ
+    // ==========================================
+    document.getElementById('defectCauseId').addEventListener('change', function() {
+        loadSubcauses(this.value);
     });
 
+    // ==========================================
     // ОТПРАВКА ФОРМЫ
+    // ==========================================
     document.getElementById('defectForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Сохранение...';
+        submitText.textContent = 'Сохранение...';
 
         const data = {
             detectionDate: document.getElementById('detectionDate').value,
@@ -467,14 +525,17 @@
             if (data[key] === null || data[key] === '') delete data[key];
         });
 
-        fetch('/api/defects', {
-            method: 'POST',
+        const url = isEdit ? `/api/defects/${defectId}` : '/api/defects';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(err => { throw new Error(err.message || 'Ошибка создания'); });
+                    return response.json().then(err => { throw new Error(err.message || 'Ошибка сохранения'); });
                 }
                 return response.json();
             })
@@ -483,18 +544,24 @@
             })
             .catch(error => {
                 console.error('Ошибка:', error);
-                alert('Ошибка при создании записи: ' + error.message);
+                alert('Ошибка при сохранении записи: ' + error.message);
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> Сохранить';
+                submitText.textContent = isEdit ? 'Обновить' : 'Сохранить';
             });
     });
 
+    // ==========================================
     // ИНИЦИАЛИЗАЦИЯ
+    // ==========================================
     document.addEventListener('DOMContentLoaded', function() {
         loadDirectories();
-
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('detectionDate').value = today;
+        if (isEdit) {
+            document.getElementById('submitText').textContent = 'Обновить';
+            loadDefectData();
+        } else {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('detectionDate').value = today;
+        }
     });
 </script>
 

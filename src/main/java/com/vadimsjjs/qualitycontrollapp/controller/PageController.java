@@ -38,6 +38,7 @@ public class PageController {
     public String addDefect(Model model) {
         model.addAttribute("currentPage", "add-defect");
         model.addAttribute("pageTitle", "Добавление записи");
+        model.addAttribute("isEdit", false);
         return "defects/add";
     }
 
@@ -46,6 +47,7 @@ public class PageController {
         model.addAttribute("defectId", id);
         model.addAttribute("currentPage", "add-defect");
         model.addAttribute("pageTitle", "Редактирование записи");
+        model.addAttribute("isEdit", true);
         return "defects/add";
     }
 

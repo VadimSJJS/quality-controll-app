@@ -13,9 +13,28 @@ import java.util.List;
 @Repository
 public interface NonconformingProductRepository extends JpaRepository<NonconformingProduct, Long> {
 
-    /**
-     * вариант реализация для версии Oracle 11
-     */
+    @Query("SELECT n FROM NonconformingProduct n " +
+            "WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom) " +
+            "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
+            "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
+            "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId) " +
+            "ORDER BY n.detectionDate DESC")
+    List<NonconformingProduct> findWithFilters(
+            @Param("dateFrom") LocalDate dateFrom,
+            @Param("dateTo") LocalDate dateTo,
+            @Param("siteId") Long siteId,
+            @Param("defectTypeId") Long defectTypeId,
+            Pageable pageable);
+
+    default List<NonconformingProduct> findWithFilters(
+            LocalDate dateFrom,
+            LocalDate dateTo,
+            Long siteId,
+            Long defectTypeId) {
+        return findWithFilters(dateFrom, dateTo, siteId, defectTypeId, null);
+    }
+
+    // ===== МЕТОД ДЛЯ ПАГИНАЦИИ С ROWNUM (Oracle 11g) =====
     @Query(value = "SELECT * FROM ( " +
             "SELECT a.*, ROWNUM rn FROM ( " +
             "SELECT * FROM NONCONFORMING_PRODUCT n " +
