@@ -1,6 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.config;
 
-import com.vadimsjjs.qualitycontrollapp.security.CustomUserDetailsService;
+import com.vadimsjjs.qualitycontrollapp.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,20 +19,21 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
+    private static final String[] PUBLIC_PATHS = {
+            "/login", "/css/**", "/js/**", "/webjars/**", "/error"
+    };
 
-    private static final String[] PUBLIC_PATHS = {"/login", "/css/**", "/js/**", "/webjars/**", "/error"};
-    private static final String[] DEFECTS_PATHS = {"/defects/**", "/reports/**"};
-    private static final String[] ADMIN_PATHS = {"/directories/**"};
+    private final CustomUserDetailsService userDetailsService; // ← ДОЛЖЕН НАХОДИТЬ
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http
+        http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-                        .requestMatchers(DEFECTS_PATHS).hasAnyRole("10_OTK", "11_OTK", "12_OTK", "ADMIN", "6_PPB")
-                        .requestMatchers(ADMIN_PATHS).hasRole("ADMIN")
+                        .requestMatchers("/defects/**", "/reports/**")
+                        .hasAnyRole("10_OTK", "11_OTK", "12_OTK", "ADMIN", "6_PPB")
+                        .requestMatchers("/directories/**").hasRole("ADMIN")
                         .requestMatchers("/charts/**").hasAnyRole("10_OTK", "11_OTK", "12_OTK", "ADMIN")
                         .anyRequest().authenticated()
                 )
@@ -54,8 +55,9 @@ public class SecurityConfig {
                         .expiredUrl("/login?expired=true")
                 )
                 .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
-                .authenticationProvider(authenticationProvider())
-                .build();
+                .authenticationProvider(authenticationProvider());
+
+        return http.build();
     }
 
     @Bean
@@ -72,6 +74,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }

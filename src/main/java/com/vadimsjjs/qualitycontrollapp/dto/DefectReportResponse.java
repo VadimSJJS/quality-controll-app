@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DefectReportResponse {
+
     private PeriodInfo period;
     private Summary summary;
     private List<SiteReport> siteReports;
@@ -26,6 +27,7 @@ public class DefectReportResponse {
     public static class PeriodInfo {
         private String dateFrom;
         private String dateTo;
+        private String daysCount;
     }
 
     @Data
@@ -36,7 +38,8 @@ public class DefectReportResponse {
         private BigDecimal totalDefectWeight;
         private BigDecimal totalReworkedWeight;
         private BigDecimal totalIrreparableWeight;
-        private BigDecimal defectPercent;
+        private BigDecimal totalProducedWeight;
+        private BigDecimal totalDefectPercent;
         private long totalRecords;
     }
 
@@ -46,11 +49,13 @@ public class DefectReportResponse {
     @AllArgsConstructor
     public static class SiteReport {
         private String siteName;
+        private BigDecimal producedWeight;
         private BigDecimal defectWeight;
         private BigDecimal reworkWeight;
         private BigDecimal irreparableWeight;
         private BigDecimal defectPercent;
         private BigDecimal allowablePercent;
+        private boolean isExceeded;
     }
 
     @Data
@@ -61,6 +66,7 @@ public class DefectReportResponse {
         private String defectType;
         private BigDecimal weight;
         private BigDecimal percent;
+        private boolean isReworkable;
     }
 
     @Data

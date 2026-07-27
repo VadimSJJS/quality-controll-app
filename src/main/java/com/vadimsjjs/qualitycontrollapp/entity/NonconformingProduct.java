@@ -1,15 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -82,6 +73,30 @@ public class NonconformingProduct {
 
     @Column(name = "EQUIPMENT_KEY", length = 100)
     private String equipmentKey;
+
+    @Column(name = "DIAMETER")
+    private Double diameter;
+
+    @Column(name = "STEEL_CORD_CONSTRUCTION", length = 50)
+    private String steelCordConstruction;
+
+    @Column(name = "OPERATOR_PERSONAL_NUMBER")
+    private Long operatorPersonalNumber;
+
+    @Column(name = "BRIGADE")
+    private Long brigade;
+
+    @Column(name = "STEEL_GRADE", length = 50)
+    private String steelGrade;
+
+    @Column(name = "WORKPIECE_KEY", length = 100)
+    private String workpieceKey;
+
+    @Column(name = "QUANTITY")
+    private Integer quantity;
+
+    @Column(name = "REWORK_QUANTITY")
+    private Integer reworkQuantity;
 
     @Column(name = "REWORK_DATE")
     private LocalDate reworkDate;

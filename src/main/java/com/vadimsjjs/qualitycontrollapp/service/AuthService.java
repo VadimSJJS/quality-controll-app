@@ -5,6 +5,7 @@ import com.vadimsjjs.qualitycontrollapp.dto.LoginRequest;
 import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -30,7 +32,7 @@ public class AuthService {
         );
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        Personal personal = personalRepository.findByPersonalNo(request.getPersonalNo().toString())
+        Personal personal = personalRepository.findByPersonalNo(request.getPersonalNo())
                 .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
 
         return AuthResponse.success(
@@ -50,14 +52,21 @@ public class AuthService {
             return AuthResponse.unauthorized();
         }
 
-        String personalNo = authentication.getName();
-        Personal personal = personalRepository.findByPersonalNo(personalNo)
-                .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
+        String personalNoStr = authentication.getName();
 
-        return AuthResponse.success(
-                Long.parseLong(personalNo),
-                personal.getFio(),
-                authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
-        );
+        try {
+            Long personalNo = Long.parseLong(personalNoStr);
+            Personal personal = personalRepository.findByPersonalNo(personalNo)
+                    .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
+
+            return AuthResponse.success(
+                    personalNo,
+                    personal.getFio(),
+                    authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
+            );
+        } catch (NumberFormatException e) {
+            log.error("Неверный формат табельного номера: {}", personalNoStr);
+            return AuthResponse.unauthorized();
+        }
     }
 }

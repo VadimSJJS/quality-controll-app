@@ -150,6 +150,18 @@
         .badge-status.reworked { background: #dcfce7; color: #166534; }
         .badge-status.pending { background: #fef9c3; color: #854d0e; }
         .badge-status.defect { background: #fee2e2; color: #991b1b; }
+        .table th {
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .table td {
+            font-size: 14px;
+            vertical-align: middle;
+        }
         @media (max-width: 992px) {
             .sidebar { display: none; }
             .topbar .brand .logo-sub { display: none; }
@@ -159,6 +171,19 @@
             .topbar .brand .logo-text { font-size: 18px; }
             .topbar .user-area .user-name { font-size: 13px; }
             .main-content { padding: 16px; }
+        }
+        .filter-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        .modal {
+            z-index: 1050 !important;
         }
     </style>
 </head>
@@ -244,36 +269,43 @@
         <!-- MAIN CONTENT -->
         <div class="main-content">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
                 <div>
                     <h4 class="mb-0 fw-bold text-dark">📋 Журнал несоответствий</h4>
                     <p class="text-secondary small mb-0">Управление записями о браке и несоответствующей продукции</p>
                 </div>
-                <a th:href="@{/defects/add}" class="btn btn-primary btn-sm px-4">
-                    <i class="bi bi-plus-circle"></i> Добавить запись
-                </a>
+                <div>
+                    <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+                        <i class="bi bi-file-earmark-excel"></i> Импорт из Excel
+                    </button>
+                    <a th:href="@{/api/excel/template}" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="bi bi-download"></i> Скачать шаблон
+                    </a>
+                    <a th:href="@{/defects/add}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle"></i> Добавить запись
+                    </a>
+                </div>
             </div>
 
-            <!-- Фильтры -->
             <div class="card shadow-sm border-0 mb-4">
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold small text-secondary">Дата с</label>
+                            <label class="form-label filter-label">Дата с</label>
                             <input type="date" class="form-control form-control-sm" id="dateFrom">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold small text-secondary">Дата по</label>
+                            <label class="form-label filter-label">Дата по</label>
                             <input type="date" class="form-control form-control-sm" id="dateTo">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold small text-secondary">Участок</label>
+                            <label class="form-label filter-label">Участок</label>
                             <select class="form-select form-select-sm" id="siteFilter">
                                 <option value="">Все участки</option>
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold small text-secondary">Вид несоответствия</label>
+                            <label class="form-label filter-label">Вид несоответствия</label>
                             <select class="form-select form-select-sm" id="defectFilter">
                                 <option value="">Все виды</option>
                             </select>
@@ -292,7 +324,6 @@
                 </div>
             </div>
 
-            <!-- Таблица -->
             <div class="card shadow-sm border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -321,7 +352,6 @@
                 </div>
             </div>
 
-            <!-- Пагинация -->
             <div class="d-flex justify-content-between align-items-center mt-3">
                 <span class="text-secondary small" id="infoText">Загрузка...</span>
                 <nav>
@@ -333,21 +363,55 @@
                 </nav>
             </div>
 
+            <div class="mt-3 text-end">
+                <a th:href="@{/defects/add}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> Добавить запись
+                </a>
+            </div>
+
         </div>
 
     </main>
 </div>
 
+<div class="modal fade" id="importModal" tabindex="-1" aria-labelledby="importModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importModalLabel">Импорт из Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small">Загрузите файл Excel, заполненный по шаблону из Рисунка 1.</p>
+                <form id="importForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label fw-semibold">Выберите файл Excel</label>
+                        <input type="file" class="form-control" id="fileInput" accept=".xlsx,.xls" required>
+                        <div class="form-text text-secondary small">
+                            <i class="bi bi-info-circle"></i> Скачайте <a th:href="@{/api/excel/template}" href="#">шаблон</a> и заполните его данными
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="importBtn">
+                        <i class="bi bi-upload"></i> Загрузить
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                </form>
+                <div id="importResult" class="mt-3" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+
     let currentPage = 0;
     const pageSize = 20;
     let totalPages = 0;
 
-    // ЗАГРУЗКА СПРАВОЧНИКОВ
+
     function loadDirectories() {
-        // Участки
         fetch('/directories/production-sites')
             .then(response => {
                 if (!response.ok) throw new Error('Ошибка загрузки участков');
@@ -365,7 +429,6 @@
             })
             .catch(error => console.error('Ошибка загрузки участков:', error));
 
-        // Виды несоответствий
         fetch('/directories/defect-types')
             .then(response => {
                 if (!response.ok) throw new Error('Ошибка загрузки видов дефектов');
@@ -384,7 +447,7 @@
             .catch(error => console.error('Ошибка загрузки видов дефектов:', error));
     }
 
-    // ЗАГРУЗКА ДАННЫХ
+
     function loadDefects() {
         const tbody = document.getElementById('defectsTableBody');
         tbody.innerHTML = `
@@ -410,8 +473,6 @@
         if (siteId) params.append('productionSiteId', siteId);
         if (defectTypeId) params.append('defectTypeId', defectTypeId);
 
-        console.log('Запрос к API: /api/defects/filter?' + params.toString());
-
         fetch('/api/defects/filter?' + params.toString())
             .then(response => {
                 if (!response.ok) {
@@ -423,7 +484,6 @@
                 return response.json();
             })
             .then(data => {
-                console.log('Получены данные:', data);
                 totalPages = data.totalPages || 0;
                 renderTable(data.content || []);
                 renderPagination(data);
@@ -442,7 +502,6 @@
             });
     }
 
-    // ОТРИСОВКА ТАБЛИЦЫ
     function renderTable(defects) {
         const tbody = document.getElementById('defectsTableBody');
 
@@ -484,7 +543,7 @@
         `).join('');
     }
 
-    // ПАГИНАЦИЯ
+
     function renderPagination(pageData) {
         const pagination = document.getElementById('paginationControls');
         if (!pageData || pageData.totalPages <= 1) {
@@ -586,13 +645,54 @@
         });
     }
 
-    // ИНИЦИАЛИЗАЦИЯ
+
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Страница загружена, загружаем справочники и данные...');
         loadDirectories();
         loadDefects();
     });
-</script>
+
+    document.getElementById('importForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const fileInput = document.getElementById('fileInput');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            alert('Пожалуйста, выберите файл');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const btn = document.getElementById('importBtn');
+        const resultDiv = document.getElementById('importResult');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Загрузка...';
+        resultDiv.style.display = 'none';
+
+        fetch('/api/excel/import', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(data => {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `<div class="alert alert-success">${data}</div>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
+                fileInput.value = '';
+                setTimeout(() => location.reload(), 2000);
+            })
+            .catch(error => {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = `<div class="alert alert-danger">Ошибка: ${error.message}</div>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
+            });
+    });
+</script>a
 
 </body>
 </html>

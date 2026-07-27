@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -17,13 +16,33 @@ public class NonconformingProductResponse {
 
     private Long id;
     private LocalDate detectionDate;
+
+    // Участок
+    private Long productionSiteId;
     private String productionSiteName;
+
+    // Источник выявления
+    private Long detectionSourceId;
     private String detectionSourceName;
+
+    // Вид несоответствия
+    private Long defectTypeId;
+    private String defectTypeName;
+
+    // Причина
+    private Long defectCauseId;
+    private String defectCauseName;
+
+    // Подпричина
+    private Long defectSubcauseId;
+    private String defectSubcauseName;
+
+    // Вид доработки
+    private Long reworkTypeId;
+    private String reworkTypeName;
+
     private BigDecimal weightTonnes;
     private BigDecimal irreparableWeightTonnes;
-    private String defectTypeName;
-    private String defectCauseName;
-    private String defectSubcauseName;
     private String note;
     private Long productCode;
     private String reelNumber;
@@ -33,7 +52,6 @@ public class NonconformingProductResponse {
     private String manufacturerWorkshop;
     private String equipmentKey;
     private LocalDate reworkDate;
-    private String reworkTypeName;
     private BigDecimal reworkWeightTonnes;
-    private String status; // "REWORKED", "NOT_REWORKED", "DEFECT"
+    private String status;
 }

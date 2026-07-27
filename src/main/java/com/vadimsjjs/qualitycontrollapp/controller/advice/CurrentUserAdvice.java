@@ -1,5 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.controller.advice;
 
+import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
 import com.vadimsjjs.qualitycontrollapp.security.RoleResolver;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.Collection;
 
-// контроллер который автоматически добавляет данные о текущем пользователя в каждый шаблон th
 @ControllerAdvice
 @RequiredArgsConstructor
 public class CurrentUserAdvice {
@@ -24,18 +24,25 @@ public class CurrentUserAdvice {
             return;
         }
 
-        String personalNo = authentication.getName();
+        String personalNoStr = authentication.getName();
 
-        personalRepository.findByPersonalNo(personalNo)
-                .ifPresent(user -> {
-                    model.addAttribute("fio", user.getFio());
-                    model.addAttribute("personalNo", user.getPersonalNo());
-                });
+        try {
+            Long personalNo = Long.parseLong(personalNoStr);
 
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        model.addAttribute("roles", RoleResolver.join(authorities));
-        model.addAttribute("roleGroup", RoleResolver.resolveGroup(authorities));
-        model.addAttribute("personalNo", personalNo);
+            personalRepository.findByPersonalNo(personalNo)
+                    .ifPresent(user -> {
+                        model.addAttribute("fio", user.getFio());
+                        model.addAttribute("personalNo", user.getPersonalNo());
+                    });
+
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+            model.addAttribute("roles", RoleResolver.join(authorities));
+            model.addAttribute("roleGroup", RoleResolver.resolveGroup(authorities));
+            model.addAttribute("personalNo", personalNo);
+
+        } catch (NumberFormatException e) {
+            // №
+        }
     }
 
     private boolean isAnonymous(Authentication authentication) {
