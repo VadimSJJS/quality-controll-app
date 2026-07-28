@@ -73,6 +73,8 @@ public class NonconformingProductService {
             LocalDate dateTo,
             Long productionSiteId,
             Long defectTypeId,
+            String equipmentKey,
+            Long operatorPersonalNumber,
             Pageable pageable) {
 
         int pageNumber = pageable.getPageNumber();
@@ -81,9 +83,10 @@ public class NonconformingProductService {
         int endRow = startRow + pageSize;
 
         List<NonconformingProduct> content = repository.findWithFiltersNative(
-                dateFrom, dateTo, productionSiteId, defectTypeId, startRow, endRow);
+                dateFrom, dateTo, productionSiteId, defectTypeId, equipmentKey, operatorPersonalNumber, startRow, endRow);
 
-        long total = repository.countWithFilters(dateFrom, dateTo, productionSiteId, defectTypeId);
+        long total = repository.countWithFilters(
+                dateFrom, dateTo, productionSiteId, defectTypeId, equipmentKey, operatorPersonalNumber);
 
         List<NonconformingProductResponse> responses = content.stream()
                 .map(this::toResponse)
@@ -92,11 +95,8 @@ public class NonconformingProductService {
         return new PageImpl<>(responses, pageable, total);
     }
 
-
-
     private NonconformingProduct toEntity(NonconformingProductRequest request) {
         NonconformingProduct entity = new NonconformingProduct();
-
         entity.setDetectionDate(request.getDetectionDate());
 
         ProductionSite site = productionSiteRepository.findById(request.getProductionSiteId())
@@ -140,8 +140,12 @@ public class NonconformingProductService {
         entity.setBundleNumber(request.getBundleNumber());
         entity.setManufacturerWorkshop(request.getManufacturerWorkshop());
         entity.setEquipmentKey(request.getEquipmentKey());
+        if (request.getOperatorPersonalNumber() != null) {
+            entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
+        }
         entity.setReworkDate(request.getReworkDate());
         entity.setReworkWeightTonnes(request.getReworkWeightTonnes());
+        entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
 
         return entity;
     }
@@ -186,6 +190,13 @@ public class NonconformingProductService {
             entity.setDefectSubcause(null);
         }
 
+        if (request.getEquipmentKey() != null) {
+            entity.setEquipmentKey(request.getEquipmentKey());
+        }
+        if (request.getOperatorPersonalNumber() != null) {
+            entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
+        }
+
         if (request.getReworkTypeId() != null) {
             ReworkType reworkType = reworkTypeRepository.findById(request.getReworkTypeId())
                     .orElseThrow(() -> new RuntimeException("Вид доработки не найден"));
@@ -210,25 +221,18 @@ public class NonconformingProductService {
         return NonconformingProductResponse.builder()
                 .id(entity.getId())
                 .detectionDate(entity.getDetectionDate())
-
                 .productionSiteId(entity.getProductionSite() != null ? entity.getProductionSite().getId() : null)
                 .productionSiteName(entity.getProductionSite() != null ? entity.getProductionSite().getSiteName() : null)
-
                 .detectionSourceId(entity.getDetectionSource() != null ? entity.getDetectionSource().getId() : null)
                 .detectionSourceName(entity.getDetectionSource() != null ? entity.getDetectionSource().getSourceName() : null)
-
                 .defectTypeId(entity.getDefectType() != null ? entity.getDefectType().getId() : null)
                 .defectTypeName(entity.getDefectType() != null ? entity.getDefectType().getDefectName() : null)
-
                 .defectCauseId(entity.getDefectCause() != null ? entity.getDefectCause().getId() : null)
                 .defectCauseName(entity.getDefectCause() != null ? entity.getDefectCause().getCauseName() : null)
-
                 .defectSubcauseId(entity.getDefectSubcause() != null ? entity.getDefectSubcause().getId() : null)
                 .defectSubcauseName(entity.getDefectSubcause() != null ? entity.getDefectSubcause().getCauseName() : null)
-
                 .reworkTypeId(entity.getReworkType() != null ? entity.getReworkType().getId() : null)
                 .reworkTypeName(entity.getReworkType() != null ? entity.getReworkType().getReworkName() : null)
-
                 .weightTonnes(entity.getWeightTonnes())
                 .irreparableWeightTonnes(entity.getIrreparableWeightTonnes())
                 .note(entity.getNote())

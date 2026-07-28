@@ -37,29 +37,20 @@ public class NonconformingProductRequest {
     private Long defectTypeId;
 
     private Long defectCauseId;
-
     private Long defectSubcauseId;
-
     private String note;
-
     private Long productCode;
-
     private String reelNumber;
-
     private String heatNumber;
-
     private Long manufacturerBrigade;
-
     private String bundleNumber;
-
     private String manufacturerWorkshop;
-
     private String equipmentKey;
 
+    private Long operatorPersonalNumber;
+
     private LocalDate reworkDate;
-
     private Long reworkTypeId;
-
     @PositiveOrZero(message = "Вес доработки должен быть ≥ 0")
     private BigDecimal reworkWeightTonnes;
 }

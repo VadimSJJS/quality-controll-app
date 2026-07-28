@@ -38,9 +38,11 @@ public class NonconformingProductController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
             @RequestParam(required = false) Long productionSiteId,
             @RequestParam(required = false) Long defectTypeId,
+            @RequestParam(required = false) String equipmentKey,
+            @RequestParam(required = false) Long operatorPersonalNumber,
             @PageableDefault(size = 20, sort = "detectionDate", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<NonconformingProductResponse> result = service.findByFilters(
-                dateFrom, dateTo, productionSiteId, defectTypeId, pageable);
+                dateFrom, dateTo, productionSiteId, defectTypeId, equipmentKey, operatorPersonalNumber, pageable);
         return ResponseEntity.ok(result);
     }
 

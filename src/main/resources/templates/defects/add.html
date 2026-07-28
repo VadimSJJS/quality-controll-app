@@ -256,46 +256,58 @@
                         <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-info-circle"></i> Основная информация</h6>
                         <div class="row g-3 mb-4">
                             <div class="col-md-3">
-                                <label class="form-label">Дата выявления <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Дата выявления <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control" id="detectionDate" required>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Участок <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Участок <span class="text-danger">*</span></label>
                                 <select class="form-select" id="productionSiteId" required>
                                     <option value="">Выберите участок</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Вид несоответствия <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Вид несоответствия <span class="text-danger">*</span></label>
                                 <select class="form-select" id="defectTypeId" required>
                                     <option value="">Выберите вид</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Масса (т) <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Масса (т) <span class="text-danger">*</span></label>
                                 <input type="number" step="0.001" class="form-control" id="weightTonnes" placeholder="0.000" required>
                             </div>
+
                             <div class="col-md-3">
-                                <label class="form-label">Кем выявлено <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Кем выявлено <span class="text-danger">*</span></label>
                                 <select class="form-select" id="detectionSourceId" required>
                                     <option value="">Выберите источник</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Причина</label>
+                                <label class="form-label fw-semibold small text-secondary">Причина</label>
                                 <select class="form-select" id="defectCauseId">
                                     <option value="">—</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Подпричина</label>
+                                <label class="form-label fw-semibold small text-secondary">Подпричина</label>
                                 <select class="form-select" id="defectSubcauseId">
                                     <option value="">—</option>
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Примечание</label>
+                                <label class="form-label fw-semibold small text-secondary">Примечание</label>
                                 <input type="text" class="form-control" id="note" placeholder="Дополнительная информация">
+                            </div>
+
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small text-secondary">Оборудование</label>
+                                <input type="text" class="form-control" id="equipmentKey" placeholder="Номер стана/агрегата">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold small text-secondary">Оператор</label>
+                                <input type="text" class="form-control" id="operatorPersonalNumberDisplay"
+                                       th:value="${personalNo}" readonly disabled style="background:#f1f5f9;">
+                                <div class="form-text text-secondary small">Автоматически из вашей учётной записи</div>
                             </div>
                         </div>
 
@@ -445,9 +457,29 @@
         try {
             await loadDirectories();
 
-            const data = await fetchJson(`/api/defects/${defectId}`, 'Ошибка загрузки данных');
+            const data = {
+                detectionDate: document.getElementById('detectionDate').value,
+                productionSiteId: parseInt(document.getElementById('productionSiteId').value),
+                detectionSourceId: parseInt(document.getElementById('detectionSourceId').value),
+                weightTonnes: parseFloat(document.getElementById('weightTonnes').value),
+                defectTypeId: parseInt(document.getElementById('defectTypeId').value),
+                defectCauseId: document.getElementById('defectCauseId').value ? parseInt(document.getElementById('defectCauseId').value) : null,
+                defectSubcauseId: document.getElementById('defectSubcauseId').value ? parseInt(document.getElementById('defectSubcauseId').value) : null,
+                note: document.getElementById('note').value || null,
+                equipmentKey: document.getElementById('equipmentKey').value || null,
 
-            console.log('Данные для редактирования:', data); // Для отладки
+                operatorPersonalNumber: document.getElementById('operatorPersonalNumber').value ?
+                    parseInt(document.getElementById('operatorPersonalNumber').value) : null,
+
+                reworkDate: document.getElementById('reworkDate').value || null,
+                reworkTypeId: document.getElementById('reworkTypeId').value ? parseInt(document.getElementById('reworkTypeId').value) : null,
+                reworkWeightTonnes: document.getElementById('reworkWeightTonnes').value ? parseFloat(document.getElementById('reworkWeightTonnes').value) : null,
+                irreparableWeightTonnes: document.getElementById('irreparableWeightTonnes').value ? parseFloat(document.getElementById('irreparableWeightTonnes').value) : null
+            };
+
+            console.log('Данные для редактирования:', data);
+
+
 
             document.getElementById('detectionDate').value = data.detectionDate || '';
             document.getElementById('weightTonnes').value = data.weightTonnes || '';
@@ -463,7 +495,6 @@
             document.getElementById('reworkWeightTonnes').value = data.reworkWeightTonnes || '';
             document.getElementById('irreparableWeightTonnes').value = data.irreparableWeightTonnes || '';
 
-            // Загружаем подпричины, если есть причина
             if (data.defectCauseId) {
                 await loadSubcauses(data.defectCauseId, data.defectSubcauseId);
             }
