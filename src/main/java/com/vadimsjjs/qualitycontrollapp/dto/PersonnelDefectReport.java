@@ -15,9 +15,9 @@ public class PersonnelDefectReport {
     private String periodFrom;
     private String periodTo;
     private List<PersonnelRow> personnelRows;
-    private Summary summary;           // Задержанное участком
-    private Summary liSummary;         // Задержанное на ЛИ
-    private Summary otkSummary;        // Задержанное ОТК
+    private Summary summary;
+    private Summary liSummary;
+    private Summary otkSummary;
 
     @Data
     @Builder
@@ -26,10 +26,12 @@ public class PersonnelDefectReport {
     public static class PersonnelRow {
         private Long personnelId;
         private String fio;
-        private Integer defectCount1;   // Намот
-        private Integer defectCount2;   // Кольцо
-        private Integer defectCount3;   // Рев. скр.
+        private Integer defectCount1;
+        private Integer defectCount2;
+        private Integer defectCount3;
         private Integer total;
+        private Integer defect;
+        private String note;
     }
 
     @Data
@@ -42,6 +44,8 @@ public class PersonnelDefectReport {
         private Integer defectCount2;
         private Integer defectCount3;
         private Integer total;
+        private Integer defect;
         private String percent;
+        private String note;
     }
 }

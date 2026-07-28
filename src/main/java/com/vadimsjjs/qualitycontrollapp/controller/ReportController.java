@@ -80,6 +80,13 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getReportByPersonnel(siteName, dateFrom, dateTo));
     }
 
+    @GetMapping("/personnel-defects-v2")
+    public ResponseEntity<PersonnelDefectReport> getPersonnelDefectReportV2(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(reportService.getPersonnelDefectReportV2(dateFrom, dateTo));
+    }
+
     @GetMapping("/by-plant")
     public ResponseEntity<ReportDto.ReportByPlant> getReportByPlant(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,

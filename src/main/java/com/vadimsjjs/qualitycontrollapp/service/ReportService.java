@@ -339,6 +339,75 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
+    public PersonnelDefectReport getPersonnelDefectReportV2(LocalDate dateFrom, LocalDate dateTo) {
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
+
+        Map<Long, List<NonconformingProduct>> byPersonnel = defects.stream()
+                .filter(d -> d.getOperatorPersonalNumber() != null)
+                .collect(Collectors.groupingBy(NonconformingProduct::getOperatorPersonalNumber));
+
+        List<PersonnelDefectReport.PersonnelRow> rows = new ArrayList<>();
+
+        for (Map.Entry<Long, List<NonconformingProduct>> entry : byPersonnel.entrySet()) {
+            Long personnelId = entry.getKey();
+            List<NonconformingProduct> userDefects = entry.getValue();
+
+            String fio = personalRepository.findByPersonalNo(personnelId)
+                    .map(Personal::getFio)
+                    .orElse("Неизвестно (таб. " + personnelId + ")");
+
+            int count1 = countByDefectName(userDefects, "Намот");
+            int count2 = countByDefectName(userDefects, "Кольцо");
+            int count3 = countByDefectName(userDefects, "Рев. скр.");
+            int total = count1 + count2 + count3;
+            int defect = (int) userDefects.stream()
+                    .filter(d -> d.getIrreparableWeightTonnes() != null && d.getIrreparableWeightTonnes().compareTo(BigDecimal.ZERO) > 0)
+                    .count();
+
+            String note = userDefects.stream()
+                    .findFirst()
+                    .map(NonconformingProduct::getNote)
+                    .orElse("");
+
+            rows.add(PersonnelDefectReport.PersonnelRow.builder()
+                    .personnelId(personnelId)
+                    .fio(fio)
+                    .defectCount1(count1)
+                    .defectCount2(count2)
+                    .defectCount3(count3)
+                    .total(total)
+                    .defect(defect)
+                    .note(note)
+                    .build());
+        }
+
+        rows.sort((a, b) -> b.getTotal().compareTo(a.getTotal()));
+
+        int total1 = rows.stream().mapToInt(PersonnelDefectReport.PersonnelRow::getDefectCount1).sum();
+        int total2 = rows.stream().mapToInt(PersonnelDefectReport.PersonnelRow::getDefectCount2).sum();
+        int total3 = rows.stream().mapToInt(PersonnelDefectReport.PersonnelRow::getDefectCount3).sum();
+        int grandTotal = total1 + total2 + total3;
+        int grandDefect = rows.stream().mapToInt(PersonnelDefectReport.PersonnelRow::getDefect).sum();
+
+        PersonnelDefectReport.Summary summary = PersonnelDefectReport.Summary.builder()
+                .category("Итого по участку")
+                .defectCount1(total1)
+                .defectCount2(total2)
+                .defectCount3(total3)
+                .total(grandTotal)
+                .defect(grandDefect)
+                .note("")
+                .build();
+
+        return PersonnelDefectReport.builder()
+                .periodFrom(dateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodTo(dateTo.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .personnelRows(rows)
+                .summary(summary)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
     public PersonnelDefectReport getPersonnelDefectReport(LocalDate dateFrom, LocalDate dateTo) {
         List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
 
