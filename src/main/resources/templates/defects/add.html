@@ -456,44 +456,26 @@
 
         try {
             await loadDirectories();
-
-            const data = {
-                detectionDate: document.getElementById('detectionDate').value,
-                productionSiteId: parseInt(document.getElementById('productionSiteId').value),
-                detectionSourceId: parseInt(document.getElementById('detectionSourceId').value),
-                weightTonnes: parseFloat(document.getElementById('weightTonnes').value),
-                defectTypeId: parseInt(document.getElementById('defectTypeId').value),
-                defectCauseId: document.getElementById('defectCauseId').value ? parseInt(document.getElementById('defectCauseId').value) : null,
-                defectSubcauseId: document.getElementById('defectSubcauseId').value ? parseInt(document.getElementById('defectSubcauseId').value) : null,
-                note: document.getElementById('note').value || null,
-                equipmentKey: document.getElementById('equipmentKey').value || null,
-
-                operatorPersonalNumber: document.getElementById('operatorPersonalNumber').value ?
-                    parseInt(document.getElementById('operatorPersonalNumber').value) : null,
-
-                reworkDate: document.getElementById('reworkDate').value || null,
-                reworkTypeId: document.getElementById('reworkTypeId').value ? parseInt(document.getElementById('reworkTypeId').value) : null,
-                reworkWeightTonnes: document.getElementById('reworkWeightTonnes').value ? parseFloat(document.getElementById('reworkWeightTonnes').value) : null,
-                irreparableWeightTonnes: document.getElementById('irreparableWeightTonnes').value ? parseFloat(document.getElementById('irreparableWeightTonnes').value) : null
-            };
+            const data = await fetchJson(`/api/defects/${defectId}`, 'Ошибка загрузки данных');
 
             console.log('Данные для редактирования:', data);
-
-
 
             document.getElementById('detectionDate').value = data.detectionDate || '';
             document.getElementById('weightTonnes').value = data.weightTonnes || '';
             document.getElementById('note').value = data.note || '';
-
             document.getElementById('productionSiteId').value = data.productionSiteId || '';
             document.getElementById('defectTypeId').value = data.defectTypeId || '';
             document.getElementById('detectionSourceId').value = data.detectionSourceId || '';
             document.getElementById('defectCauseId').value = data.defectCauseId || '';
             document.getElementById('reworkTypeId').value = data.reworkTypeId || '';
-
             document.getElementById('reworkDate').value = data.reworkDate || '';
             document.getElementById('reworkWeightTonnes').value = data.reworkWeightTonnes || '';
             document.getElementById('irreparableWeightTonnes').value = data.irreparableWeightTonnes || '';
+            document.getElementById('equipmentKey').value = data.equipmentKey || '';
+
+            if (data.operatorPersonalNumber) {
+                document.getElementById('operatorPersonalNumber').value = data.operatorPersonalNumber;
+            }
 
             if (data.defectCauseId) {
                 await loadSubcauses(data.defectCauseId, data.defectSubcauseId);

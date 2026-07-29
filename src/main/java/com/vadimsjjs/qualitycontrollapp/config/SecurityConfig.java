@@ -1,5 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.config;
 
+import com.vadimsjjs.qualitycontrollapp.service.AuditService;
 import com.vadimsjjs.qualitycontrollapp.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -10,20 +11,27 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final CustomUserDetailsService userDetailsService;
+    private final AuditService auditService;
+
     private static final String[] PUBLIC_PATHS = {
             "/login", "/css/**", "/js/**", "/webjars/**", "/error"
     };
-
-    private final CustomUserDetailsService userDetailsService; // ← ДОЛЖЕН НАХОДИТЬ
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -40,13 +48,13 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
+                        .successHandler(successHandler())
                         .failureUrl("/login?error=true")
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout=true")
+                        .logoutSuccessHandler(logoutSuccessHandler())
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 )
@@ -58,6 +66,42 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationSuccessHandler successHandler() {
+        return (request, response, authentication) -> {
+            try {
+                Long personalNo = Long.parseLong(authentication.getName());
+                auditService.logLogin(personalNo, getClientIp(request), request.getHeader("User-Agent"));
+            } catch (Exception e) {
+                // ignore
+            }
+            response.sendRedirect("/");
+        };
+    }
+
+    @Bean
+    public LogoutSuccessHandler logoutSuccessHandler() {
+        return (request, response, authentication) -> {
+            if (authentication != null) {
+                try {
+                    Long personalNo = Long.parseLong(authentication.getName());
+                    auditService.logLogout(personalNo);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+            response.sendRedirect("/login?logout=true");
+        };
+    }
+
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 
     @Bean

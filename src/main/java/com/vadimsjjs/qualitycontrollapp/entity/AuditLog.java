@@ -1,13 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -27,7 +20,7 @@ public class AuditLog {
     @Column(name = "ID_AUDIT_LOG", nullable = false)
     private Long id;
 
-    @Column(name = "USER_PERSONNEL_NUMBER", nullable = false)
+    @Column(name = "USER_PERSONNEL_NUMBER")
     private Long userPersonnelNumber;
 
     @Column(name = "EVENT_TYPE", nullable = false, length = 50)

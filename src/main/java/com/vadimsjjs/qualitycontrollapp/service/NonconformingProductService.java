@@ -243,6 +243,7 @@ public class NonconformingProductService {
                 .bundleNumber(entity.getBundleNumber())
                 .manufacturerWorkshop(entity.getManufacturerWorkshop())
                 .equipmentKey(entity.getEquipmentKey())
+                .operatorPersonalNumber(entity.getOperatorPersonalNumber())
                 .reworkDate(entity.getReworkDate())
                 .reworkWeightTonnes(entity.getReworkWeightTonnes())
                 .status(determineStatus(entity))

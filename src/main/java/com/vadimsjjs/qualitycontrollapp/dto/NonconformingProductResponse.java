@@ -17,27 +17,21 @@ public class NonconformingProductResponse {
     private Long id;
     private LocalDate detectionDate;
 
-    // Участок
     private Long productionSiteId;
     private String productionSiteName;
 
-    // Источник выявления
     private Long detectionSourceId;
     private String detectionSourceName;
 
-    // Вид несоответствия
     private Long defectTypeId;
     private String defectTypeName;
 
-    // Причина
     private Long defectCauseId;
     private String defectCauseName;
 
-    // Подпричина
     private Long defectSubcauseId;
     private String defectSubcauseName;
 
-    // Вид доработки
     private Long reworkTypeId;
     private String reworkTypeName;
 
@@ -51,6 +45,7 @@ public class NonconformingProductResponse {
     private String bundleNumber;
     private String manufacturerWorkshop;
     private String equipmentKey;
+    private Long operatorPersonalNumber;
     private LocalDate reworkDate;
     private BigDecimal reworkWeightTonnes;
     private String status;
