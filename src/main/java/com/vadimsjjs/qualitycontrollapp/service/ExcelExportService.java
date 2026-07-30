@@ -88,7 +88,6 @@ public class ExcelExportService {
             }
 
             rowNum++;
-
             Row causeHeader = sheet.createRow(rowNum++);
             String[] causeHeaders = {"Причина", "Вес, т", "% от общего брака"};
             for (int i = 0; i < causeHeaders.length; i++) {
@@ -117,7 +116,6 @@ public class ExcelExportService {
             throw new RuntimeException("Ошибка экспорта в Excel", e);
         }
     }
-
     private void addSummaryRow(Sheet sheet, int rowNum, String label, BigDecimal value) {
         Row row = sheet.createRow(rowNum);
         row.createCell(0).setCellValue(label);
