@@ -36,6 +36,7 @@ public class NonconformingProductRequest {
     @NotNull(message = "Вид несоответствия обязателен")
     private Long defectTypeId;
 
+    private Long steelGradeId;
     private Long defectCauseId;
     private Long defectSubcauseId;
     private String note;
