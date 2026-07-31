@@ -180,6 +180,7 @@
         </form>
     </div>
 </header>
+
 <!-- MAIN -->
 <div class="main-wrapper">
 
@@ -256,105 +257,73 @@
                         <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-info-circle"></i> Основная информация</h6>
                         <div class="row g-3 mb-4">
 
-                            <!-- 1. Участок (всегда первый) -->
-                            <div class="col-md-3 dynamic-field" data-field="productionSite" style="display:block;">
+                            <!-- 1. Дата выявления (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="detectionDate">
+                                <label class="form-label fw-semibold small text-secondary">Дата выявления <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="detectionDate" required>
+                            </div>
+
+                            <!-- 2. Участок (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="productionSite">
                                 <label class="form-label fw-semibold small text-secondary">Участок <span class="text-danger">*</span></label>
                                 <select class="form-select" id="productionSiteId" required>
                                     <option value="">Выберите участок</option>
                                 </select>
                             </div>
 
-                            <!-- 2. Дата выявления (всегда) -->
-                            <div class="col-md-3 dynamic-field" data-field="detectionDate" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Дата выявления <span class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="detectionDate" required>
-                            </div>
-
-                            <!-- 3. Номер бригады (не для СК) -->
-                            <div class="col-md-3 dynamic-field" data-field="brigade" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер бригады</label>
-                                <input type="number" class="form-control" id="brigade" placeholder="1-4">
-                            </div>
-
-                            <!-- 4. Диаметр (не для СК, ТУ, КУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="diameter" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Диаметр (мм)</label>
-                                <input type="number" step="0.01" class="form-control" id="diameter" placeholder="0.00">
-                            </div>
-
-                            <!-- 5. Код (не для СК, ТУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="productCode" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Код продукта</label>
-                                <input type="text" class="form-control" id="productCode" placeholder="Код">
-                            </div>
-
-                            <!-- 6. Номер катушки/бухты/кассеты (не для СК, ТУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="reelNumber" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер катушки/бухты/кассеты</label>
-                                <input type="text" class="form-control" id="reelNumber" placeholder="Номер">
-                            </div>
-
-                            <!-- 7. Номер плавки (не для КУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="heatNumber" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер плавки</label>
-                                <input type="text" class="form-control" id="heatNumber" placeholder="П-2026-000">
-                            </div>
-
-                            <!-- 8. Марка стали (не для КУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="steelGradeId" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Марка стали</label>
-                                <select class="form-select" id="steelGradeId">
-                                    <option value="">Выберите марку стали</option>
-                                </select>
-                            </div>
-
-                            <!-- 9. Номер стана/канатной машины (не для СК, ТУ, ТТГУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="unitNumber" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер стана/канатной машины</label>
-                                <input type="text" class="form-control" id="unitNumber" placeholder="Стан №">
-                            </div>
-
-                            <!-- 10. Ключ заготовки (ТТГУ, УТВ Св) -->
-                            <div class="col-md-3 dynamic-field" data-field="workpieceKey" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Ключ заготовки</label>
-                                <input type="text" class="form-control" id="workpieceKey" placeholder="Ключ">
-                            </div>
-
-                            <!-- 11. Оператор (всегда, readonly) -->
-                            <div class="col-md-3 dynamic-field" data-field="operatorPersonalNumber" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Оператор</label>
-                                <input type="text" class="form-control" id="operatorPersonalNumberDisplay"
-                                       th:value="${personalNo}" readonly disabled style="background:#f1f5f9;">
-                                <div class="form-text text-secondary small">Автоматически из учётной записи</div>
-                            </div>
-
-                            <!-- 12. Бригада изготовителя (не для СК, ТУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="manufacturerBrigade" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Бригада изготовителя</label>
-                                <input type="number" class="form-control" id="manufacturerBrigade" placeholder="1-4">
-                            </div>
-
-                            <!-- 13. Количество, шт (не для ГСВ, ТТГУ, УТВ, КУ - но для СК и ТУ есть) -->
-                            <div class="col-md-3 dynamic-field" data-field="quantity" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Количество (шт)</label>
-                                <input type="number" class="form-control" id="quantity" placeholder="0">
-                            </div>
-
-                            <!-- 14. Масса (всегда) -->
-                            <div class="col-md-3 dynamic-field" data-field="weightTonnes" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Масса (т) <span class="text-danger">*</span></label>
-                                <input type="number" step="0.001" class="form-control" id="weightTonnes" placeholder="0.000" required>
-                            </div>
-
-                            <!-- 15. Вид несоответствия (всегда) -->
-                            <div class="col-md-3 dynamic-field" data-field="defectType" style="display:block;">
+                            <!-- 3. Вид несоответствия (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="defectType">
                                 <label class="form-label fw-semibold small text-secondary">Вид несоответствия <span class="text-danger">*</span></label>
                                 <select class="form-select" id="defectTypeId" required>
                                     <option value="">Выберите вид</option>
                                 </select>
                             </div>
 
-                            <!-- 16. Причина (не для СК) -->
+                            <!-- 4. Номер плавки (не для КУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="heatNumber" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Номер плавки</label>
+                                <input type="text" class="form-control" id="heatNumber" placeholder="П-2026-000">
+                            </div>
+
+                            <!-- 5. Марка стали (не для КУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="steelGrade" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Марка стали</label>
+                                <input type="text" class="form-control" id="steelGrade" placeholder="70, 80, 90">
+                            </div>
+
+                            <!-- 6. Цех-производитель (только СК) -->
+                            <div class="col-md-3 dynamic-field" data-field="manufacturerWorkshop" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Цех-производитель</label>
+                                <input type="text" class="form-control" id="manufacturerWorkshop" placeholder="Цех">
+                            </div>
+
+                            <!-- 7. Номер бунта (только СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="bundleNumber" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Номер бунта</label>
+                                <input type="text" class="form-control" id="bundleNumber" placeholder="Б-000">
+                            </div>
+
+                            <!-- 8. Количество, шт (не для ГСВ, ТТГУ, УТВ, КУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="quantity" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Количество (шт)</label>
+                                <input type="number" class="form-control" id="quantity" placeholder="0">
+                            </div>
+
+                            <!-- 9. Масса (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="weightTonnes">
+                                <label class="form-label fw-semibold small text-secondary">Масса (т) <span class="text-danger">*</span></label>
+                                <input type="number" step="0.001" class="form-control" id="weightTonnes" placeholder="0.000" required>
+                            </div>
+
+                            <!-- 10. Кем выявлено (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="detectionSource">
+                                <label class="form-label fw-semibold small text-secondary">Кем выявлено <span class="text-danger">*</span></label>
+                                <select class="form-select" id="detectionSourceId" required>
+                                    <option value="">Выберите источник</option>
+                                </select>
+                            </div>
+
+                            <!-- 11. Причина (не для СК) -->
                             <div class="col-md-3 dynamic-field" data-field="defectCause" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Причина</label>
                                 <select class="form-select" id="defectCauseId">
@@ -362,7 +331,7 @@
                                 </select>
                             </div>
 
-                            <!-- 17. Подпричина (не для СК) -->
+                            <!-- 12. Подпричина (не для СК) -->
                             <div class="col-md-3 dynamic-field" data-field="defectSubcause" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Подпричина</label>
                                 <select class="form-select" id="defectSubcauseId">
@@ -370,80 +339,106 @@
                                 </select>
                             </div>
 
-                            <!-- 18. Кем выявлено (всегда) -->
-                            <div class="col-md-3 dynamic-field" data-field="detectionSource" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Кем выявлено <span class="text-danger">*</span></label>
-                                <select class="form-select" id="detectionSourceId" required>
-                                    <option value="">Выберите источник</option>
-                                </select>
+                            <!-- 13. Бригада (не для СК) -->
+                            <div class="col-md-3 dynamic-field" data-field="brigade" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Номер бригады</label>
+                                <input type="number" class="form-control" id="brigade" placeholder="1-4">
                             </div>
 
-                            <!-- 19. Цех-производитель (только СК) -->
-                            <div class="col-md-3 dynamic-field" data-field="manufacturerWorkshop" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Цех-производитель</label>
-                                <input type="text" class="form-control" id="manufacturerWorkshop" placeholder="Цех">
+                            <!-- 14. Диаметр (не для СК, ТУ, КУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="diameter" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Диаметр (мм)</label>
+                                <input type="number" step="0.01" class="form-control" id="diameter" placeholder="0.00">
                             </div>
 
-                            <!-- 20. Номер бунта (только СК, ТУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="bundleNumber" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер бунта</label>
-                                <input type="text" class="form-control" id="bundleNumber" placeholder="Б-000">
+                            <!-- 15. Код (не для СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="productCode" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Код продукта</label>
+                                <input type="text" class="form-control" id="productCode" placeholder="Код">
                             </div>
 
-                            <!-- 21. Конструкция металлокорда (только КУ-1, КУ-2) -->
+                            <!-- 16. Номер катушки/бухты/кассеты (не для СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="reelNumber" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Номер катушки/бухты/кассеты</label>
+                                <input type="text" class="form-control" id="reelNumber" placeholder="Номер">
+                            </div>
+
+                            <!-- 17. Номер стана/канатной машины (не для СК, ТУ, ТТГУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="unitNumber" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Номер стана/канатной машины</label>
+                                <input type="text" class="form-control" id="unitNumber" placeholder="Стан №">
+                            </div>
+
+                            <!-- 18. Ключ заготовки (ТТГУ, УТВ Св) -->
+                            <div class="col-md-3 dynamic-field" data-field="workpieceKey" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Ключ заготовки</label>
+                                <input type="text" class="form-control" id="workpieceKey" placeholder="Ключ">
+                            </div>
+
+                            <!-- 19. Оператор (не для СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="operatorPersonalNumber">
+                                <label class="form-label fw-semibold small text-secondary">Оператор</label>
+                                <input type="text" class="form-control" id="operatorPersonalNumberDisplay"
+                                       th:value="${personalNo}" readonly disabled style="background:#f1f5f9;">
+                                <div class="form-text text-secondary small">Автоматически из учётной записи</div>
+                            </div>
+
+                            <!-- 20. Бригада изготовителя (не для СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="manufacturerBrigade" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Бригада изготовителя</label>
+                                <input type="number" class="form-control" id="manufacturerBrigade" placeholder="1-4">
+                            </div>
+
+                            <!-- 21. Оборудование (не для СК, ТУ) -->
+                            <div class="col-md-3 dynamic-field" data-field="equipmentKey" style="display:none;">
+                                <label class="form-label fw-semibold small text-secondary">Оборудование</label>
+                                <input type="text" class="form-control" id="equipmentKey" placeholder="Номер стана/агрегата">
+                            </div>
+
+                            <!-- 22. Конструкция металлокорда (только КУ-1, КУ-2) -->
                             <div class="col-md-3 dynamic-field" data-field="steelCordConstruction" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Конструкция металлокорда</label>
                                 <input type="text" class="form-control" id="steelCordConstruction" placeholder="2+7х0,30НТ">
                             </div>
 
-                            <!-- 22. Оборудование (не для СК, ТУ) -->
-                            <div class="col-md-3 dynamic-field" data-field="equipmentKey" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Оборудование</label>
-                                <input type="text" class="form-control" id="equipmentKey" placeholder="Номер стана/агрегата">
+                            <!-- 23. Примечание (всегда) -->
+                            <div class="col-md-3 dynamic-field" data-field="note">
+                                <label class="form-label fw-semibold small text-secondary">Примечание</label>
+                                <input type="text" class="form-control" id="note" placeholder="Дополнительная информация">
                             </div>
 
                         </div>
 
                         <hr>
 
-                        <!-- БЛОК ИНФОРМАЦИИ О ДОРАБОТКЕ - показываем только для ТТГУ -->
-                        <div id="reworkBlock" style="display:none;">
-                            <h6 class="fw-semibold text-success mb-3"><i class="bi bi-arrow-repeat"></i> Информация о доработке</h6>
-                            <div class="row g-3">
+                        <h6 class="fw-semibold text-success mb-3"><i class="bi bi-arrow-repeat"></i> Информация о доработке</h6>
+                        <div class="row g-3">
 
-                                <div class="col-md-3 dynamic-field" data-field="reworkDate">
-                                    <label class="form-label">Дата доработки</label>
-                                    <input type="date" class="form-control" id="reworkDate">
-                                </div>
+                            <div class="col-md-3 dynamic-field" data-field="reworkDate">
+                                <label class="form-label">Дата доработки</label>
+                                <input type="date" class="form-control" id="reworkDate">
+                            </div>
 
-                                <div class="col-md-3 dynamic-field" data-field="reworkType">
-                                    <label class="form-label">Вид доработки</label>
-                                    <select class="form-select" id="reworkTypeId">
-                                        <option value="">—</option>
-                                    </select>
-                                </div>
+                            <div class="col-md-3 dynamic-field" data-field="reworkType">
+                                <label class="form-label">Вид доработки</label>
+                                <select class="form-select" id="reworkTypeId">
+                                    <option value="">—</option>
+                                </select>
+                            </div>
 
-                                <div class="col-md-3 dynamic-field" data-field="reworkQuantity">
-                                    <label class="form-label">Количество доработки (шт)</label>
-                                    <input type="number" class="form-control" id="reworkQuantity" placeholder="0">
-                                </div>
+                            <div class="col-md-3 dynamic-field" data-field="reworkQuantity" style="display:none;">
+                                <label class="form-label">Количество доработки (шт)</label>
+                                <input type="number" class="form-control" id="reworkQuantity" placeholder="0">
+                            </div>
 
-                                <div class="col-md-3 dynamic-field" data-field="reworkWeightTonnes">
-                                    <label class="form-label">Масса доработки (т)</label>
-                                    <input type="number" step="0.001" class="form-control" id="reworkWeightTonnes" placeholder="0.000">
-                                </div>
+                            <div class="col-md-3 dynamic-field" data-field="reworkWeightTonnes">
+                                <label class="form-label">Масса доработки (т)</label>
+                                <input type="number" step="0.001" class="form-control" id="reworkWeightTonnes" placeholder="0.000">
+                            </div>
 
-                                <div class="col-md-3 dynamic-field" data-field="irreparableWeightTonnes">
-                                    <label class="form-label">Масса неисправимого брака (т)</label>
-                                    <input type="number" step="0.001" class="form-control" id="irreparableWeightTonnes" placeholder="0.000">
-                                </div>
-
-                                <!-- ПРИМЕЧАНИЕ - перенесено в блок доработки -->
-                                <div class="col-md-3 dynamic-field" data-field="note">
-                                    <label class="form-label">Примечание</label>
-                                    <input type="text" class="form-control" id="note" placeholder="Дополнительная информация">
-                                </div>
-
+                            <div class="col-md-3 dynamic-field" data-field="irreparableWeightTonnes">
+                                <label class="form-label">Масса неисправимого брака (т)</label>
+                                <input type="number" step="0.001" class="form-control" id="irreparableWeightTonnes" placeholder="0.000">
                             </div>
                         </div>
 
@@ -471,231 +466,105 @@
     const siteFields = {
         'СК': {
             show: [
-                'detectionDate',
-                'defectType',
-                'heatNumber',
-                'steelGradeId',
-                'manufacturerWorkshop',
-                'bundleNumber',
-                'quantity',
-                'weightTonnes',
-                'detectionSource',
+                'detectionDate',          // 1. дата выявления несоответствия
+                'productionSite',         // 2. участок
+                'defectType',             // 3. вид дефекта
+                'heatNumber',             // 4. номер плавки
+                'steelGrade',             // 5. марка стали
+                'manufacturerWorkshop',   // 6. цех производитель
+                'bundleNumber',           // 7. номер бунта
+                'quantity',               // 8. количество
+                'weightTonnes',           // 9. масса в тоннах
+                'detectionSource',        // 10. кем выявлено
+                'reworkDate',             // 11. дата доработки
+                'reworkType',             // 12. вид доработки
+                'reworkQuantity',         // 13. количество доработки
+                'reworkWeightTonnes',     // 14. масса доработки
+                'irreparableWeightTonnes',// 15. масса неисправимого брака
+                'note'                    // 16. примечание
             ],
             hide: [
                 'brigade', 'diameter', 'productCode', 'reelNumber', 'unitNumber',
                 'workpieceKey', 'operatorPersonalNumber', 'manufacturerBrigade',
-                'defectCause', 'defectSubcause', 'steelCordConstruction'
-            ],
-            showRework: false // не показываем блок доработки
+                'defectCause', 'defectSubcause', 'equipmentKey', 'steelCordConstruction'
+            ]
         },
         'ТУ': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'heatNumber',
-                'steelGradeId',
-                'manufacturerWorkshop',
-                'bundleNumber',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'diameter', 'productCode', 'reelNumber', 'unitNumber', 'workpieceKey',
-                'operatorPersonalNumber', 'manufacturerBrigade',
-                'steelCordConstruction'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'detectionSource',
+                'defectType', 'defectCause', 'defectSubcause', 'heatNumber',
+                'steelGrade', 'manufacturerWorkshop', 'bundleNumber', 'quantity',
+                'weightTonnes', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['diameter', 'productCode', 'reelNumber', 'unitNumber', 'workpieceKey',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'equipmentKey',
+                'steelCordConstruction']
         },
         'ГСВ': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'diameter',
-                'productCode',
-                'reelNumber',
-                'heatNumber',
-                'steelGradeId',
-                'unitNumber',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'steelCordConstruction'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'diameter', 'productCode',
+                'reelNumber', 'heatNumber', 'steelGrade', 'unitNumber',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity',
+                'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'equipmentKey', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['manufacturerWorkshop', 'bundleNumber', 'workpieceKey', 'steelCordConstruction']
         },
         'ТТГУ': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'diameter',
-                'productCode',
-                'reelNumber',
-                'heatNumber',
-                'steelGradeId',
-                'workpieceKey',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-                'equipmentKey'
-            ],
-            hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'unitNumber',
-                'steelCordConstruction'
-            ],
-            showRework: true // ПОКАЗЫВАЕМ блок доработки для ТТГУ
+            show: ['detectionDate', 'productionSite', 'brigade', 'diameter', 'productCode',
+                'reelNumber', 'heatNumber', 'steelGrade', 'workpieceKey',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity',
+                'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'equipmentKey', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['manufacturerWorkshop', 'bundleNumber', 'unitNumber', 'steelCordConstruction']
         },
         'УТВ_МК': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'diameter',
-                'productCode',
-                'reelNumber',
-                'heatNumber',
-                'unitNumber',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'steelCordConstruction'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'diameter', 'productCode',
+                'reelNumber', 'heatNumber', 'steelGrade', 'unitNumber',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity',
+                'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'equipmentKey', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['manufacturerWorkshop', 'bundleNumber', 'workpieceKey', 'steelCordConstruction']
         },
         'УТВ_РМЛ': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'diameter',
-                'productCode',
-                'reelNumber',
-                'heatNumber',
-                'unitNumber',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'steelCordConstruction'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'diameter', 'productCode',
+                'reelNumber', 'heatNumber', 'steelGrade', 'unitNumber',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity',
+                'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'equipmentKey', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['manufacturerWorkshop', 'bundleNumber', 'workpieceKey', 'steelCordConstruction']
         },
         'УТВ_СВ': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'diameter',
-                'productCode',
-                'reelNumber',
-                'heatNumber',
-                'workpieceKey',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'unitNumber',
-                'steelCordConstruction'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'diameter', 'productCode',
+                'reelNumber', 'heatNumber', 'steelGrade', 'workpieceKey',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity',
+                'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'equipmentKey', 'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['manufacturerWorkshop', 'bundleNumber', 'unitNumber', 'steelCordConstruction']
         },
         'КУ-1': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'steelCordConstruction',
-                'productCode',
-                'reelNumber',
-                'unitNumber',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'diameter', 'heatNumber', 'steelGrade', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'steelCordConstruction',
+                'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
+                'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
+                'defectCause', 'defectSubcause', 'detectionSource', 'equipmentKey',
+                'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['diameter', 'heatNumber', 'steelGrade', 'manufacturerWorkshop',
+                'bundleNumber', 'workpieceKey']
         },
         'КУ-2': {
-            show: [
-                'detectionDate',
-                'brigade',
-                'steelCordConstruction',
-                'productCode',
-                'reelNumber',
-                'unitNumber',
-                'operatorPersonalNumber',
-                'manufacturerBrigade',
-                'quantity',
-                'weightTonnes',
-                'defectType',
-                'defectCause',
-                'defectSubcause',
-                'detectionSource',
-            ],
-            hide: [
-                'diameter', 'heatNumber', 'steelGrade', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey'
-            ],
-            showRework: false
+            show: ['detectionDate', 'productionSite', 'brigade', 'steelCordConstruction',
+                'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
+                'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
+                'defectCause', 'defectSubcause', 'detectionSource', 'equipmentKey',
+                'note',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes'],
+            hide: ['diameter', 'heatNumber', 'steelGrade', 'manufacturerWorkshop',
+                'bundleNumber', 'workpieceKey']
         }
     };
-
-    async function loadSteelGrades() {
-        try {
-            const grades = await fetchJson('/directories/steel-grades', 'Ошибка загрузки марок стали');
-            const select = document.getElementById('steelGradeId');
-            select.innerHTML = '<option value="">Выберите марку стали</option>';
-            grades.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;  // ID_STEEL_GRADE
-                opt.textContent = g.steelGrade;  // STEEL_GRADE
-                select.appendChild(opt);
-            });
-        } catch (error) {
-            console.error('Ошибка загрузки марок стали:', error);
-        }
-    }
 
     function updateFields(siteCode) {
         const fields = siteFields[siteCode];
@@ -707,13 +576,8 @@
         const allFields = document.querySelectorAll('.dynamic-field');
         allFields.forEach(field => {
             const fieldName = field.dataset.field;
-            const container = field.closest('.col-md-3');
+            const container = field.closest('.col-md-3, .col-md-4, .col-md-6');
             if (!container) return;
-
-            if (fieldName === 'productionSite') {
-                container.style.display = 'block';
-                return;
-            }
 
             if (fields.show.includes(fieldName)) {
                 container.style.display = 'block';
@@ -721,21 +585,8 @@
                 container.style.display = 'none';
             }
         });
-
-        const reworkBlock = document.getElementById('reworkBlock');
-        if (fields.showRework) {
-            reworkBlock.style.display = 'block';
-            const reworkFields = reworkBlock.querySelectorAll('.dynamic-field');
-            reworkFields.forEach(field => {
-                const container = field.closest('.col-md-3');
-                if (container) {
-                    container.style.display = 'block';
-                }
-            });
-        } else {
-            reworkBlock.style.display = 'none';
-        }
     }
+
     document.getElementById('productionSiteId').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const siteCode = selectedOption ? selectedOption.dataset.siteCode : '';
@@ -806,7 +657,6 @@
                 causeSelect.appendChild(opt);
             });
 
-            await loadSteelGrades();
         } catch (error) {
             console.error('Ошибка загрузки справочников:', error);
             alert('Ошибка загрузки справочников. Проверьте консоль.');
@@ -874,7 +724,6 @@
             if (data.bundleNumber) document.getElementById('bundleNumber').value = data.bundleNumber;
             if (data.steelCordConstruction) document.getElementById('steelCordConstruction').value = data.steelCordConstruction;
             if (data.reworkQuantity) document.getElementById('reworkQuantity').value = data.reworkQuantity;
-            if (data.steelGradeId) {steelGradeId: document.getElementById('steelGradeId').value ? parseInt(document.getElementById('steelGradeId').value) : null}
 
             if (data.defectCauseId) {
                 await loadSubcauses(data.defectCauseId, data.defectSubcauseId);
@@ -971,16 +820,14 @@
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('detectionDate').value = today;
 
-            // После загрузки справочников показываем все поля по умолчанию
-            // или скрываем всё кроме обязательных
             const siteSelect = document.getElementById('productionSiteId');
-            if (siteSelect.options.length > 1) {
-                // Показываем поля для первого участка в списке
-                const firstOption = siteSelect.options[1]; // пропускаем "Выберите участок"
-                if (firstOption) {
-                    const siteCode = firstOption.dataset.siteCode || '';
-                    updateFields(siteCode);
-                }
+            if (siteSelect.options.length > 0) {
+                siteSelect.selectedIndex = 0;
+                const selectedOption = siteSelect.options[0];
+                const siteCode = selectedOption ? selectedOption.dataset.siteCode : '';
+                updateFields(siteCode);
+            } else {
+                updateFields('');
             }
         }
     });

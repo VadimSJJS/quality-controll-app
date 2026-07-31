@@ -29,7 +29,6 @@ public class NonconformingProductService {
     private final DefectTypeRepository defectTypeRepository;
     private final DefectCauseRepository defectCauseRepository;
     private final ReworkTypeRepository reworkTypeRepository;
-    private final SteelGradeRepository steelGradeRepository; // ДОБАВЛЯЕМ
 
     @Transactional
     public NonconformingProductResponse create(NonconformingProductRequest request) {
@@ -133,12 +132,6 @@ public class NonconformingProductService {
             entity.setReworkType(reworkType);
         }
 
-        if (request.getSteelGradeId() != null) {
-            SteelGrade steelGrade = steelGradeRepository.findById(request.getSteelGradeId())
-                    .orElseThrow(() -> new RuntimeException("Марка стали не найдена"));
-            entity.setSteelGrade(steelGrade.getSteelGrade()); // Сохраняем название
-        }
-
         entity.setNote(request.getNote());
         entity.setProductCode(request.getProductCode());
         entity.setReelNumber(request.getReelNumber());
@@ -197,14 +190,6 @@ public class NonconformingProductService {
             entity.setDefectSubcause(null);
         }
 
-        if (request.getSteelGradeId() != null) {
-            SteelGrade steelGrade = steelGradeRepository.findById(request.getSteelGradeId())
-                    .orElseThrow(() -> new RuntimeException("Марка стали не найдена"));
-            entity.setSteelGrade(steelGrade.getSteelGrade()); // Сохраняем название
-        } else {
-            entity.setSteelGrade(null);
-        }
-
         if (request.getEquipmentKey() != null) {
             entity.setEquipmentKey(request.getEquipmentKey());
         }
@@ -261,7 +246,6 @@ public class NonconformingProductService {
                 .operatorPersonalNumber(entity.getOperatorPersonalNumber())
                 .reworkDate(entity.getReworkDate())
                 .reworkWeightTonnes(entity.getReworkWeightTonnes())
-                .steelGrade(entity.getSteelGrade())
                 .status(determineStatus(entity))
                 .build();
     }

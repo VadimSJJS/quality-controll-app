@@ -49,6 +49,4 @@ public class NonconformingProductResponse {
     private LocalDate reworkDate;
     private BigDecimal reworkWeightTonnes;
     private String status;
-
-    private String steelGrade;
 }

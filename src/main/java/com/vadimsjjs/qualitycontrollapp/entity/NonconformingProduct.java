@@ -107,6 +107,4 @@ public class NonconformingProduct {
 
     @Column(name = "REWORK_WEIGHT_TONNES", precision = 10, scale = 3)
     private BigDecimal reworkWeightTonnes;
-
-
 }

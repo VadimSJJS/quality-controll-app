@@ -1,11 +1,8 @@
 package com.vadimsjjs.qualitycontrollapp.controller;
 
 import com.vadimsjjs.qualitycontrollapp.entity.DefectType;
-import com.vadimsjjs.qualitycontrollapp.entity.SteelGrade;
 import com.vadimsjjs.qualitycontrollapp.repository.DefectTypeRepository;
-import com.vadimsjjs.qualitycontrollapp.repository.SteelGradeRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,15 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/directories")
+@RequestMapping("/directories/defect-types")
 @RequiredArgsConstructor
 public class DefectTypeController {
 
-    private final DefectTypeRepository defectTypeRepository;
-    private final SteelGradeRepository steelGradeRepository;
+    private final DefectTypeRepository repository;
 
-    @GetMapping("/defect-types")
-    public ResponseEntity<List<DefectType>> getAll() {
-        return ResponseEntity.ok(defectTypeRepository.findAll());
+    @GetMapping
+    public List<DefectType> getAll() {
+        return repository.findAll();
     }
 }
