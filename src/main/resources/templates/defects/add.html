@@ -277,7 +277,9 @@
 
                             <div class="col-md-3 dynamic-field" data-field="diameter" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Диаметр (мм)</label>
-                                <input type="number" step="0.01" class="form-control" id="diameter" placeholder="0.00">
+                                <select class="form-select" id="diameterId">
+                                    <option value="">Выберите диаметр</option>
+                                </select>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="productCode" style="display:none;">
@@ -804,6 +806,16 @@
             });
 
             await loadSteelGrades();
+
+            const diameters = await fetchJson('/directories/diameters', 'Ошибка загрузки диаметров');
+            const diameterSelect = document.getElementById('diameterId');
+            diameterSelect.innerHTML = '<option value="">Выберите диаметр</option>';
+            diameters.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.diameter;
+                diameterSelect.appendChild(opt);
+            });
         } catch (error) {
             console.error('Ошибка загрузки справочников:', error);
             alert('Ошибка загрузки справочников. Проверьте консоль.');
@@ -858,7 +870,7 @@
             document.getElementById('operatorPersonalNumberDisplay').value = data.operatorPersonalNumber || '';
 
             if (data.brigade) document.getElementById('brigade').value = data.brigade;
-            if (data.diameter) document.getElementById('diameter').value = data.diameter;
+            if (data.diameterId) document.getElementById('diameterId').value = data.diameterId;
             if (data.productCode) document.getElementById('productCode').value = data.productCode;
             if (data.reelNumber) document.getElementById('reelNumber').value = data.reelNumber;
             if (data.heatNumber) document.getElementById('heatNumber').value = data.heatNumber;
@@ -917,7 +929,7 @@
             equipmentKey: document.getElementById('equipmentKey').value || null,
             operatorPersonalNumber: document.getElementById('operatorPersonalNumberDisplay').value ? parseInt(document.getElementById('operatorPersonalNumberDisplay').value) : null,
             brigade: document.getElementById('brigade').value ? parseInt(document.getElementById('brigade').value) : null,
-            diameter: document.getElementById('diameter').value ? parseFloat(document.getElementById('diameter').value) : null,
+            diameterId: document.getElementById('diameterId').value ? parseInt(document.getElementById('diameterId').value) : null,
             productCode: document.getElementById('productCode').value || null,
             reelNumber: document.getElementById('reelNumber').value || null,
             heatNumber: document.getElementById('heatNumber').value || null,
