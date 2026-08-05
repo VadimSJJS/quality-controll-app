@@ -451,41 +451,43 @@
 
 <script>
     const siteFields = {
-            'СК': {
-                order: [
-                    'productionSite', 'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
-                    'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                    'defectCategory', 'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                    'reworkWeightTonnes', 'note'
-                ],
-                show: [
-                    'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
-                    'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                    'defectCategory', 'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                    'reworkWeightTonnes', 'note'
-                ],
-                hide: [
-                    'brigade', 'diameter', 'productCode', 'reelNumber', 'unitNumber',
-                    'workpieceKey', 'operatorPersonalNumber', 'manufacturerBrigade',
-                    'defectCause', 'defectSubcause', 'steelCordConstruction', 'equipmentKey',
-                    'irreparableWeightTonnes'
-                ],
-                showRework: true
-            },
+        'СК': {
+            order: [
+                'productionSite', 'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
+                'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
+                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
+                'reworkWeightTonnes', 'note'
+            ],
+            show: [
+                'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
+                'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
+                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
+                'reworkWeightTonnes', 'note'
+            ],
+            hide: [
+                'brigade', 'diameter', 'productCode', 'reelNumber', 'unitNumber',
+                'workpieceKey', 'operatorPersonalNumber', 'manufacturerBrigade',
+                'defectCause', 'defectSubcause', 'defectCategory', 'steelCordConstruction',
+                'equipmentKey', 'irreparableWeightTonnes'
+            ],
+            showRework: true
+        },
         'ТУ': {
             order: [
                 'productionSite', 'detectionDate', 'brigade', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
                 'diameter', 'productCode', 'reelNumber', 'unitNumber', 'workpieceKey',
-                'operatorPersonalNumber', 'manufacturerBrigade',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'defectCategory',
                 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -495,16 +497,18 @@
                 'productionSite', 'detectionDate', 'brigade', 'diameter', 'productCode',
                 'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'steelGradeId', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
+                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey', 'defectCategory',
                 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -515,76 +519,82 @@
                 'reelNumber', 'heatNumber', 'steelGradeId', 'workpieceKey',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'equipmentKey', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'irreparableWeightTonnes', 'note'
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'steelGradeId', 'workpieceKey', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'equipmentKey',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes',
-                'irreparableWeightTonnes', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'unitNumber', 'steelCordConstruction'
+                'manufacturerWorkshop', 'bundleNumber', 'unitNumber', 'defectCategory',
+                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
         'УТВ_МК': {
             order: [
                 'productionSite', 'detectionDate', 'brigade', 'diameter', 'productCode',
-                'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
+                'reelNumber', 'heatNumber', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
-                'heatNumber', 'steelGradeId', 'unitNumber', 'operatorPersonalNumber',
+                'heatNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
+                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
         'УТВ_РМЛ': {
             order: [
                 'productionSite', 'detectionDate', 'brigade', 'diameter', 'productCode',
-                'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
+                'reelNumber', 'heatNumber', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
-                'heatNumber', 'steelGradeId', 'unitNumber', 'operatorPersonalNumber',
+                'heatNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
+                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
         'УТВ_СВ': {
             order: [
                 'productionSite', 'detectionDate', 'brigade', 'diameter', 'productCode',
-                'reelNumber', 'heatNumber', 'steelGradeId', 'workpieceKey',
-                'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
-                'defectType', 'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'reelNumber', 'heatNumber',
+                'operatorPersonalNumber', 'manufacturerBrigade', 'workpieceKey',
+                'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
+                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
+                'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
-                'heatNumber', 'steelGradeId', 'workpieceKey', 'operatorPersonalNumber',
-                'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'heatNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
+                'workpieceKey', 'quantity', 'weightTonnes', 'defectType',
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'unitNumber',
-                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelGradeId', 'unitNumber', 'manufacturerWorkshop', 'bundleNumber',
+                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
@@ -593,17 +603,20 @@
                 'productionSite', 'detectionDate', 'brigade', 'steelCordConstruction',
                 'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'steelCordConstruction', 'productCode',
                 'reelNumber', 'unitNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
                 'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
-                'detectionSource', 'note'
+                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
+                'reworkWeightTonnes', 'note'
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey', 'equipmentKey', 'irreparableWeightTonnes'
+                'bundleNumber', 'workpieceKey', 'defectCategory',
+                'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
@@ -612,17 +625,20 @@
                 'productionSite', 'detectionDate', 'brigade', 'steelCordConstruction',
                 'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
-                'defectCause', 'defectSubcause', 'detectionSource', 'note'
+                'defectCause', 'defectSubcause', 'detectionSource',
+                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'steelCordConstruction', 'productCode',
                 'reelNumber', 'unitNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
                 'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
-                'detectionSource', 'note'
+                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
+                'reworkWeightTonnes', 'note'
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey', 'equipmentKey', 'irreparableWeightTonnes'
+                'bundleNumber', 'workpieceKey', 'defectCategory',
+                'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         }
