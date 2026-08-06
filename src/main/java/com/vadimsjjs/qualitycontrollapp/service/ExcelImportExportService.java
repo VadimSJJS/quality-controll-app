@@ -30,6 +30,7 @@ public class ExcelImportExportService {
     private final DefectTypeRepository defectTypeRepository;
     private final DefectCauseRepository defectCauseRepository;
     private final ReworkTypeRepository reworkTypeRepository;
+    private final DiameterRepository diameterRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
@@ -144,8 +145,13 @@ public class ExcelImportExportService {
             product.setBrigade(getLongCell(row, 1));
         }
 
-        if (getDoubleCell(row, 2) != null) {
-            product.setDiameter(getDoubleCell(row, 2));
+        String diameterValue = getStringCell(row, 2);
+        if (diameterValue != null && !diameterValue.isEmpty()) {
+            Diameter diameter = diameterRepository.findAll().stream()
+                    .filter(d -> d.getDiameter().equals(diameterValue))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Диаметр не найден: " + diameterValue));
+            product.setDiameter(diameter);
         }
 
         if (getLongCell(row, 3) != null) {

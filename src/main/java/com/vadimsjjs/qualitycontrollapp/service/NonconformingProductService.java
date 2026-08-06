@@ -29,6 +29,7 @@ public class NonconformingProductService {
     private final DefectTypeRepository defectTypeRepository;
     private final DefectCauseRepository defectCauseRepository;
     private final ReworkTypeRepository reworkTypeRepository;
+    private final DiameterRepository diameterRepository;
 
     @Transactional
     public NonconformingProductResponse create(NonconformingProductRequest request) {
@@ -143,6 +144,13 @@ public class NonconformingProductService {
         if (request.getOperatorPersonalNumber() != null) {
             entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
         }
+
+        if (request.getDiameterId() != null) {
+            Diameter diameter = diameterRepository.findById(request.getDiameterId())
+                    .orElseThrow(() -> new RuntimeException("Диаметр не найден"));
+            entity.setDiameter(diameter);
+        }
+
         entity.setReworkDate(request.getReworkDate());
         entity.setReworkWeightTonnes(request.getReworkWeightTonnes());
         entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
@@ -205,6 +213,14 @@ public class NonconformingProductService {
             entity.setReworkType(null);
         }
 
+        if (request.getDiameterId() != null) {
+            Diameter diameter = diameterRepository.findById(request.getDiameterId())
+                    .orElseThrow(() -> new RuntimeException("Диаметр не найден"));
+            entity.setDiameter(diameter);
+        } else {
+            entity.setDiameter(null);
+        }
+
         entity.setNote(request.getNote());
         entity.setProductCode(request.getProductCode());
         entity.setReelNumber(request.getReelNumber());
@@ -243,6 +259,8 @@ public class NonconformingProductService {
                 .bundleNumber(entity.getBundleNumber())
                 .manufacturerWorkshop(entity.getManufacturerWorkshop())
                 .equipmentKey(entity.getEquipmentKey())
+                .diameterId(entity.getDiameter() != null ? entity.getDiameter().getId() : null)
+                .diameterValue(entity.getDiameter() != null ? entity.getDiameter().getDiameter() : null)
                 .operatorPersonalNumber(entity.getOperatorPersonalNumber())
                 .reworkDate(entity.getReworkDate())
                 .reworkWeightTonnes(entity.getReworkWeightTonnes())

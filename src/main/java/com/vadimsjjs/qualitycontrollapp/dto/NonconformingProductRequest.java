@@ -46,6 +46,7 @@ public class NonconformingProductRequest {
     private String bundleNumber;
     private String manufacturerWorkshop;
     private String equipmentKey;
+    private Long diameterId;
 
     private Long operatorPersonalNumber;
 

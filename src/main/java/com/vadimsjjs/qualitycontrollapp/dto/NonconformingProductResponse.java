@@ -45,6 +45,8 @@ public class NonconformingProductResponse {
     private String bundleNumber;
     private String manufacturerWorkshop;
     private String equipmentKey;
+    private Long diameterId;
+    private String diameterValue;
     private Long operatorPersonalNumber;
     private LocalDate reworkDate;
     private BigDecimal reworkWeightTonnes;

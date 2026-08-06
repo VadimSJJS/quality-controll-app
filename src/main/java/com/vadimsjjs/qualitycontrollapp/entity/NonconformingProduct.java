@@ -74,8 +74,9 @@ public class NonconformingProduct {
     @Column(name = "EQUIPMENT_KEY", length = 100)
     private String equipmentKey;
 
-    @Column(name = "DIAMETER")
-    private Double diameter;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_DIAMETER")
+    private Diameter diameter;
 
     @Column(name = "STEEL_CORD_CONSTRUCTION", length = 50)
     private String steelCordConstruction;
