@@ -52,14 +52,14 @@ public class NonconformingProductController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OTK', 'ADMIN', 'PPB')")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public ResponseEntity<NonconformingProductResponse> create(@Valid @RequestBody NonconformingProductRequest request) {
         NonconformingProductResponse response = service.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK', 'ADMIN', 'PPB')")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public ResponseEntity<NonconformingProductResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody NonconformingProductRequest request) {
@@ -67,7 +67,7 @@ public class NonconformingProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

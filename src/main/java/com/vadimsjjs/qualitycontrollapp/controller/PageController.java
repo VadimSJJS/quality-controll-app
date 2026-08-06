@@ -58,6 +58,13 @@ public class PageController {
         return "reports/index";
     }
 
+    @GetMapping("/reports/production")
+    public String productionReports(Model model) {
+        model.addAttribute("currentPage", "production-reports");
+        model.addAttribute("pageTitle", "Отчёты производства");
+        return "reports/production";
+    }
+
     @GetMapping("/charts")
     public String charts(Model model) {
         model.addAttribute("currentPage", "charts");

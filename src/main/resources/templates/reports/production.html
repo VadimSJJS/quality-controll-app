@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчёты производства</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/production.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div>
+            <span class="logo-text">БМЗ <span class="accent">·</span> СтПЦ-2</span>
+            <span class="logo-sub">Отчёты производства</span>
+        </div>
+    </div>
+    <div class="user-area">
+        <div class="user-info">
+            <div>
+                <div class="user-name" th:text="${fio}">Пользователь</div>
+                <span class="user-role"
+                      th:class="${roleGroup == 'ROLE_ADMIN' ? 'admin' : (roleGroup == 'ROLE_OTK' ? 'otk' : (roleGroup == 'ROLE_PPB' ? 'ppb' : 'viewer'))}"
+                      th:text="${roles}">ROLE_VIEWER</span>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Выйти
+            </button>
+        </form>
+    </div>
+</header>
+
+<div class="main-wrapper">
+
+    <aside class="sidebar">
+        <a th:href="@{/}" class="nav-item">
+            <i class="bi bi-house-door"></i> Главная
+        </a>
+        <a th:href="@{/defects}" class="nav-item">
+            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/reports}" class="nav-item active">
+            <i class="bi bi-file-earmark-text"></i> Отчёты
+        </a>
+        <a th:href="@{/charts}" class="nav-item">
+            <i class="bi bi-graph-up-arrow"></i> Аналитика
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/directories}" class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <i class="bi bi-gear"></i> Справочники
+        </a>
+    </aside>
+
+    <main class="content">
+
+        <div class="top-bar d-flex justify-content-between align-items-center">
+            <div>
+                <span class="page-title">📊 Отчёты производства</span>
+                <nav aria-label="breadcrumb" class="d-inline-block ms-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
+                        <li class="breadcrumb-item active">Отчёты производства</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary small">
+                    <i class="bi bi-person"></i>
+                    <span sec:authentication="name"></span>
+                </span>
+                <span class="badge badge-role-otk" th:if="${roleGroup == 'ROLE_OTK'}">ОТК</span>
+                <span class="badge badge-role-ppb" th:if="${roleGroup == 'ROLE_PPB'}">ППБ</span>
+                <span class="badge badge-role-viewer" th:if="${roleGroup == 'ROLE_VIEWER'}">Просмотр</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="mb-0 fw-bold text-dark">📊 Отчёты производства по участкам</h4>
+                    <p class="text-secondary small mb-0">Ввод и просмотр данных о произведённой продукции</p>
+                </div>
+                <button class="btn-add" id="addBtn" sec:authorize="hasAnyRole('10_OTK', '11_OTK', '12_OTK', 'ADMIN', '6_PPB')">
+                    <i class="bi bi-plus-circle"></i> Добавить отчёт
+                </button>
+            </div>
+
+            <!-- Форма добавления/редактирования (скрыта по умолчанию) -->
+            <div id="formBlock" style="display:none;">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body">
+                        <form id="productionForm">
+                            <input type="hidden" id="reportId">
+
+                            <h6 class="fw-semibold text-primary mb-3"><i class="bi bi-info-circle"></i> Данные отчёта</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small text-secondary">Дата отчёта <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="reportDate" required>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small text-secondary">Участок <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="productionSiteId" required>
+                                        <option value="">Выберите участок</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small text-secondary">Произведено, т <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.001" class="form-control" id="producedWeightTonnes" placeholder="0.000" required>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top d-flex gap-2">
+                                <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                                    <i class="bi bi-check2-circle"></i> <span id="submitText">Сохранить</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary px-4" id="cancelBtn">
+                                    <i class="bi bi-x-circle"></i> Отмена
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Таблица отчётов -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-semibold text-dark mb-0">Список отчётов</h6>
+                        <div class="d-flex gap-2">
+                            <input type="date" class="form-control form-control-sm" id="dateFrom" style="width: 150px;">
+                            <input type="date" class="form-control form-control-sm" id="dateTo" style="width: 150px;">
+                            <button class="btn btn-sm btn-primary" id="filterBtn">
+                                <i class="bi bi-funnel"></i> Показать
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Участок</th>
+                                    <th>Произведено, т</th>
+                                    <th>Источник</th>
+                                    <th sec:authorize="hasAnyRole('10_OTK', '11_OTK', '12_OTK', 'ADMIN', '6_PPB')">Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reportTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-secondary py-4">Загрузка...</td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="2">ИТОГО:</td>
+                                    <td id="totalWeight">0.000</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let isEdit = false;
+    let reportId = null;
+
+    async function fetchJson(url, errorMsg) {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`${errorMsg}: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+    }
+
+    async function loadSites() {
+        try {
+            const sites = await fetchJson('/directories/production-sites', 'Ошибка загрузки участков');
+            const select = document.getElementById('productionSiteId');
+            select.innerHTML = '<option value="">Выберите участок</option>';
+            sites.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.siteCode} — ${s.siteName}`;
+                select.appendChild(opt);
+            });
+        } catch (error) {
+            console.error('Ошибка загрузки участков:', error);
+            alert('Ошибка загрузки участков. Проверьте консоль.');
+        }
+    }
+
+    async function loadReports() {
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+
+        const tbody = document.getElementById('reportTableBody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-4">Загрузка...</td></tr>';
+
+        try {
+            let url = '/api/production-reports?';
+            if (dateFrom) url += `dateFrom=${dateFrom}&`;
+            if (dateTo) url += `dateTo=${dateTo}&`;
+
+            const reports = await fetchJson(url, 'Ошибка загрузки отчётов');
+
+            if (reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-secondary py-4">Нет данных</td></tr>';
+                document.getElementById('totalWeight').textContent = '0.000';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            let totalWeight = 0;
+
+            reports.forEach(r => {
+                totalWeight += parseFloat(r.producedWeightTonnes || 0);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formatDate(r.reportDate)}</td>
+                    <td>${r.productionSiteCode} — ${r.productionSiteName}</td>
+                    <td>${parseFloat(r.producedWeightTonnes).toFixed(3)}</td>
+                    <td>${r.sourceSystem || '—'}</td>
+                    <td sec:authorize="hasAnyRole('10_OTK', '11_OTK', '12_OTK', 'ADMIN', '6_PPB')">
+                        <button class="btn-edit" onclick="editReport(${r.id})">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deleteReport(${r.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            document.getElementById('totalWeight').textContent = totalWeight.toFixed(3);
+        } catch (error) {
+            console.error('Ошибка загрузки отчётов:', error);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4">Ошибка загрузки</td></tr>';
+        }
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const [year, month, day] = dateStr.split('-');
+        return `${day}.${month}.${year}`;
+    }
+
+    function resetForm() {
+        document.getElementById('productionForm').reset();
+        document.getElementById('reportId').value = '';
+        isEdit = false;
+        reportId = null;
+        document.getElementById('submitText').textContent = 'Сохранить';
+        document.getElementById('formBlock').style.display = 'none';
+    }
+
+    async function editReport(id) {
+        try {
+            const report = await fetchJson(`/api/production-reports/${id}`, 'Ошибка загрузки данных');
+
+            document.getElementById('reportId').value = report.id;
+            document.getElementById('reportDate').value = report.reportDate;
+            document.getElementById('productionSiteId').value = report.productionSiteId;
+            document.getElementById('producedWeightTonnes').value = report.producedWeightTonnes;
+
+            isEdit = true;
+            reportId = id;
+            document.getElementById('submitText').textContent = 'Обновить';
+            document.getElementById('formBlock').style.display = 'block';
+
+            document.getElementById('formBlock').scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Ошибка загрузки данных:', error);
+            alert('Ошибка загрузки данных для редактирования');
+        }
+    }
+
+    async function deleteReport(id) {
+        if (!confirm('Вы уверены, что хотите удалить этот отчёт?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/production-reports/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка удаления');
+            }
+
+            await loadReports();
+        } catch (error) {
+            console.error('Ошибка удаления:', error);
+            alert('Ошибка при удалении отчёта');
+        }
+    }
+
+    document.getElementById('productionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        submitBtn.disabled = true;
+        submitText.textContent = 'Сохранение...';
+
+        const data = {
+            reportDate: document.getElementById('reportDate').value,
+            productionSiteId: parseInt(document.getElementById('productionSiteId').value),
+            producedWeightTonnes: parseFloat(document.getElementById('producedWeightTonnes').value)
+        };
+
+        if (isEdit && reportId) {
+            data.id = reportId;
+        }
+
+        const url = isEdit ? `/api/production-reports/${reportId}` : '/api/production-reports';
+        const method = isEdit ? 'PUT' : 'POST';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.message || 'Ошибка сохранения');
+            }
+
+            resetForm();
+            await loadReports();
+        } catch (error) {
+            console.error('Ошибка:', error);
+            alert('Ошибка при сохранении: ' + error.message);
+            submitBtn.disabled = false;
+            submitText.textContent = isEdit ? 'Обновить' : 'Сохранить';
+        }
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', resetForm);
+    document.getElementById('addBtn').addEventListener('click', function() {
+        resetForm();
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('formBlock').style.display = 'block';
+        document.getElementById('submitText').textContent = 'Сохранить';
+    });
+
+    document.getElementById('filterBtn').addEventListener('click', loadReports);
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadSites();
+
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        document.getElementById('dateFrom').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+
+        await loadReports();
+    });
+</script>
+
+</body>
+</html>

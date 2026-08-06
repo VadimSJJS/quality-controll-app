@@ -1,0 +1,50 @@
+.table-responsive { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.table { margin-bottom: 0; }
+.table thead { background: #f8fafc; }
+.table thead th { font-weight: 600; font-size: 13px; color: #475569; border-bottom: 2px solid #e2e8f0; }
+.table tbody td { font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+
+.btn-add {
+    background: #1a3a5c;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-add:hover { background: #153049; color: white; }
+
+.btn-edit {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-edit:hover { background: #2563eb; color: white; }
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover { background: #dc2626; color: white; }
+
+.total-row { background: #f8fafc !important; font-weight: 600; }

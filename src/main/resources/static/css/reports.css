@@ -1,0 +1,27 @@
+.report-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    background: white;
+    transition: all 0.2s;
+}
+
+.report-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+
+.summary-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border-left: 4px solid #1a3a5c;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.summary-card.danger { border-left-color: #dc2626; }
+.summary-card.success { border-left-color: #16a34a; }
+.summary-card.warning { border-left-color: #e8b830; }
+
+.exceeded { background: #fef2f2 !important; }
+.exceeded td { color: #dc2626 !important; font-weight: 600; }
+
+.report-type-btn { cursor: pointer; }
+.report-type-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }

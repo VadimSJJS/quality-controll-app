@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,6 +27,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import java.util.List;
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -41,16 +43,19 @@ public class SecurityConfig {
             "/login", "/css/**", "/js/**", "/webjars/**", "/error"
     };
 
+    private static final List<String> OTK_ROLES = List.of("OTK_MASTER", "OTK", "OTK_CHIEF");
+    private static final List<String> EDIT_ROLES = List.of("ADMIN", "PPB");
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
-                        .requestMatchers("/defects/**", "/reports/**")
-                        .hasAnyRole("10_OTK", "11_OTK", "12_OTK", "ADMIN", "6_PPB")
-                        .requestMatchers("/directories/**").hasRole("ADMIN")
-                        .requestMatchers("/charts/**").hasAnyRole("10_OTK", "11_OTK", "12_OTK", "ADMIN")
+                        .requestMatchers("/defects/**").hasAnyRole("OTK_MASTER", "OTK", "OTK_CHIEF", "ADMIN", "PPB")
+                        .requestMatchers("/reports/**").authenticated()
+                        .requestMatchers("/directories/**").authenticated()
+                        .requestMatchers("/charts/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

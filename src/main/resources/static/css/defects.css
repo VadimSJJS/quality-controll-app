@@ -1,0 +1,23 @@
+.table th {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: #64748b;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.table td {
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #475569;
+}
+
+.dynamic-field {
+    transition: all 0.2s ease;
+}
