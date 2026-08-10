@@ -1,6 +1,7 @@
 package com.vadimsjjs.qualitycontrollapp.service;
 
 import com.vadimsjjs.qualitycontrollapp.dto.EquipmentDefectReport;
+import com.vadimsjjs.qualitycontrollapp.dto.ParetoReport;
 import com.vadimsjjs.qualitycontrollapp.dto.PersonnelDefectReport;
 import com.vadimsjjs.qualitycontrollapp.dto.ReportDto;
 import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
@@ -625,7 +626,7 @@ public class ReportService {
                         .totalProduced(totalProduced)
                         .totalNonconforming(totalDefect)
                         .totalNonconformingPercent(totalPercent)
-                        .totalAllowable(BigDecimal.valueOf(0.55)) // 0.55% из ТЗ
+                        .totalAllowable(BigDecimal.valueOf(0.55)) // 0.55%З
                         .build())
                 .build();
     }
@@ -691,9 +692,26 @@ public class ReportService {
     }
 
     private List<NonconformingProduct> getDefectsBySite(String siteName, LocalDate dateFrom, LocalDate dateTo) {
-        return nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null).stream()
-                .filter(d -> d.getProductionSite().getSiteName().equals(siteName))
+        log.info("getDefectsBySite: siteName='{}', dateFrom={}, dateTo={}", siteName, dateFrom, dateTo);
+        
+        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
+        log.info("  Загружено всего записей за период: {}", allDefects.size());
+        
+        List<NonconformingProduct> filtered = allDefects.stream()
+                .filter(d -> {
+                    boolean matches = d.getProductionSite() != null && d.getProductionSite().getSiteName() != null 
+                            && d.getProductionSite().getSiteName().equals(siteName);
+                    if (!matches && allDefects.size() > 0) {
+                        log.debug("    Пропущена запись: productionSite='{}', defectType='{}'", 
+                                d.getProductionSite() != null ? d.getProductionSite().getSiteName() : "null",
+                                d.getDefectType() != null ? d.getDefectType().getDefectName() : "null");
+                    }
+                    return matches;
+                })
                 .collect(Collectors.toList());
+        
+        log.info("  После фильтрации по участку '{}': {} записей", siteName, filtered.size());
+        return filtered;
     }
 
     private List<NonconformingProduct> getDefectsBySiteAndBrigade(String siteName, Long brigadeId, LocalDate dateFrom, LocalDate dateTo) {
@@ -894,5 +912,80 @@ public class ReportService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public ParetoReport getParetoReport(String siteName, String groupingType,
+                                        LocalDate dateFrom, LocalDate dateTo) {
 
+        log.info("=== getParetoReport START: siteName='{}', groupingType='{}', dateFrom={}, dateTo={} ===", 
+                siteName, groupingType, dateFrom, dateTo);
+        
+        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        log.info("  defects.size() = {}", defects.size());
+
+        List<ParetoReport.ParetoItem> items;
+
+        if ("defect".equals(groupingType)) {
+            Map<String, BigDecimal> defectMap = defects.stream()
+                    .collect(Collectors.groupingBy(
+                            d -> d.getDefectType() != null ? d.getDefectType().getDefectName() : "Не указан",
+                            Collectors.reducing(BigDecimal.ZERO,
+                                    NonconformingProduct::getWeightTonnes,
+                                    BigDecimal::add)
+                    ));
+            
+            log.info("  defectMap.size() = {}", defectMap.size());
+            defectMap.forEach((k, v) -> log.info("    defect: '{}' = {}", k, v));
+
+            items = defectMap.entrySet().stream()
+                    .map(e -> ParetoReport.ParetoItem.builder()
+                            .category(e.getKey())
+                            .weight(e.getValue())
+                            .build())
+                    .sorted((a, b) -> b.getWeight().compareTo(a.getWeight()))
+                    .collect(Collectors.toList());
+        } else {
+            Map<String, BigDecimal> causeMap = defects.stream()
+                    .filter(d -> d.getDefectCause() != null && d.getDefectCause().getCauseName() != null)
+                    .collect(Collectors.groupingBy(
+                            d -> d.getDefectCause().getCauseName(),
+                            Collectors.reducing(BigDecimal.ZERO,
+                                    NonconformingProduct::getWeightTonnes,
+                                    BigDecimal::add)
+                    ));
+
+            items = causeMap.entrySet().stream()
+                    .map(e -> ParetoReport.ParetoItem.builder()
+                            .category(e.getKey())
+                            .weight(e.getValue())
+                            .build())
+                    .sorted((a, b) -> b.getWeight().compareTo(a.getWeight()))
+                    .collect(Collectors.toList());
+        }
+
+        BigDecimal totalWeight = sumWeight(defects);
+        log.info("  totalWeight = {}", totalWeight);
+        log.info("  items.size() = {}", items.size());
+        log.info("=== getParetoReport END ===");
+
+        BigDecimal cumulative = BigDecimal.ZERO;
+        for (ParetoReport.ParetoItem item : items) {
+            BigDecimal percent = totalWeight.compareTo(BigDecimal.ZERO) == 0
+                    ? BigDecimal.ZERO
+                    : item.getWeight().divide(totalWeight, 4, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(100));
+
+            cumulative = cumulative.add(percent);
+            item.setPercent(percent);
+            item.setCumulativePercent(cumulative);
+        }
+
+        return ParetoReport.builder()
+                .siteName(siteName)
+                .periodFrom(dateFrom.format(DATE_FORMATTER))
+                .periodTo(dateTo.format(DATE_FORMATTER))
+                .groupingType(groupingType)
+                .items(items)
+                .totalWeight(totalWeight)
+                .build();
+    }
 }

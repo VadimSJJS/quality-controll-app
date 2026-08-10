@@ -1,6 +1,7 @@
 package com.vadimsjjs.qualitycontrollapp.controller;
 
 import com.vadimsjjs.qualitycontrollapp.dto.EquipmentDefectReport;
+import com.vadimsjjs.qualitycontrollapp.dto.ParetoReport;
 import com.vadimsjjs.qualitycontrollapp.dto.PersonnelDefectReport;
 import com.vadimsjjs.qualitycontrollapp.dto.ReportDto;
 import com.vadimsjjs.qualitycontrollapp.service.ReportService;
@@ -93,18 +94,25 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         return ResponseEntity.ok(reportService.getReportByPlant(dateFrom, dateTo));
     }
-
     @GetMapping("/by-fault")
     public ResponseEntity<ReportDto.ReportByFault> getReportByFault(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         return ResponseEntity.ok(reportService.getReportByFault(dateFrom, dateTo));
     }
-
     @GetMapping("/equipment-defects")
     public ResponseEntity<EquipmentDefectReport> getEquipmentDefectReport(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
         return ResponseEntity.ok(reportService.getEquipmentDefectReport(dateFrom, dateTo));
+    }
+
+    @GetMapping("/pareto")
+    public ResponseEntity<ParetoReport> getParetoReport(
+            @RequestParam String siteName,
+            @RequestParam(defaultValue = "defect") String groupingType,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(reportService.getParetoReport(siteName, groupingType, dateFrom, dateTo));
     }
 }

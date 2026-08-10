@@ -72,6 +72,13 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- ===== FLYWAY ===== -->
+        <!--
+        Flyway Community Edition dropped Oracle 11g support.
+        Keeping starter excluded until DB is upgraded to Oracle 12c+.
+        Migrations are applied manually via SQL*Plus when needed.
+        -->
+
         <!-- ===== APACHE POI (EXCEL) ===== -->
         <dependency>
             <groupId>org.apache.poi</groupId>

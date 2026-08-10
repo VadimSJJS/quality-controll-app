@@ -39,6 +39,7 @@ public class PageController {
         model.addAttribute("currentPage", "add-defect");
         model.addAttribute("pageTitle", "Добавление записи");
         model.addAttribute("isEdit", false);
+        model.addAttribute("defectId", null);
         return "defects/add";
     }
 

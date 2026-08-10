@@ -197,7 +197,7 @@
 
                             <div class="col-md-3 dynamic-field" data-field="defectCategory" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Вид несоответствия <span class="text-danger">*</span></label>
-                                <select class="form-select" id="defectCategory" required>
+                                <select class="form-select" id="defectCategory">
                                     <option value="">Выберите вид</option>
                                     <option value="REPAIRABLE">Исправимое</option>
                                     <option value="IRREPARABLE">Неисправимое (Брак)</option>
@@ -616,8 +616,14 @@
         updateFields(siteCode);
     });
 
-    let isEdit = document.getElementById('isEdit').value === 'true';
-    let defectId = document.getElementById('defectId').value;
+    let isEdit = document.getElementById('isEdit') ? document.getElementById('isEdit').value === 'true' : false;
+    let defectId = document.getElementById('defectId') ? document.getElementById('defectId').value : null;
+    
+    console.log('📄 Страница загружена:');
+    console.log('   isEdit:', isEdit);
+    console.log('   defectId:', defectId);
+    console.log('   productionSiteId доступен:', document.getElementById('productionSiteId') !== null);
+    console.log('   defectForm доступен:', document.getElementById('defectForm') !== null);
 
     async function fetchJson(url, errorMsg) {
         const response = await fetch(url);
@@ -780,19 +786,44 @@
     });
 
     document.getElementById('defectForm').addEventListener('submit', async function(e) {
+        console.log('🚀 Обработчик submit сработал!');
         e.preventDefault();
 
         const submitBtn = document.getElementById('submitBtn');
         const submitText = document.getElementById('submitText');
+        
+        console.log('📋 Проверяем обязательные поля...');
+        const detectionDate = document.getElementById('detectionDate').value;
+        const productionSiteId = document.getElementById('productionSiteId').value;
+        const detectionSourceId = document.getElementById('detectionSourceId').value;
+        const weightTonnes = document.getElementById('weightTonnes').value;
+        const defectTypeId = document.getElementById('defectTypeId').value;
+        
+        console.log('   detectionDate:', detectionDate);
+        console.log('   productionSiteId:', productionSiteId);
+        console.log('   detectionSourceId:', detectionSourceId);
+        console.log('   weightTonnes:', weightTonnes);
+        console.log('   defectTypeId:', defectTypeId);
+        
+        if (!detectionDate || !productionSiteId || !detectionSourceId || !weightTonnes || !defectTypeId) {
+            const errorMsg = 'Заполните обязательные поля: дата, участок, источник выявления, вес, вид дефекта';
+            console.error('❌ Не заполнены обязательные поля:', {
+                detectionDate, productionSiteId, detectionSourceId, weightTonnes, defectTypeId
+            });
+            alert(errorMsg);
+            submitBtn.disabled = false;
+            return;
+        }
+
         submitBtn.disabled = true;
         submitText.textContent = 'Сохранение...';
 
         const data = {
-            detectionDate: document.getElementById('detectionDate').value,
-            productionSiteId: parseInt(document.getElementById('productionSiteId').value),
-            detectionSourceId: parseInt(document.getElementById('detectionSourceId').value),
-            weightTonnes: parseFloat(document.getElementById('weightTonnes').value),
-            defectTypeId: parseInt(document.getElementById('defectTypeId').value),
+            detectionDate: document.getElementById('detectionDate').value || null,
+            productionSiteId: document.getElementById('productionSiteId').value ? parseInt(document.getElementById('productionSiteId').value) : null,
+            detectionSourceId: document.getElementById('detectionSourceId').value ? parseInt(document.getElementById('detectionSourceId').value) : null,
+            weightTonnes: document.getElementById('weightTonnes').value ? parseFloat(document.getElementById('weightTonnes').value) : null,
+            defectTypeId: document.getElementById('defectTypeId').value ? parseInt(document.getElementById('defectTypeId').value) : null,
             defectCategory: document.getElementById('defectCategory').value || null,
             defectCauseId: document.getElementById('defectCauseId').value ? parseInt(document.getElementById('defectCauseId').value) : null,
             defectSubcauseId: document.getElementById('defectSubcauseId').value ? parseInt(document.getElementById('defectSubcauseId').value) : null,
@@ -819,12 +850,12 @@
             reworkQuantity: document.getElementById('reworkQuantity').value ? parseInt(document.getElementById('reworkQuantity').value) : null
         };
 
-        Object.keys(data).forEach(key => {
-            if (data[key] === null || data[key] === '' || data[key] === 'null') delete data[key];
-        });
-
         const url = isEdit ? `/api/defects/${defectId}` : '/api/defects';
         const method = isEdit ? 'PUT' : 'POST';
+
+        console.log('📤 Отправляемый запрос:', data);
+        console.log('📍 URL:', url);
+        console.log('⚙️ Метод:', method);
 
         try {
             const response = await fetch(url, {
@@ -833,10 +864,24 @@
                 body: JSON.stringify(data)
             });
 
+            console.log('📥 Ответ сервера, статус:', response.status);
+
             if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message || 'Ошибка сохранения');
+                let errorMsg = `Ошибка ${response.status}`;
+                try {
+                    const err = await response.json();
+                    console.error('❌ Детали ошибки:', err);
+                    errorMsg = err.details 
+                        ? Object.values(err.details).join(', ') 
+                        : err.error || 'Ошибка сохранения';
+                } catch (parseError) {
+                    errorMsg = `Сервер вернул ошибку ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMsg);
             }
+
+            const result = await response.json();
+            console.log('✅ Успешно сохранено:', result);
 
             window.location.href = '/defects';
         } catch (error) {
