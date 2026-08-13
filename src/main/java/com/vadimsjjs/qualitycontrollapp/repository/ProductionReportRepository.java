@@ -19,4 +19,10 @@ public interface ProductionReportRepository extends JpaRepository<ProductionRepo
     @Query("SELECT p FROM ProductionReport p WHERE p.reportDate = :date AND p.productionSite.id = :siteId")
     ProductionReport findByReportDateAndProductionSiteId(@Param("date") LocalDate date,
                                                          @Param("siteId") Long siteId);
+
+    @Query("SELECT COALESCE(SUM(p.producedWeightTonnes), 0) FROM ProductionReport p " +
+           "WHERE p.reportDate BETWEEN :dateFrom AND :dateTo AND p.productionSite.id = :siteId")
+    java.math.BigDecimal sumProducedBySiteAndDateRange(@Param("dateFrom") LocalDate dateFrom,
+                                                       @Param("dateTo") LocalDate dateTo,
+                                                       @Param("siteId") Long siteId);
 }

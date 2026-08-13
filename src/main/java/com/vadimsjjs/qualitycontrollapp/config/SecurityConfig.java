@@ -40,7 +40,7 @@ public class SecurityConfig {
     private final DataSource dataSource;
 
     private static final String[] PUBLIC_PATHS = {
-            "/login", "/css/**", "/js/**", "/webjars/**", "/error"
+            "/login", "/css/**", "/js/**", "/webjars/**", "/error", "/api/seed/**"
     };
 
     private static final List<String> OTK_ROLES = List.of("OTK_MASTER", "OTK", "OTK_CHIEF");
@@ -86,37 +86,15 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Запомнить на 14 дней
     @Bean
     public TokenBasedRememberMeServices rememberMeServices() {
         TokenBasedRememberMeServices rememberMeServices =
                 new TokenBasedRememberMeServices("uniqueAndSecretKeyForRememberMe", userDetailsService);
-        rememberMeServices.setTokenValiditySeconds(1209600); // 14 дней
-        rememberMeServices.setCookieName("remember-me");
-        rememberMeServices.setAlwaysRemember(true);
-        return rememberMeServices;
-    }
-
-    /*
-    @Bean
-    public PersistentTokenRepository persistentTokenRepository() {
-        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
-        tokenRepository.setDataSource(dataSource);
-        return tokenRepository;
-    }
-
-    @Bean
-    public PersistentTokenBasedRememberMeServices persistentRememberMeServices() {
-        PersistentTokenBasedRememberMeServices rememberMeServices =
-            new PersistentTokenBasedRememberMeServices("uniqueAndSecretKeyForRememberMe",
-                                                         userDetailsService,
-                                                         persistentTokenRepository());
         rememberMeServices.setTokenValiditySeconds(1209600);
         rememberMeServices.setCookieName("remember-me");
         rememberMeServices.setAlwaysRemember(true);
         return rememberMeServices;
     }
-    */
 
     @Bean
     public AuthenticationSuccessHandler successHandler() {
@@ -125,7 +103,6 @@ public class SecurityConfig {
                 Long personalNo = Long.parseLong(authentication.getName());
                 auditService.logLogin(personalNo, getClientIp(request), request.getHeader("User-Agent"));
             } catch (Exception e) {
-                // #
             }
             response.sendRedirect("/");
         };
@@ -139,7 +116,6 @@ public class SecurityConfig {
                     Long personalNo = Long.parseLong(authentication.getName());
                     auditService.logLogout(personalNo);
                 } catch (Exception e) {
-                    // #
                 }
             }
             response.sendRedirect("/login?logout=true");

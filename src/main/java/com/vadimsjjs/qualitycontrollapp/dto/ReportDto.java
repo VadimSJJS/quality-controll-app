@@ -10,7 +10,6 @@ import java.util.List;
 
 public class ReportDto {
 
-    // Отчет по участку
     @Data
     @Builder
     @NoArgsConstructor
@@ -19,6 +18,9 @@ public class ReportDto {
         private String siteName;
         private String periodFrom;
         private String periodTo;
+        private BigDecimal producedWeight;  // Производство за период
+        private BigDecimal allowablePercent; // Допустимый уровень %
+        private boolean exceedsAllowable;    // Превышен ли допустимый уровень
         private List<DefectRow> rows;
         private Totals totals;
 
@@ -42,6 +44,8 @@ public class ReportDto {
             private BigDecimal total;
             private BigDecimal reworked;
             private BigDecimal defect;
+            private BigDecimal defectPercent;   // % от производства
+            private boolean exceedsAllowable;   // Превышен ли допустимый
         }
     }
 
@@ -293,6 +297,7 @@ public class ReportDto {
             private BigDecimal nonconformingPercent;
             private BigDecimal allowablePercent;
             private String type; // "total", "reworkable", "irreparable", "by_fault"
+            private boolean exceedsAllowable; // Превышен допустимый уровень
         }
 
         @Data
@@ -329,6 +334,7 @@ public class ReportDto {
             private BigDecimal nonconforming;
             private BigDecimal nonconformingPercent;
             private BigDecimal allowablePercent;
+            private boolean exceedsAllowable;
         }
 
         @Data

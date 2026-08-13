@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главная — БМЗ · СтПЦ-2</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="/lib/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body>
 
-<!-- ===== TOP BAR ===== -->
 <header class="topbar">
     <div class="brand">
         <div>
@@ -37,10 +36,8 @@
     </div>
 </header>
 
-<!-- ===== MAIN ===== -->
 <div class="main-wrapper">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
         <a th:href="@{/}" class="nav-item" th:classappend="${currentPage == 'index' ? 'active' : ''}">
             <i class="bi bi-house-door"></i> Главная
@@ -64,13 +61,11 @@
         </a>
     </aside>
 
-    <!-- CONTENT -->
-    <main class="content">
+<main class="content">
 
         <h1 class="page-title">Главная</h1>
         <p class="page-subtitle">Обзор системы учёта несоответствующей продукции</p>
 
-        <!-- WELCOME CARD -->
         <div class="welcome-card">
             <div class="greeting">
                 Добро пожаловать, <span th:text="${fio}">Валуев Вадим Викторович</span>!
@@ -82,9 +77,7 @@
             </div>
         </div>
 
-        <!-- CARDS -->
         <div class="cards-grid">
-            <!-- Карточка 1: Журнал несоответствий -->
             <a th:href="@{/defects}" class="card-dash">
                 <div class="icon-wrapper blue">
                     <i class="bi bi-clipboard-data"></i>
@@ -96,7 +89,6 @@
                 </div>
             </a>
 
-            <!-- Карточка 2: Отчёты -->
             <a th:href="@{/reports}" class="card-dash">
                 <div class="icon-wrapper gold">
                     <i class="bi bi-file-earmark-text"></i>
@@ -108,7 +100,6 @@
                 </div>
             </a>
 
-            <!-- Карточка 3: Аналитика -->
             <a th:href="@{/charts}" class="card-dash">
                 <div class="icon-wrapper green">
                     <i class="bi bi-graph-up-arrow"></i>
@@ -124,6 +115,6 @@
     </main>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

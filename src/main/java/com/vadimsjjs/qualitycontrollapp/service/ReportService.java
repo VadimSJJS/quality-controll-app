@@ -7,10 +7,12 @@ import com.vadimsjjs.qualitycontrollapp.dto.ReportDto;
 import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
 import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.entity.ProductionReport;
+import com.vadimsjjs.qualitycontrollapp.entity.ProductionSite;
 import com.vadimsjjs.qualitycontrollapp.repository.DetectionSourceRepository;
 import com.vadimsjjs.qualitycontrollapp.repository.NonconformingProductRepository;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
 import com.vadimsjjs.qualitycontrollapp.repository.ProductionReportRepository;
+import com.vadimsjjs.qualitycontrollapp.repository.ProductionSiteRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,13 +33,20 @@ public class ReportService {
     private final NonconformingProductRepository nonconformingRepository;
     private final ProductionReportRepository productionRepository;
     private final PersonalRepository personalRepository;
+    private final ProductionSiteRepository productionSiteRepository;
     private final DetectionSourceRepository detectionSourceRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    private ProductionSite getProductionSiteByCode(String siteCode) {
+        return productionSiteRepository.findBySiteCode(siteCode)
+                .orElseThrow(() -> new IllegalArgumentException("Участок с кодом '" + siteCode + "' не найден"));
+    }
+
     @Transactional(readOnly = true)
-    public ReportDto.ReportBySite getReportBySite(String siteName, LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+    public ReportDto.ReportBySite getReportBySite(String siteCode, LocalDate dateFrom, LocalDate dateTo) {
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
 
         List<ReportDto.ReportBySite.DefectRow> rows = defects.stream()
                 .collect(Collectors.groupingBy(d -> d.getDefectType().getDefectName()))
@@ -70,24 +79,46 @@ public class ReportService {
         BigDecimal reworkedAll = sumReworked(defects);
         BigDecimal defectAll = sumIrreparable(defects);
 
+        BigDecimal producedWeight = BigDecimal.ZERO;
+        BigDecimal allowablePercent = BigDecimal.ZERO;
+        boolean exceedsAllowable = false;
+
+        if (!defects.isEmpty()) {
+            NonconformingProduct sample = defects.get(0);
+            Long siteId = sample.getProductionSite().getId();
+            producedWeight = productionRepository.sumProducedBySiteAndDateRange(dateFrom, dateTo, siteId);
+            allowablePercent = site.getAllowableDefectPercent() != null
+                    ? site.getAllowableDefectPercent()
+                    : BigDecimal.ZERO;
+            exceedsAllowable = calcPercent(totalAll, producedWeight).compareTo(allowablePercent) > 0;
+        }
+
+        BigDecimal defectPercent = calcPercent(totalAll, producedWeight);
+
         return ReportDto.ReportBySite.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
+                .producedWeight(producedWeight)
+                .allowablePercent(allowablePercent)
+                .exceedsAllowable(exceedsAllowable)
                 .rows(rows)
                 .totals(ReportDto.ReportBySite.Totals.builder()
                         .total(totalAll)
                         .reworked(reworkedAll)
                         .defect(defectAll)
+                        .defectPercent(defectPercent)
+                        .exceedsAllowable(exceedsAllowable)
                         .build())
                 .build();
     }
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByProductType getReportByProductType(
-            String siteName, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
 
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractProductType(d, productTypeField)));
@@ -139,7 +170,7 @@ public class ReportService {
         BigDecimal defectAll = sumIrreparable(defects);
 
         return ReportDto.ReportByProductType.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .productTypeField(productTypeField)
@@ -154,9 +185,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByProductAndCause getReportByProductAndCause(
-            String siteName, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
 
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractProductType(d, productTypeField)));
@@ -190,7 +222,7 @@ public class ReportService {
                 .collect(Collectors.toList());
 
         return ReportDto.ReportByProductAndCause.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .productTypeField(productTypeField)
@@ -203,9 +235,13 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByBrigade getReportByBrigade(
-            String siteName, Long brigadeId, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, Long brigadeId, LocalDate dateFrom, LocalDate dateTo) {
 
-        List<NonconformingProduct> defects = getDefectsBySiteAndBrigade(siteName, brigadeId, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null)
+                .stream()
+                .filter(d -> d.getManufacturerBrigade() != null && d.getManufacturerBrigade().equals(brigadeId))
+                .collect(Collectors.toList());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractDiameter(d)));
@@ -257,7 +293,7 @@ public class ReportService {
         BigDecimal defectAll = sumIrreparable(defects);
 
         return ReportDto.ReportByBrigade.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .brigadeId(brigadeId)
@@ -272,9 +308,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByEquipment getReportByEquipment(
-            String siteName, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, LocalDate dateFrom, LocalDate dateTo) {
 
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .filter(d -> d.getEquipmentKey() != null)
@@ -327,7 +364,7 @@ public class ReportService {
         BigDecimal defectAll = sumIrreparable(defects);
 
         return ReportDto.ReportByEquipment.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .groups(groupList)
@@ -512,9 +549,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByPersonnel getReportByPersonnel(
-            String siteName, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, LocalDate dateFrom, LocalDate dateTo) {
 
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .filter(d -> d.getOperatorPersonalNumber() != null)
@@ -562,7 +600,7 @@ public class ReportService {
         BigDecimal defectAll = sumIrreparable(defects);
 
         return ReportDto.ReportByPersonnel.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .groups(groupList)
@@ -604,6 +642,8 @@ public class ReportService {
                     .map(d -> d.getProductionSite().getAllowableDefectPercent())
                     .orElse(BigDecimal.ZERO);
 
+            boolean exceedsAllowable = percent.compareTo(allowable) > 0;
+
             rows.add(ReportDto.ReportByPlant.SiteRow.builder()
                     .siteName(siteName)
                     .produced(produced)
@@ -611,6 +651,7 @@ public class ReportService {
                     .nonconformingPercent(percent)
                     .allowablePercent(allowable)
                     .type("total")
+                    .exceedsAllowable(exceedsAllowable)
                     .build());
         }
 
@@ -691,35 +732,6 @@ public class ReportService {
                 .build();
     }
 
-    private List<NonconformingProduct> getDefectsBySite(String siteName, LocalDate dateFrom, LocalDate dateTo) {
-        log.info("getDefectsBySite: siteName='{}', dateFrom={}, dateTo={}", siteName, dateFrom, dateTo);
-        
-        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
-        log.info("  Загружено всего записей за период: {}", allDefects.size());
-        
-        List<NonconformingProduct> filtered = allDefects.stream()
-                .filter(d -> {
-                    boolean matches = d.getProductionSite() != null && d.getProductionSite().getSiteName() != null 
-                            && d.getProductionSite().getSiteName().equals(siteName);
-                    if (!matches && allDefects.size() > 0) {
-                        log.debug("    Пропущена запись: productionSite='{}', defectType='{}'", 
-                                d.getProductionSite() != null ? d.getProductionSite().getSiteName() : "null",
-                                d.getDefectType() != null ? d.getDefectType().getDefectName() : "null");
-                    }
-                    return matches;
-                })
-                .collect(Collectors.toList());
-        
-        log.info("  После фильтрации по участку '{}': {} записей", siteName, filtered.size());
-        return filtered;
-    }
-
-    private List<NonconformingProduct> getDefectsBySiteAndBrigade(String siteName, Long brigadeId, LocalDate dateFrom, LocalDate dateTo) {
-        return getDefectsBySite(siteName, dateFrom, dateTo).stream()
-                .filter(d -> d.getManufacturerBrigade() != null && d.getManufacturerBrigade().equals(brigadeId))
-                .collect(Collectors.toList());
-    }
-
 
     private String extractProductType(NonconformingProduct d, String field) {
         if ("диаметр".equals(field) && d.getDiameter() != null) {
@@ -767,8 +779,8 @@ public class ReportService {
     }
 
     private void addFaultRow(List<ReportDto.ReportByFault.FaultRow> rows, String category,
-                             String type, List<NonconformingProduct> defects,
-                             List<ProductionReport> productions) {
+                              String type, List<NonconformingProduct> defects,
+                              List<ProductionReport> productions) {
         if (defects.isEmpty()) {
             rows.add(ReportDto.ReportByFault.FaultRow.builder()
                     .category(category)
@@ -777,6 +789,7 @@ public class ReportService {
                     .nonconforming(BigDecimal.ZERO)
                     .nonconformingPercent(BigDecimal.ZERO)
                     .allowablePercent(type != null ? BigDecimal.valueOf(0.01) : BigDecimal.ZERO)
+                    .exceedsAllowable(false)
                     .build());
             return;
         }
@@ -796,9 +809,11 @@ public class ReportService {
 
         BigDecimal percent = calcPercent(defectWeight, produced);
         BigDecimal allowable = BigDecimal.ZERO;
+        boolean exceedsAllowable = false;
 
         if (isByFault) {
             allowable = defects.get(0).getProductionSite().getAllowableDefectPercent();
+            exceedsAllowable = percent.compareTo(allowable) > 0;
         }
 
         rows.add(ReportDto.ReportByFault.FaultRow.builder()
@@ -808,6 +823,7 @@ public class ReportService {
                 .nonconforming(defectWeight)
                 .nonconformingPercent(percent)
                 .allowablePercent(allowable)
+                .exceedsAllowable(exceedsAllowable)
                 .build());
     }
 
@@ -913,13 +929,14 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public ParetoReport getParetoReport(String siteName, String groupingType,
+    public ParetoReport getParetoReport(String siteCode, String groupingType,
                                         LocalDate dateFrom, LocalDate dateTo) {
 
-        log.info("=== getParetoReport START: siteName='{}', groupingType='{}', dateFrom={}, dateTo={} ===", 
-                siteName, groupingType, dateFrom, dateTo);
+        ProductionSite site = getProductionSiteByCode(siteCode);
+        log.info("=== getParetoReport START: siteCode='{}', groupingType='{}', dateFrom={}, dateTo={} ===", 
+                siteCode, groupingType, dateFrom, dateTo);
         
-        List<NonconformingProduct> defects = getDefectsBySite(siteName, dateFrom, dateTo);
+        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
         log.info("  defects.size() = {}", defects.size());
 
         List<ParetoReport.ParetoItem> items;
@@ -980,7 +997,7 @@ public class ReportService {
         }
 
         return ParetoReport.builder()
-                .siteName(siteName)
+                .siteName(site.getSiteName())
                 .periodFrom(dateFrom.format(DATE_FORMATTER))
                 .periodTo(dateTo.format(DATE_FORMATTER))
                 .groupingType(groupingType)

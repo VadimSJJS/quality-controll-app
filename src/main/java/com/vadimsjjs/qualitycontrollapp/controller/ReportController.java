@@ -32,53 +32,53 @@ public class ReportController {
 
     @GetMapping("/by-site")
     public ResponseEntity<ReportDto.ReportBySite> getReportBySite(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportBySite(siteName, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportBySite(siteCode, dateFrom, dateTo));
     }
 
     @GetMapping("/by-product-type")
     public ResponseEntity<ReportDto.ReportByProductType> getReportByProductType(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportByProductType(siteName, productTypeField, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportByProductType(siteCode, productTypeField, dateFrom, dateTo));
     }
 
     @GetMapping("/by-product-cause")
     public ResponseEntity<ReportDto.ReportByProductAndCause> getReportByProductAndCause(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportByProductAndCause(siteName, productTypeField, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportByProductAndCause(siteCode, productTypeField, dateFrom, dateTo));
     }
 
     @GetMapping("/by-brigade")
     public ResponseEntity<ReportDto.ReportByBrigade> getReportByBrigade(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam Long brigadeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportByBrigade(siteName, brigadeId, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportByBrigade(siteCode, brigadeId, dateFrom, dateTo));
     }
 
     @GetMapping("/by-equipment")
     public ResponseEntity<ReportDto.ReportByEquipment> getReportByEquipment(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportByEquipment(siteName, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportByEquipment(siteCode, dateFrom, dateTo));
     }
 
     @GetMapping("/by-personnel")
     public ResponseEntity<ReportDto.ReportByPersonnel> getReportByPersonnel(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getReportByPersonnel(siteName, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getReportByPersonnel(siteCode, dateFrom, dateTo));
     }
 
     @GetMapping("/personnel-defects-v2")
