@@ -40,7 +40,7 @@ public class SecurityConfig {
     private final DataSource dataSource;
 
     private static final String[] PUBLIC_PATHS = {
-            "/login", "/css/**", "/js/**", "/webjars/**", "/error", "/api/seed/**"
+            "/login", "/css/**", "/js/**", "/fonts/**", "/webjars/**", "/error", "/api/seed/**", "/lib/**"
     };
 
     private static final List<String> OTK_ROLES = List.of("OTK_MASTER", "OTK", "OTK_CHIEF");
