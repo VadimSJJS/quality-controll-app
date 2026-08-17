@@ -504,14 +504,42 @@
             method: 'POST',
             body: formData
         })
-            .then(response => response.text())
-            .then(data => {
+            .then(response => {
+                const contentType = response.headers.get('Content-Type') || '';
+                const isOk = response.ok;
+                return response.text().then(text => {
+                    let data = text;
+                    try {
+                        if (contentType.includes('application/json')) {
+                            data = JSON.parse(text);
+                        }
+                    } catch (ignored) {}
+                    return { data, isOk };
+                });
+            })
+            .then(({ data, isOk }) => {
                 resultDiv.style.display = 'block';
-                resultDiv.innerHTML = `<div class="alert alert-success">${data}</div>`;
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
-                fileInput.value = '';
-                setTimeout(() => location.reload(), 2000);
+                if (isOk && typeof data === 'object') {
+                    let html = `<div class="alert alert-success">Импортировано записей: <strong>${data.imported}</strong></div>`;
+                    if (data.errors && data.errors.length > 0) {
+                        html += `<div class="alert alert-warning mt-2" style="max-height:200px; overflow-y:auto; white-space:pre-line;">Пропущено строк с ошибками: <strong>${data.errors.length}</strong>\n${data.errors.join('\n')}</div>`;
+                    }
+                    resultDiv.innerHTML = html;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
+                    fileInput.value = '';
+                    setTimeout(() => location.reload(), 2500);
+                } else if (isOk) {
+                    resultDiv.innerHTML = `<div class="alert alert-success">${data}</div>`;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
+                    fileInput.value = '';
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger" style="white-space:pre-line">${data}</div>`;
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-upload"></i> Загрузить';
+                }
             })
             .catch(error => {
                 resultDiv.style.display = 'block';

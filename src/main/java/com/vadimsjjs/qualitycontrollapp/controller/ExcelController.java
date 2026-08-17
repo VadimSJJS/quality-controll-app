@@ -1,6 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.controller;
 
-import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
+import com.vadimsjjs.qualitycontrollapp.dto.ExcelImportResult;
 import com.vadimsjjs.qualitycontrollapp.service.ExcelImportExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -8,8 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/excel")
@@ -39,8 +37,8 @@ public class ExcelController {
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
         try {
-            List<NonconformingProduct> imported = excelService.importFromExcel(file);
-            return ResponseEntity.ok("Импортировано " + imported.size() + " записей");
+            ExcelImportResult result = excelService.importFromExcel(file);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Ошибка импорта: " + e.getMessage());
         }
