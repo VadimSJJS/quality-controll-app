@@ -51,4 +51,13 @@ public class NonconformingProductResponse {
     private LocalDate reworkDate;
     private BigDecimal reworkWeightTonnes;
     private String status;
+
+    private Long steelGradeId;
+    private String steelGrade;
+    private String unitNumber;
+    private Integer quantity;
+    private Integer reworkQuantity;
+    private String workpieceKey;
+    private String steelCordConstruction;
+    private Long brigade;
 }

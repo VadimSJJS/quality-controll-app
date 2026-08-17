@@ -25,7 +25,37 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
 
     @Query(value = "SELECT * FROM ( " +
             "SELECT a.*, ROWNUM rn FROM ( " +
-            "SELECT * FROM NONCONFORMING_PRODUCT n " +
+            "SELECT " +
+            "    ID_NONCONFORMING_PRODUCT, " +
+            "    DETECTION_DATE, " +
+            "    ID_PRODUCTION_SITE, " +
+            "    ID_DETECTION_SOURCE, " +
+            "    WEIGHT_TONNES, " +
+            "    IRREPARABLE_WEIGHT_TONNES, " +
+            "    ID_DEFECT_TYPE, " +
+            "    ID_DEFECT_CAUSE, " +
+            "    ID_DEFECT_SUBCAUSE, " +
+            "    NOTE, " +
+            "    PRODUCT_CODE, " +
+            "    REEL_NUMBER, " +
+            "    HEAT_NUMBER, " +
+            "    MANUFACTURER_BRIGADE, " +
+            "    BUNDLE_NUMBER, " +
+            "    MANUFACTURER_WORKSHOP, " +
+            "    EQUIPMENT_KEY, " +
+            "    ID_DIAMETER, " +
+            "    STEEL_CORD_CONSTRUCTION, " +
+            "    OPERATOR_PERSONAL_NUMBER, " +
+            "    BRIGADE, " +
+            "    STEEL_GRADE, " +
+            "    UNIT_NUMBER, " +
+            "    WORKPIECE_KEY, " +
+            "    QUANTITY, " +
+            "    REWORK_QUANTITY, " +
+            "    REWORK_DATE, " +
+            "    ID_REWORK_TYPE, " +
+            "    REWORK_WEIGHT_TONNES " +
+            "FROM NONCONFORMING_PRODUCT n " +
             "WHERE (:dateFrom IS NULL OR n.DETECTION_DATE >= :dateFrom) " +
             "AND (:dateTo IS NULL OR n.DETECTION_DATE <= :dateTo) " +
             "AND (:siteId IS NULL OR n.ID_PRODUCTION_SITE = :siteId) " +

@@ -30,6 +30,7 @@ public class NonconformingProductService {
     private final DefectCauseRepository defectCauseRepository;
     private final ReworkTypeRepository reworkTypeRepository;
     private final DiameterRepository diameterRepository;
+    private final SteelGradeRepository steelGradeRepository;
 
     @Transactional
     public NonconformingProductResponse create(NonconformingProductRequest request) {
@@ -151,6 +152,19 @@ public class NonconformingProductService {
             entity.setDiameter(diameter);
         }
 
+        if (request.getSteelGradeId() != null) {
+            SteelGrade steelGrade = steelGradeRepository.findById(request.getSteelGradeId())
+                    .orElseThrow(() -> new RuntimeException("Марка стали не найдена"));
+            entity.setSteelGrade(steelGrade.getSteelGrade());
+        }
+
+        entity.setUnitNumber(request.getUnitNumber());
+        entity.setQuantity(request.getQuantity());
+        entity.setReworkQuantity(request.getReworkQuantity());
+        entity.setWorkpieceKey(request.getWorkpieceKey());
+        entity.setSteelCordConstruction(request.getSteelCordConstruction());
+        entity.setBrigade(request.getBrigade());
+
         entity.setReworkDate(request.getReworkDate());
         entity.setReworkWeightTonnes(request.getReworkWeightTonnes());
         entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
@@ -221,6 +235,21 @@ public class NonconformingProductService {
             entity.setDiameter(null);
         }
 
+        if (request.getSteelGradeId() != null) {
+            SteelGrade steelGrade = steelGradeRepository.findById(request.getSteelGradeId())
+                    .orElseThrow(() -> new RuntimeException("Марка стали не найдена"));
+            entity.setSteelGrade(steelGrade.getSteelGrade());
+        } else {
+            entity.setSteelGrade(null);
+        }
+
+        entity.setUnitNumber(request.getUnitNumber());
+        entity.setQuantity(request.getQuantity());
+        entity.setReworkQuantity(request.getReworkQuantity());
+        entity.setWorkpieceKey(request.getWorkpieceKey());
+        entity.setSteelCordConstruction(request.getSteelCordConstruction());
+        entity.setBrigade(request.getBrigade());
+
         entity.setNote(request.getNote());
         entity.setProductCode(request.getProductCode());
         entity.setReelNumber(request.getReelNumber());
@@ -265,7 +294,24 @@ public class NonconformingProductService {
                 .reworkDate(entity.getReworkDate())
                 .reworkWeightTonnes(entity.getReworkWeightTonnes())
                 .status(determineStatus(entity))
+                .steelGradeId(entity.getSteelGrade() != null ? resolveSteelGradeId(entity.getSteelGrade()) : null)
+                .steelGrade(entity.getSteelGrade())
+                .unitNumber(entity.getUnitNumber())
+                .quantity(entity.getQuantity())
+                .reworkQuantity(entity.getReworkQuantity())
+                .workpieceKey(entity.getWorkpieceKey())
+                .steelCordConstruction(entity.getSteelCordConstruction())
+                .brigade(entity.getBrigade())
                 .build();
+    }
+
+    private Long resolveSteelGradeId(String steelGrade) {
+        if (steelGrade == null) return null;
+        return steelGradeRepository.findAll().stream()
+                .filter(s -> steelGrade.equals(s.getSteelGrade()))
+                .map(SteelGrade::getId)
+                .findFirst()
+                .orElse(null);
     }
 
     private String determineStatus(NonconformingProduct entity) {

@@ -526,7 +526,6 @@
         orderArray.forEach(fieldName => {
             const field = container.querySelector(`.dynamic-field[data-field="${fieldName}"]`);
             if (field) {
-                // Перемещаем элемент в конец контейнера (таким образом выстраивая нужный порядок)
                 container.appendChild(field.closest('.col-md-3'));
             }
         });
@@ -618,7 +617,7 @@
 
     let isEdit = document.getElementById('isEdit') ? document.getElementById('isEdit').value === 'true' : false;
     let defectId = document.getElementById('defectId') ? document.getElementById('defectId').value : null;
-    
+
     console.log('📄 Страница загружена:');
     console.log('   isEdit:', isEdit);
     console.log('   defectId:', defectId);
@@ -791,20 +790,20 @@
 
         const submitBtn = document.getElementById('submitBtn');
         const submitText = document.getElementById('submitText');
-        
+
         console.log('📋 Проверяем обязательные поля...');
         const detectionDate = document.getElementById('detectionDate').value;
         const productionSiteId = document.getElementById('productionSiteId').value;
         const detectionSourceId = document.getElementById('detectionSourceId').value;
         const weightTonnes = document.getElementById('weightTonnes').value;
         const defectTypeId = document.getElementById('defectTypeId').value;
-        
+
         console.log('   detectionDate:', detectionDate);
         console.log('   productionSiteId:', productionSiteId);
         console.log('   detectionSourceId:', detectionSourceId);
         console.log('   weightTonnes:', weightTonnes);
         console.log('   defectTypeId:', defectTypeId);
-        
+
         if (!detectionDate || !productionSiteId || !detectionSourceId || !weightTonnes || !defectTypeId) {
             const errorMsg = 'Заполните обязательные поля: дата, участок, источник выявления, вес, вид дефекта';
             console.error('❌ Не заполнены обязательные поля:', {
@@ -871,8 +870,8 @@
                 try {
                     const err = await response.json();
                     console.error('❌ Детали ошибки:', err);
-                    errorMsg = err.details 
-                        ? Object.values(err.details).join(', ') 
+                    errorMsg = err.details
+                        ? Object.values(err.details).join(', ')
                         : err.error || 'Ошибка сохранения';
                 } catch (parseError) {
                     errorMsg = `Сервер вернул ошибку ${response.status}: ${response.statusText}`;

@@ -90,6 +90,9 @@ public class NonconformingProduct {
     @Column(name = "STEEL_GRADE", length = 50)
     private String steelGrade;
 
+    @Column(name = "UNIT_NUMBER", length = 100)
+    private String unitNumber;
+
     @Column(name = "WORKPIECE_KEY", length = 100)
     private String workpieceKey;
 

@@ -54,4 +54,12 @@ public class NonconformingProductRequest {
     private Long reworkTypeId;
     @PositiveOrZero(message = "Вес доработки должен быть ≥ 0")
     private BigDecimal reworkWeightTonnes;
+
+    private Long steelGradeId;
+    private String unitNumber;
+    private Integer quantity;
+    private Integer reworkQuantity;
+    private String workpieceKey;
+    private String steelCordConstruction;
+    private Long brigade;
 }
