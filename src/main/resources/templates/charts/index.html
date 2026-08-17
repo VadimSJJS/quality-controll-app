@@ -8,6 +8,9 @@
     <link href="/lib/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link href="/fonts/inter.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/reports.css}">
+    <link rel="stylesheet" th:href="@{/css/defects.css}">
     <script src="/lib/chartjs/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
@@ -109,7 +112,7 @@
                     <div class="col-md-3">
                         <label class="form-label filter-label">Участок</label>
                         <select class="form-select form-select-sm" id="paretoSite">
-                            <option value="Канатный участок №2">Канатный участок №2</option>
+                            <option value="">Выберите участок</option>
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -604,14 +607,6 @@
     `;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        document.getElementById('equipmentDateFrom').value = formatDateInput(firstDay);
-        document.getElementById('equipmentDateTo').value = formatDateInput(today);
-        loadEquipmentReport();
-    });
-
     function setPersonnelDate(type) {
         const today = new Date();
         let from = new Date(today);
@@ -739,14 +734,6 @@
         `;
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        document.getElementById('personnelDateFrom').value = formatDateInput(firstDay);
-        document.getElementById('personnelDateTo').value = formatDateInput(today);
-        loadPersonnelReport();
-    });
-
     function setPersonnelV2Date(type) {
         const today = new Date();
         let from = new Date(today);
@@ -872,14 +859,6 @@
             });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        document.getElementById('personnelV2DateFrom').value = formatDateInput(firstDay);
-        document.getElementById('personnelV2DateTo').value = formatDateInput(today);
-        loadPersonnelReportV2();
-    });
-
     // ===== ДИАГРАММА ПАРЕТО (TEST!) =====
     let paretoChart = null;
 
@@ -902,7 +881,7 @@
     }
 
     function loadParetoReport() {
-        const siteName = document.getElementById('paretoSite').value;
+        const siteCode = document.getElementById('paretoSite').value;
         const dateFrom = document.getElementById('paretoDateFrom').value;
         const dateTo = document.getElementById('paretoDateTo').value;
 
@@ -911,9 +890,14 @@
             return;
         }
 
-        const url = `/api/reports/pareto?siteName=${encodeURIComponent(siteName)}&groupingType=defect&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        if (!siteCode) {
+            alert('Пожалуйста, выберите участок');
+            return;
+        }
+
+        const url = `/api/reports/pareto?siteCode=${encodeURIComponent(siteCode)}&groupingType=defect&dateFrom=${dateFrom}&dateTo=${dateTo}`;
         console.log('📊 Запрос Парето:', url);
-        console.log('   Участок:', siteName);
+        console.log('   Участок:', siteCode);
         console.log('   Период:', dateFrom, '—', dateTo);
 
         fetch(url)
@@ -1096,12 +1080,54 @@
         }
     }
 
+    async function loadParetoSites() {
+        try {
+            const response = await fetch('/directories/production-sites');
+            if (!response.ok) throw new Error('Ошибка загрузки участков');
+            const sites = await response.json();
+            
+            const select = document.getElementById('paretoSite');
+            select.innerHTML = '<option value="">Выберите участок</option>';
+            sites.forEach(site => {
+                const opt = document.createElement('option');
+                opt.value = site.siteCode;
+                opt.textContent = site.siteName;
+                select.appendChild(opt);
+            });
+            
+            // Автовыбор первого участка и загрузка отчёта
+            if (sites.length > 0) {
+                select.selectedIndex = 1;
+                loadParetoReport();
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки участков:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        
+        // Equipment report dates
+        document.getElementById('equipmentDateFrom').value = formatDateInput(firstDay);
+        document.getElementById('equipmentDateTo').value = formatDateInput(today);
+        loadEquipmentReport();
+        
+        // Personnel report dates
+        document.getElementById('personnelDateFrom').value = formatDateInput(firstDay);
+        document.getElementById('personnelDateTo').value = formatDateInput(today);
+        loadPersonnelReport();
+        
+        // Personnel V2 report dates
+        document.getElementById('personnelV2DateFrom').value = formatDateInput(firstDay);
+        document.getElementById('personnelV2DateTo').value = formatDateInput(today);
+        loadPersonnelReportV2();
+        
+        // Pareto dates — sites and report will be loaded by loadParetoSites
         document.getElementById('paretoDateFrom').value = formatDateInput(firstDay);
         document.getElementById('paretoDateTo').value = formatDateInput(today);
-        loadParetoReport();
+        loadParetoSites();
     });
 </script>
 

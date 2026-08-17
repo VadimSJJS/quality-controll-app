@@ -106,6 +106,7 @@
                     <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-personnel">По персоналу</button>
                     <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-plant">По цеху</button>
                     <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-fault">По вине</button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="pareto">Диаграмма Парето</button>
                 </div>
             </div>
 
@@ -122,15 +123,14 @@
                     <div class="col-md-2" id="siteParam">
                         <label class="form-label fw-semibold small text-secondary">Участок</label>
                         <select class="form-select" id="siteSelect">
-                            <option value="СК">Склад катанки</option>
-                            <option value="ТУ">Травильный участок</option>
-                            <option value="ГСВ">ГСВ</option>
-                            <option value="ТТГУ">ТТГУ</option>
-                            <option value="УТВ_МК">УТВ (металлокорд)</option>
-                            <option value="УТВ_РМЛ">УТВ РМЛ</option>
-                            <option value="УТВ_СВ">УТВ сварочная</option>
-                            <option value="КУ-1">КУ-1</option>
-                            <option value="КУ-2">КУ-2</option>
+                            <option value="">Выберите участок</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2" id="paretoGroupingParam" style="display:none;">
+                        <label class="form-label fw-semibold small text-secondary">Группировка</label>
+                        <select class="form-select" id="paretoGroupingSelect">
+                            <option value="defect">По виду дефекта</option>
+                            <option value="cause">По причине</option>
                         </select>
                     </div>
                     <div class="col-md-2" id="productTypeParam" style="display:none;">
@@ -186,24 +186,32 @@
             currentReportType = this.dataset.type;
 
             document.getElementById('siteParam').style.display =
-                ['by-site', 'by-product-type', 'by-product-cause', 'by-brigade', 'by-equipment', 'by-personnel'].includes(currentReportType)
+                ['by-site', 'by-product-type', 'by-product-cause', 'by-brigade', 'by-equipment', 'by-personnel', 'pareto'].includes(currentReportType)
                     ? 'block' : 'none';
             document.getElementById('productTypeParam').style.display =
                 ['by-product-type', 'by-product-cause'].includes(currentReportType) ? 'block' : 'none';
             document.getElementById('brigadeParam').style.display =
                 currentReportType === 'by-brigade' ? 'block' : 'none';
+            document.getElementById('paretoGroupingParam').style.display =
+                currentReportType === 'pareto' ? 'block' : 'none';
         });
     });
 
     function generateReport() {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
-        const siteName = document.getElementById('siteSelect').value;
+        const siteCode = document.getElementById('siteSelect').value;
         const productType = document.getElementById('productTypeSelect').value;
         const brigadeId = document.getElementById('brigadeSelect').value;
+        const paretoGrouping = document.getElementById('paretoGroupingSelect').value;
 
         if (!dateFrom || !dateTo) {
             alert('Пожалуйста, выберите период');
+            return;
+        }
+
+        if (['by-site', 'by-product-type', 'by-product-cause', 'by-brigade', 'by-equipment', 'by-personnel', 'pareto'].includes(currentReportType) && !siteCode) {
+            alert('Пожалуйста, выберите участок');
             return;
         }
 
@@ -221,28 +229,31 @@
 
         switch(currentReportType) {
             case 'by-site':
-                url = `/api/reports/by-site?${params}&siteCode=${encodeURIComponent(siteName)}`;
+                url = `/api/reports/by-site?${params}&siteCode=${encodeURIComponent(siteCode)}`;
                 break;
             case 'by-product-type':
-                url = `/api/reports/by-product-type?${params}&siteCode=${encodeURIComponent(siteName)}&productTypeField=${productType}`;
+                url = `/api/reports/by-product-type?${params}&siteCode=${encodeURIComponent(siteCode)}&productTypeField=${productType}`;
                 break;
             case 'by-product-cause':
-                url = `/api/reports/by-product-cause?${params}&siteCode=${encodeURIComponent(siteName)}&productTypeField=${productType}`;
+                url = `/api/reports/by-product-cause?${params}&siteCode=${encodeURIComponent(siteCode)}&productTypeField=${productType}`;
                 break;
             case 'by-brigade':
-                url = `/api/reports/by-brigade?${params}&siteCode=${encodeURIComponent(siteName)}&brigadeId=${brigadeId}`;
+                url = `/api/reports/by-brigade?${params}&siteCode=${encodeURIComponent(siteCode)}&brigadeId=${brigadeId}`;
                 break;
             case 'by-equipment':
-                url = `/api/reports/by-equipment?${params}&siteCode=${encodeURIComponent(siteName)}`;
+                url = `/api/reports/by-equipment?${params}&siteCode=${encodeURIComponent(siteCode)}`;
                 break;
             case 'by-personnel':
-                url = `/api/reports/by-personnel?${params}&siteCode=${encodeURIComponent(siteName)}`;
+                url = `/api/reports/by-personnel?${params}&siteCode=${encodeURIComponent(siteCode)}`;
                 break;
             case 'by-plant':
                 url = `/api/reports/by-plant?${params}`;
                 break;
             case 'by-fault':
                 url = `/api/reports/by-fault?${params}`;
+                break;
+            case 'pareto':
+                url = `/api/reports/pareto?${params}&siteCode=${encodeURIComponent(siteCode)}&groupingType=${paretoGrouping}`;
                 break;
             default:
                 alert('Неизвестный тип отчёта');
@@ -294,6 +305,9 @@
                 break;
             case 'by-fault':
                 html = renderByFault(data);
+                break;
+            case 'pareto':
+                html = renderPareto(data);
                 break;
         }
 
@@ -730,6 +744,99 @@
         `;
     }
 
+    function renderPareto(data) {
+        let itemsHtml = data.items.map((item, index) => {
+            let cumulativePercent = item.cumulativePercent ? item.cumulativePercent.toFixed(2) : '0';
+            let barWidth = item.percent ? item.percent.toFixed(1) : '0';
+            let cumulativeBarWidth = item.cumulativePercent ? item.cumulativePercent.toFixed(1) : '0';
+            
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.category}</td>
+                    <td class="text-end">${item.weight.toFixed(3)}</td>
+                    <td class="text-end">${item.percent.toFixed(2)}%</td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: ${barWidth}%" 
+                                 aria-valuenow="${barWidth}" aria-valuemin="0" aria-valuemax="100">
+                                ${barWidth}%
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-end">${cumulativePercent}%</td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: ${cumulativeBarWidth}%" 
+                                 aria-valuenow="${cumulativeBarWidth}" aria-valuemin="0" aria-valuemax="100">
+                                ${cumulativePercent}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        return `
+            <h5>Диаграмма Парето <strong>${data.siteName}</strong></h5>
+            <p class="text-secondary small">за период с ${data.periodFrom} по ${data.periodTo}, группировка: ${data.groupingType === 'defect' ? 'по виду дефекта' : 'по причине'}</p>
+            <div class="info-bar mb-3 p-3 rounded border-primary">
+                <div class="row">
+                    <div class="col-md-4">
+                        <small class="text-secondary">Всего несоответствий:</small><br>
+                        <strong>${data.totalWeight.toFixed(3)} т</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-secondary">Позиций:</small><br>
+                        <strong>${data.items.length}</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-secondary">Группировка:</small><br>
+                        <strong>${data.groupingType === 'defect' ? 'По виду дефекта' : 'По причине'}</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px;">№</th>
+                            <th>Категория</th>
+                            <th class="text-end">Вес, т</th>
+                            <th class="text-end">Удельный вес, %</th>
+                            <th>Накопительный %</th>
+                            <th class="text-end">Накопительный, %</th>
+                            <th>Диаграмма</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+            </div>
+            <div class="mt-3 small text-secondary">
+                <i class="bi bi-info-circle"></i> Диаграмма Парето позволяет выявить критические проблемы, которые оказывают наибольшее влияние на качество.
+            </div>
+        `;
+    }
+
+    async function loadSites() {
+        try {
+            const sites = await fetch('/directories/production-sites');
+            if (!sites.ok) throw new Error('Ошибка загрузки участков');
+            const data = await sites.json();
+            
+            const select = document.getElementById('siteSelect');
+            select.innerHTML = '<option value="">Выберите участок</option>';
+            data.forEach(site => {
+                const opt = document.createElement('option');
+                opt.value = site.siteCode;
+                opt.textContent = site.siteName;
+                select.appendChild(opt);
+            });
+        } catch (error) {
+            console.error('Ошибка загрузки участков:', error);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -737,6 +844,7 @@
         document.getElementById('dateTo').value = today.toISOString().split('T')[0];
 
         document.querySelector('.report-type-btn.active').click();
+        loadSites();
     });
 </script>
 

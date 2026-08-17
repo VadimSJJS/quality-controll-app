@@ -25,3 +25,24 @@
 
 .report-type-btn { cursor: pointer; }
 .report-type-btn.active { background: #1a3a5c; color: white; border-color: #1a3a5c; }
+
+/* ===== Стили для страницы аналитики ===== */
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a3a5c;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.summary-row {
+    background: #f8fafc;
+    border-top: 2px solid #e2e8f0 !important;
+}
+
+.info-bar {
+    background: #f8fafc;
+    border-left: 4px solid #1a3a5c;
+}

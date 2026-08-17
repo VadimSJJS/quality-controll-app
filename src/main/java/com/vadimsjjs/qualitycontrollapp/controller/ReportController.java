@@ -109,10 +109,10 @@ public class ReportController {
 
     @GetMapping("/pareto")
     public ResponseEntity<ParetoReport> getParetoReport(
-            @RequestParam String siteName,
+            @RequestParam String siteCode,
             @RequestParam(defaultValue = "defect") String groupingType,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(reportService.getParetoReport(siteName, groupingType, dateFrom, dateTo));
+        return ResponseEntity.ok(reportService.getParetoReport(siteCode, groupingType, dateFrom, dateTo));
     }
 }
