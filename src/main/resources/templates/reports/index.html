@@ -10,6 +10,7 @@
     <link href="/fonts/inter.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/reports.css}">
+    <link rel="stylesheet" th:href="@{/css/print.css}" media="print">
 </head>
 <body>
 
@@ -311,7 +312,71 @@
                 break;
         }
 
-        container.innerHTML = html;
+        const siteCode = document.getElementById('siteSelect').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const productType = document.getElementById('productTypeSelect').value;
+        const brigadeId = document.getElementById('brigadeSelect').value;
+        const paretoGrouping = document.getElementById('paretoGroupingSelect').value;
+
+        let exportHtml = `<div class="export-bar mb-3">
+            <button class="btn btn-outline-success btn-sm me-1" onclick="exportToExcel('${type}', '${siteCode}', '${productType}', '${brigadeId}', '${paretoGrouping}')">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </button>
+            <button class="btn btn-outline-secondary btn-sm me-1" onclick="exportToWord('${type}', '${siteCode}', '${productType}', '${brigadeId}', '${paretoGrouping}')">
+                <i class="bi bi-file-earmark-word"></i> Word
+            </button>
+            <button class="btn btn-outline-dark btn-sm" onclick="window.print()">
+                <i class="bi bi-printer"></i> Печать
+            </button>
+        </div>`;
+
+        container.innerHTML = exportHtml + html;
+    }
+
+    function getExportParams() {
+        const siteCode = document.getElementById('siteSelect').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        const productType = document.getElementById('productTypeSelect').value;
+        const brigadeId = document.getElementById('brigadeSelect').value;
+        const paretoGrouping = document.getElementById('paretoGroupingSelect').value;
+        return { siteCode, dateFrom, dateTo, productType, brigadeId, paretoGrouping };
+    }
+
+    function exportToExcel(type, siteCode, productType, brigadeId, paretoGrouping) {
+        const { dateFrom, dateTo } = getExportParams();
+        if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
+
+        let url = '';
+        switch(type) {
+            case 'by-site': url = `/api/reports/export/excel/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-product-type': url = `/api/reports/export/excel/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-product-cause': url = `/api/reports/export/excel/by-product-cause?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-brigade': url = `/api/reports/export/excel/by-brigade?siteCode=${siteCode}&brigadeId=${brigadeId}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-equipment': url = `/api/reports/export/excel/by-equipment?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-personnel': url = `/api/reports/export/excel/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-plant': url = `/api/reports/export/excel/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-fault': url = `/api/reports/export/excel/by-fault?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'pareto': url = `/api/reports/export/excel/pareto?siteCode=${siteCode}&groupingType=${paretoGrouping}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            default: alert('Экспорт не поддерживается'); return;
+        }
+        window.open(url, '_blank');
+    }
+
+    function exportToWord(type, siteCode, productType, brigadeId, paretoGrouping) {
+        const { dateFrom, dateTo } = getExportParams();
+        if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
+
+        let url = '';
+        switch(type) {
+            case 'by-site': url = `/api/reports/export/word/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-product-type': url = `/api/reports/export/word/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-personnel': url = `/api/reports/export/word/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-plant': url = `/api/reports/export/word/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            default: alert('Word-экспорт доступен для: по участку, по виду продукции, по персоналу, по цеху'); return;
+        }
+        window.open(url, '_blank');
     }
 
     function renderBySite(data) {

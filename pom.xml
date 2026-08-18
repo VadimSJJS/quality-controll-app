@@ -79,7 +79,7 @@
         Migrations are applied manually via SQL*Plus when needed.
         -->
 
-        <!-- ===== APACHE POI (EXCEL) ===== -->
+        <!-- ===== APACHE POI (EXCEL + WORD) ===== -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>

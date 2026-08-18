@@ -1,0 +1,121 @@
+/* ===== Стили для печати ===== */
+
+@media print {
+    /* Скрываем элементы навигации и управления */
+    header.topbar,
+    aside.sidebar,
+    .export-bar,
+    .btn-logout,
+    .user-area,
+    .nav-divider,
+    #reportTypes,
+    .report-card:first-of-type,
+    .breadcrumb,
+    .page-title {
+        display: none !important;
+    }
+
+    /* Основной контент на всю ширину */
+    .main-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    main.content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .main-content {
+        padding: 0 !important;
+    }
+
+    /* Убираем фоны и тени */
+    .report-card {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /* Шрифт Times New Roman 10-12 */
+    body {
+        font-family: "Times New Roman", Times, serif !important;
+        font-size: 11pt !important;
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    h4, h5, h6 {
+        font-family: "Times New Roman", Times, serif !important;
+        color: #000 !important;
+    }
+
+    h5 {
+        font-size: 14pt !important;
+        margin-bottom: 10pt !important;
+    }
+
+    h4 {
+        font-size: 16pt !important;
+    }
+
+    /* Таблицы */
+    table {
+        width: 100% !important;
+        font-size: 10pt !important;
+        border-collapse: collapse !important;
+    }
+
+    table th,
+    table td {
+        border: 1px solid #000 !important;
+        padding: 3pt 6pt !important;
+        font-size: 10pt !important;
+        color: #000 !important;
+    }
+
+    table thead th {
+        background: #f0f0f0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Ссылки */
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    /* Бейджи */
+    .badge {
+        border: 1px solid #000 !important;
+        background: transparent !important;
+        color: #000 !important;
+        font-size: 9pt !important;
+    }
+
+    /* Инфо-бар */
+    .info-bar {
+        border: 1px solid #000 !important;
+        background: #f9f9f9 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Скрываем спниннеры и пустые элементы */
+    .spinner-border,
+    .loading-indicator {
+        display: none !important;
+    }
+
+    /* Разрыв страницы перед каждым отчётом */
+    .report-card {
+        page-break-inside: avoid;
+    }
+
+    /* Поля страницы */
+    @page {
+        margin: 1.5cm;
+    }
+}
