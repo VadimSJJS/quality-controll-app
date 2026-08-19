@@ -93,7 +93,13 @@ public class ReportController {
     @GetMapping("/by-fault")
     public ResponseEntity<ReportDto.ReportByFault> getReportByFault(
             @ModelAttribute @Valid DefectFilterDto filter) {
-        return ResponseEntity.ok(reportService.getReportByFault(filter));
+                return ResponseEntity.ok(reportService.getReportByFault(filter));
+    }
+
+    @GetMapping("/by-acts")
+    public ResponseEntity<ReportDto.ReportByAct> getReportByActs(
+            @ModelAttribute @Valid DefectFilterDto filter) {
+        return ResponseEntity.ok(reportService.getReportByActs(filter));
     }
     @GetMapping("/equipment-defects")
     public ResponseEntity<EquipmentDefectReport> getEquipmentDefectReport(
@@ -182,6 +188,22 @@ public class ReportController {
         ReportDto.ReportByFault report = reportService.getReportByFault(filter);
         byte[] data = reportExportService.exportByFaultToExcel(report);
         return downloadResponse(data, "отчет_по_вине.xlsx");
+    }
+
+    @GetMapping("/export/excel/by-acts")
+    public ResponseEntity<byte[]> exportByActsToExcel(
+            @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
+        ReportDto.ReportByAct report = reportService.getReportByActs(filter);
+        byte[] data = reportExportService.exportByActsToExcel(report);
+        return downloadResponse(data, "свод_по_актам.xlsx");
+    }
+
+    @GetMapping("/export/word/by-acts")
+    public ResponseEntity<byte[]> exportByActsToWord(
+            @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
+        ReportDto.ReportByAct report = reportService.getReportByActs(filter);
+        byte[] data = reportExportService.exportByActsToWord(report);
+        return downloadResponse(data, "свод_по_актам.docx");
     }
 
     @GetMapping("/export/excel/pareto")

@@ -346,4 +346,54 @@ public class ReportDto {
             private BigDecimal totalNonconforming;
         }
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReportByAct {
+        private String periodFrom;
+        private String periodTo;
+        private BigDecimal producedWeight;
+        private List<ActGroup> groups;
+        private Totals totals;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ActGroup {
+            private String actNumber;
+            private String documentType;
+            private String siteName;
+            private int count;
+            private List<DefectRow> rows;
+            private Totals groupTotals;
+        }
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class DefectRow {
+            private String defectType;
+            private String cause;
+            private BigDecimal total;
+            private BigDecimal reworked;
+            private String reworkType;
+            private BigDecimal defect;
+        }
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class Totals {
+            private BigDecimal total;
+            private BigDecimal reworked;
+            private BigDecimal defect;
+            private BigDecimal defectPercent;
+            private int count;
+        }
+    }
 }

@@ -747,6 +747,117 @@ public class ReportService {
                         .totalProduced(sumProduced(productions))
                         .totalNonconforming(sumWeight(allDefects))
                         .build())
+                                .build();
+    }
+
+
+    @Transactional(readOnly = true)
+    public ReportDto.ReportByAct getReportByActs(DefectFilterDto filter) {
+        List<NonconformingProduct> defects = findDefects(filter, null);
+        List<ProductionReport> productions =
+                productionRepository.findByReportDateBetween(filter.getDateFrom(), filter.getDateTo());
+        BigDecimal producedWeight = sumProduced(productions);
+
+        Map<String, List<NonconformingProduct>> byAct = defects.stream()
+                .collect(Collectors.groupingBy(this::actKey));
+
+        List<ReportDto.ReportByAct.ActGroup> groups = byAct.entrySet().stream()
+                .map(e -> buildActGroup(e.getKey(), e.getValue(), producedWeight))
+                .sorted((a, b) -> b.getGroupTotals().getTotal().compareTo(a.getGroupTotals().getTotal()))
+                .collect(Collectors.toList());
+
+        BigDecimal totalAll = sumWeight(defects);
+        BigDecimal reworkedAll = sumReworked(defects);
+        BigDecimal defectAll = sumIrreparable(defects);
+        BigDecimal defectPercent = calcPercent(totalAll, producedWeight);
+
+        return ReportDto.ReportByAct.builder()
+                .periodFrom(filter.getDateFrom().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodTo(filter.getDateTo().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .producedWeight(producedWeight)
+                .groups(groups)
+                .totals(ReportDto.ReportByAct.Totals.builder()
+                        .total(totalAll)
+                        .reworked(reworkedAll)
+                        .defect(defectAll)
+                        .defectPercent(defectPercent)
+                        .count(defects.size())
+                        .build())
+                .build();
+    }
+
+    private String actKey(NonconformingProduct d) {
+        String note = d.getNote();
+        if (note == null || note.trim().isEmpty()) {
+            return "Без документа";
+        }
+        String normalized = note.trim().replaceFirst("\\s*№\\s*\\d+.*$", "").trim();
+        return normalized.isEmpty() ? "Без документа" : normalized;
+    }
+
+    private String resolveDocumentType(String actNumber) {
+        String lower = actNumber.toLowerCase();
+        if (lower.startsWith("акт")) {
+            return "Акт";
+        }
+        if (lower.startsWith("справка")) {
+            return "Справка";
+        }
+        return "Иной";
+    }
+
+    private ReportDto.ReportByAct.ActGroup buildActGroup(String actNumber,
+            List<NonconformingProduct> items, BigDecimal producedWeight) {
+        String documentType = resolveDocumentType(actNumber);
+        String siteName = items.stream()
+                .map(d -> d.getProductionSite() != null ? d.getProductionSite().getSiteName() : null)
+                .filter(s -> s != null)
+                .findFirst()
+                .orElse("-");
+
+        List<ReportDto.ReportByAct.DefectRow> rows = items.stream()
+                .collect(Collectors.groupingBy(d -> d.getDefectType().getDefectName()))
+                .entrySet().stream()
+                .map(e -> {
+                    List<NonconformingProduct> defectItems = e.getValue();
+                    return ReportDto.ReportByAct.DefectRow.builder()
+                            .defectType(e.getKey())
+                            .cause(defectItems.stream()
+                                    .map(d -> d.getDefectCause() != null ? d.getDefectCause().getCauseName() : null)
+                                    .filter(c -> c != null)
+                                    .findFirst()
+                                    .orElse("-"))
+                            .total(sumWeight(defectItems))
+                            .reworked(sumReworked(defectItems))
+                            .reworkType(defectItems.stream()
+                                    .map(d -> d.getReworkType() != null ? d.getReworkType().getReworkName() : null)
+                                    .filter(r -> r != null)
+                                    .findFirst()
+                                    .orElse("-"))
+                            .defect(sumIrreparable(defectItems))
+                            .build();
+                })
+                .sorted((a, b) -> b.getTotal().compareTo(a.getTotal()))
+                .collect(Collectors.toList());
+
+        BigDecimal groupTotal = sumWeight(items);
+        BigDecimal groupReworked = sumReworked(items);
+        BigDecimal groupDefect = sumIrreparable(items);
+        BigDecimal groupPercent = calcPercent(groupTotal, producedWeight);
+
+        return ReportDto.ReportByAct.ActGroup.builder()
+                .actNumber(actNumber)
+                .documentType(documentType)
+                .siteName(siteName)
+                .count(items.size())
+                .rows(rows)
+                .groupTotals(ReportDto.ReportByAct.Totals.builder()
+                        .total(groupTotal)
+                        .reworked(groupReworked)
+                        .defect(groupDefect)
+                        .defectPercent(groupPercent)
+                        .count(items.size())
+                        .build())
                 .build();
     }
 

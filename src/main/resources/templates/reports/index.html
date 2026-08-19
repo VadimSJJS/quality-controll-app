@@ -66,7 +66,7 @@
         </a>
     </aside>
 
-<main class="content">
+    <main class="content">
 
         <div class="top-bar d-flex justify-content-between align-items-center">
             <div>
@@ -99,15 +99,29 @@
             <div class="report-card mb-4">
                 <label class="fw-semibold small text-secondary mb-2">Тип отчёта</label>
                 <div class="d-flex flex-wrap gap-2" id="reportTypes">
-                    <button class="btn btn-outline-primary btn-sm report-type-btn active" data-type="by-site">По участку</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-product-type">По виду продукции</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-product-cause">По виду + причины</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-brigade">По бригаде</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-equipment">По оборудованию</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-personnel">По персоналу</button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn active" data-type="by-site">По
+                        участку
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-product-type">По виду
+                        продукции
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-product-cause">По виду
+                        + причины
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-brigade">По бригаде
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-equipment">По
+                        оборудованию
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-personnel">По
+                        персоналу
+                    </button>
                     <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-plant">По цеху</button>
                     <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-fault">По вине</button>
-                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="pareto">Диаграмма Парето</button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="by-acts">Свод по актам
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm report-type-btn" data-type="pareto">Диаграмма Парето
+                    </button>
                 </div>
             </div>
 
@@ -224,7 +238,8 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold small text-secondary">Бригада изготовителя</label>
-                        <input type="number" class="form-control" id="manufacturerBrigadeFilter" placeholder="№ бригады">
+                        <input type="number" class="form-control" id="manufacturerBrigadeFilter"
+                               placeholder="№ бригады">
                     </div>
                 </div>
             </div>
@@ -251,7 +266,7 @@
     let currentReportType = 'by-site';
 
     document.querySelectorAll('.report-type-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
+        btn.addEventListener('click', function () {
             document.querySelectorAll('.report-type-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
             currentReportType = this.dataset.type;
@@ -302,7 +317,7 @@
             params += '&' + filterParams;
         }
 
-        switch(currentReportType) {
+        switch (currentReportType) {
             case 'by-site':
                 url = `/api/reports/by-site?${params}&siteCode=${encodeURIComponent(siteCode)}`;
                 break;
@@ -326,6 +341,9 @@
                 break;
             case 'by-fault':
                 url = `/api/reports/by-fault?${params}`;
+                break;
+            case 'by-acts':
+                url = `/api/reports/by-acts?${params}`;
                 break;
             case 'pareto':
                 url = `/api/reports/pareto?${params}&siteCode=${encodeURIComponent(siteCode)}&groupingType=${paretoGrouping}`;
@@ -356,7 +374,7 @@
         const container = document.getElementById('reportData');
         let html = '';
 
-        switch(type) {
+        switch (type) {
             case 'by-site':
                 html = renderBySite(data);
                 break;
@@ -380,6 +398,9 @@
                 break;
             case 'by-fault':
                 html = renderByFault(data);
+                break;
+            case 'by-acts':
+                html = renderByActs(data);
                 break;
             case 'pareto':
                 html = renderPareto(data);
@@ -415,46 +436,88 @@
         const productType = document.getElementById('productTypeSelect').value;
         const brigadeId = document.getElementById('brigadeSelect').value;
         const paretoGrouping = document.getElementById('paretoGroupingSelect').value;
-        return { siteCode, dateFrom, dateTo, productType, brigadeId, paretoGrouping };
+        return {siteCode, dateFrom, dateTo, productType, brigadeId, paretoGrouping};
     }
 
     function exportToExcel(type, siteCode, productType, brigadeId, paretoGrouping) {
-        const { dateFrom, dateTo } = getExportParams();
-        if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
+        const {dateFrom, dateTo} = getExportParams();
+        if (!dateFrom || !dateTo) {
+            alert('Выберите период');
+            return;
+        }
 
         const filterParams = getFilterQueryParams();
         const filters = filterParams ? '&' + filterParams : '';
 
         let url = '';
-        switch(type) {
-            case 'by-site': url = `/api/reports/export/excel/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-product-type': url = `/api/reports/export/excel/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-product-cause': url = `/api/reports/export/excel/by-product-cause?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-brigade': url = `/api/reports/export/excel/by-brigade?siteCode=${siteCode}&brigadeId=${brigadeId}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-equipment': url = `/api/reports/export/excel/by-equipment?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-personnel': url = `/api/reports/export/excel/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-plant': url = `/api/reports/export/excel/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-fault': url = `/api/reports/export/excel/by-fault?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'pareto': url = `/api/reports/export/excel/pareto?siteCode=${siteCode}&groupingType=${paretoGrouping}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            default: alert('Экспорт не поддерживается'); return;
+        switch (type) {
+            case 'by-site':
+                url = `/api/reports/export/excel/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-product-type':
+                url = `/api/reports/export/excel/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-product-cause':
+                url = `/api/reports/export/excel/by-product-cause?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-brigade':
+                url = `/api/reports/export/excel/by-brigade?siteCode=${siteCode}&brigadeId=${brigadeId}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-equipment':
+                url = `/api/reports/export/excel/by-equipment?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-personnel':
+                url = `/api/reports/export/excel/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-plant':
+                url = `/api/reports/export/excel/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-fault':
+                url = `/api/reports/export/excel/by-fault?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-acts':
+                url = `/api/reports/export/excel/by-acts?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'pareto':
+                url = `/api/reports/export/excel/pareto?siteCode=${siteCode}&groupingType=${paretoGrouping}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            default:
+                alert('Экспорт не поддерживается');
+                return;
         }
         window.open(url, '_blank');
     }
 
     function exportToWord(type, siteCode, productType, brigadeId, paretoGrouping) {
-        const { dateFrom, dateTo } = getExportParams();
-        if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
+        const {dateFrom, dateTo} = getExportParams();
+        if (!dateFrom || !dateTo) {
+            alert('Выберите период');
+            return;
+        }
 
         const filterParams = getFilterQueryParams();
         const filters = filterParams ? '&' + filterParams : '';
 
         let url = '';
-        switch(type) {
-            case 'by-site': url = `/api/reports/export/word/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-product-type': url = `/api/reports/export/word/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-personnel': url = `/api/reports/export/word/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            case 'by-plant': url = `/api/reports/export/word/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
-            default: alert('Word-экспорт доступен для: по участку, по виду продукции, по персоналу, по цеху'); return;
+        switch (type) {
+            case 'by-site':
+                url = `/api/reports/export/word/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-product-type':
+                url = `/api/reports/export/word/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-personnel':
+                url = `/api/reports/export/word/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-plant':
+                url = `/api/reports/export/word/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            case 'by-acts':
+                url = `/api/reports/export/word/by-acts?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`;
+                break;
+            default:
+                alert('Word-экспорт доступен для: по участку, по виду продукции, по персоналу, по цеху, свод по актам');
+                return;
         }
         window.open(url, '_blank');
     }
@@ -496,8 +559,8 @@
                     <div class="col-md-3">
                         <small class="text-secondary">Статус:</small><br>
                         ${data.exceedsAllowable
-                            ? '<span class="text-danger fw-bold">⚠ Превышен допустимый уровень!</span>'
-                            : '<span class="text-success fw-bold">✓ В пределах нормы</span>'}
+            ? '<span class="text-danger fw-bold">⚠ Превышен допустимый уровень!</span>'
+            : '<span class="text-success fw-bold">✓ В пределах нормы</span>'}
                     </div>
                 </div>
             </div>
@@ -817,7 +880,8 @@
                 <td class="text-end">${r.allowablePercent ? r.allowablePercent.toFixed(2) + '%' : '—'}</td>
                 ${r.type === 'total' ? `<td>${r.exceedsAllowable ? '⚠' : '✓'}</td>` : ''}
             </tr>
-        `}).join('');
+        `
+        }).join('');
 
         return `
             <h5>Данные по несоответствующей продукции по цеху</h5>
@@ -865,7 +929,8 @@
                 <td class="text-end">${r.allowablePercent ? r.allowablePercent.toFixed(2) + '%' : '-'}</td>
                 <td class="text-center">${r.exceedsAllowable ? '⚠' : '✓'}</td>
             </tr>
-        `}).join('');
+        `
+        }).join('');
 
         return `
             <h5>Данные по несоответствующей продукции по цеху (по вине)</h5>
@@ -889,12 +954,78 @@
         `;
     }
 
+    function renderByActs(data) {
+        let groupsHtml = data.groups.map(g => {
+            let groupPercent = g.groupTotals != null && g.groupTotals.defectPercent != null
+                ? g.groupTotals.defectPercent.toFixed(2) : '0';
+            let defectRows = g.rows.map(r => `
+                <tr>
+                    <td></td>
+                    <td style="padding-left:20px;">${r.defectType}</td>
+                    <td>${r.cause || '-'}</td>
+                    <td class="text-end">${r.total.toFixed(3)}</td>
+                    <td class="text-end">${r.reworked.toFixed(3)}</td>
+                    <td>${r.reworkType || '-'}</td>
+                    <td class="text-end">${r.defect.toFixed(3)}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <tr class="table-secondary">
+                    <td><strong>${g.actNumber}</strong>
+                        <span class="badge bg-info text-dark">${g.documentType}</span>
+                        <span class="badge bg-secondary">${g.siteName}</span>
+                    </td>
+                    <td colspan="6">
+                        <small class="text-muted">всего: ${g.groupTotals.total.toFixed(3)} т · доработано: ${g.groupTotals.reworked.toFixed(3)} т · брак: ${g.groupTotals.defect.toFixed(3)} т (${groupPercent}%)</small>
+                    </td>
+                </tr>
+                ${defectRows}
+            `;
+        }).join('');
+
+        return `
+            <h5 class="mb-3">Свод актов и справок о браке по цеху</h5>
+            <table class="table table-bordered table-sm table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th style="width:22%;">Документ / Вид / Цех</th>
+                        <th style="width:16%;">Вид несоответствия</th>
+                        <th style="width:12%;">Причина брака</th>
+                        <th style="width:10%;">Всего, т</th>
+                        <th style="width:10%;">Доработано, т</th>
+                        <th style="width:15%;">Вид доработки</th>
+                        <th style="width:10%;">Брак, т</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="table-light fw-bold">
+                        <td colspan="4">Производство за период</td>
+                        <td class="text-end" colspan="3">${data.producedWeight.toFixed(3)} т</td>
+                    </tr>
+                    ${groupsHtml}
+                    <tr class="table-warning fw-bold">
+                        <td colspan="3">Итого за период</td>
+                        <td class="text-end">${data.totals.total.toFixed(3)}</td>
+                        <td class="text-end">${data.totals.reworked.toFixed(3)}</td>
+                        <td>-</td>
+                        <td class="text-end">${data.totals.defect.toFixed(3)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="alert alert-info mt-2">
+                <strong>Процент брака:</strong> ${data.totals.defectPercent.toFixed(2)}%
+                &nbsp;|&nbsp; <strong>Количество несоответствий:</strong> ${data.totals.count}
+            </div>
+        `;
+    }
+
     function renderPareto(data) {
         let itemsHtml = data.items.map((item, index) => {
             let cumulativePercent = item.cumulativePercent ? item.cumulativePercent.toFixed(2) : '0';
             let barWidth = item.percent ? item.percent.toFixed(1) : '0';
             let cumulativeBarWidth = item.cumulativePercent ? item.cumulativePercent.toFixed(1) : '0';
-            
+
             return `
                 <tr>
                     <td>${index + 1}</td>
@@ -1071,7 +1202,7 @@
             const sites = await fetch('/directories/production-sites');
             if (!sites.ok) throw new Error('Ошибка загрузки участков');
             const data = await sites.json();
-            
+
             const select = document.getElementById('siteSelect');
             select.innerHTML = '<option value="">Выберите участок</option>';
             data.forEach(site => {
@@ -1085,7 +1216,7 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         document.getElementById('dateFrom').value = firstDay.toISOString().split('T')[0];
@@ -1095,7 +1226,7 @@
         loadSites();
         loadFilterDictionaries();
 
-        document.getElementById('defectCauseFilter').addEventListener('change', function() {
+        document.getElementById('defectCauseFilter').addEventListener('change', function () {
             loadSubcausesForFilter(this.value);
         });
     });

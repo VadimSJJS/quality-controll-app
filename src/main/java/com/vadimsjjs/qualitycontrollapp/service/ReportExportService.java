@@ -531,12 +531,77 @@ public class ReportExportService {
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             wb.write(baos);
+                        return baos.toByteArray();
+        }
+    }
+
+    // ===== EXCEL EXPORT — Свод по актам =====
+    public byte[] exportByActsToExcel(ReportDto.ReportByAct report) throws Exception {
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Свод по актам");
+            int rowIdx = 0;
+
+            CellStyle headerStyle = wb.createCellStyle();
+            Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor((short) 22);
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+            Row periodRow = sheet.createRow(rowIdx++);
+            periodRow.createCell(0).setCellValue("Период: " + report.getPeriodFrom() + " — " + report.getPeriodTo());
+            Row producedRow = sheet.createRow(rowIdx++);
+            producedRow.createCell(0).setCellValue("Производство за период: " + report.getProducedWeight() + " т");
+
+            String[] headers = {"Документ", "Вид", "Цех", "Вид несоответствия", "Причина брака",
+                    "Всего, т", "Доработано, т", "Вид доработки", "Брак, т"};
+            Row header = sheet.createRow(rowIdx++);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = header.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            for (ReportDto.ReportByAct.ActGroup group : report.getGroups()) {
+                Row gh = sheet.createRow(rowIdx++);
+                gh.createCell(0).setCellValue(group.getActNumber());
+                gh.createCell(1).setCellValue(group.getDocumentType());
+                gh.createCell(2).setCellValue(group.getSiteName());
+                gh.createCell(3).setCellValue("Всего по документу:");
+                gh.createCell(5).setCellValue(group.getGroupTotals().getTotal().doubleValue());
+                gh.createCell(6).setCellValue(group.getGroupTotals().getReworked().doubleValue());
+                gh.createCell(8).setCellValue(group.getGroupTotals().getDefect().doubleValue());
+
+                for (ReportDto.ReportByAct.DefectRow r : group.getRows()) {
+                    Row row = sheet.createRow(rowIdx++);
+                    row.createCell(3).setCellValue(r.getDefectType());
+                    row.createCell(4).setCellValue(r.getCause());
+                    row.createCell(5).setCellValue(r.getTotal().doubleValue());
+                    row.createCell(6).setCellValue(r.getReworked().doubleValue());
+                    row.createCell(7).setCellValue(r.getReworkType());
+                    row.createCell(8).setCellValue(r.getDefect().doubleValue());
+                }
+            }
+
+            ReportDto.ReportByAct.Totals totals = report.getTotals();
+            Row totalRow = sheet.createRow(rowIdx);
+            totalRow.createCell(0).setCellValue("Итого:");
+            totalRow.createCell(5).setCellValue(totals.getTotal().doubleValue());
+            totalRow.createCell(6).setCellValue(totals.getReworked().doubleValue());
+            totalRow.createCell(8).setCellValue(totals.getDefect().doubleValue());
+
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            wb.write(baos);
             return baos.toByteArray();
         }
     }
 
-    // ===== WORD EXPORT (DOCX via XWPF) =====
 
+    // ===== WORD EXPORT (DOCX via XWPF) =====
     public byte[] exportBySiteToWord(ReportDto.ReportBySite report) throws Exception {
         try (org.apache.poi.xwpf.usermodel.XWPFDocument doc = new org.apache.poi.xwpf.usermodel.XWPFDocument()) {
             org.apache.poi.xwpf.usermodel.XWPFParagraph title = doc.createParagraph();
@@ -553,7 +618,7 @@ public class ReportExportService {
             periodRun.setFontFamily("Times New Roman");
             periodRun.setText("Период: " + report.getPeriodFrom() + " — " + report.getPeriodTo());
 
-            doc.createParagraph(); // blank line
+            doc.createParagraph();
 
             String[][] data = new String[report.getRows().size() + 2][];
             data[0] = new String[]{"Вид несоответствия", "Всего, т", "Доработано, т", "Вид доработки", "Брак, т"};
@@ -730,6 +795,74 @@ public class ReportExportService {
         }
     }
 
+    // ===== WORD EXPORT — Свод по актам =====
+    public byte[] exportByActsToWord(ReportDto.ReportByAct report) throws Exception {
+        try (XWPFDocument doc = new XWPFDocument()) {
+            XWPFParagraph title = doc.createParagraph();
+            title.setAlignment(ParagraphAlignment.CENTER);
+            XWPFRun titleRun = title.createRun();
+            titleRun.setBold(true);
+            titleRun.setFontSize(16);
+            titleRun.setFontFamily(FONT_NAME);
+            titleRun.setText("Свод актов и справок о браке по цеху");
+
+            org.apache.poi.xwpf.usermodel.XWPFParagraph period = doc.createParagraph();
+            org.apache.poi.xwpf.usermodel.XWPFRun periodRun = period.createRun();
+            periodRun.setFontSize(11);
+            periodRun.setFontFamily(FONT_NAME);
+            periodRun.setText("Период: " + report.getPeriodFrom() + " — " + report.getPeriodTo());
+
+            org.apache.poi.xwpf.usermodel.XWPFParagraph produced = doc.createParagraph();
+            org.apache.poi.xwpf.usermodel.XWPFRun producedRun = produced.createRun();
+            producedRun.setFontSize(11);
+            producedRun.setFontFamily(FONT_NAME);
+            producedRun.setText("Производство за период: " + report.getProducedWeight() + " т");
+
+            doc.createParagraph();
+
+            String[] headers = {"Документ", "Вид", "Цех", "Вид несоответствия", "Причина брака",
+                    "Всего, т", "Доработано, т", "Вид доработки", "Брак, т"};
+            List<String[]> tableRows = new java.util.ArrayList<>();
+            for (ReportDto.ReportByAct.ActGroup group : report.getGroups()) {
+                tableRows.add(new String[]{
+                        group.getActNumber(), group.getDocumentType(), group.getSiteName(),
+                        "Всего по документу:", "-",
+                        String.valueOf(group.getGroupTotals().getTotal()),
+                        String.valueOf(group.getGroupTotals().getReworked()), "-",
+                        String.valueOf(group.getGroupTotals().getDefect())});
+                for (ReportDto.ReportByAct.DefectRow r : group.getRows()) {
+                    tableRows.add(new String[]{
+                            "", "", "",
+                            r.getDefectType(), r.getCause(),
+                            String.valueOf(r.getTotal()), String.valueOf(r.getReworked()),
+                            r.getReworkType(), String.valueOf(r.getDefect())});
+                }
+            }
+            tableRows.add(new String[]{
+                    "Итого:", "", "", "", "",
+                    String.valueOf(report.getTotals().getTotal()),
+                    String.valueOf(report.getTotals().getReworked()), "",
+                    String.valueOf(report.getTotals().getDefect())});
+
+            String[][] data = new String[1 + tableRows.size()][headers.length];
+            System.arraycopy(headers, 0, data[0], 0, headers.length);
+            for (int i = 0; i < tableRows.size(); i++) {
+                data[i + 1] = tableRows.get(i);
+            }
+            addTable(doc, data);
+
+            XWPFParagraph note = doc.createParagraph();
+            XWPFRun noteRun = note.createRun();
+            noteRun.setFontSize(9);
+            noteRun.setFontFamily(FONT_NAME);
+            noteRun.setText("Процент брака: " + report.getTotals().getDefectPercent() + "%");
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            doc.write(baos);
+            return baos.toByteArray();
+        }
+    }
+
     private void addTable(org.apache.poi.xwpf.usermodel.XWPFDocument doc, String[][] data) {
         org.apache.poi.xwpf.usermodel.XWPFTable table = doc.createTable(data.length, data[0].length);
 
@@ -745,7 +878,6 @@ public class ReportExportService {
                 }
                 cell.setText(data[i][j]);
 
-                // Set formatting
                 for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : cell.getParagraphs()) {
                     for (org.apache.poi.xwpf.usermodel.XWPFRun run : p.getRuns()) {
                         run.setFontFamily("Times New Roman");
