@@ -159,6 +159,76 @@
                 </div>
             </div>
 
+            <div class="report-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-funnel"></i> Дополнительные фильтры
+                        <span class="text-secondary small fw-normal ms-2">
+                            (диаметр, конструкция, код, плавка, марка стали, дефекты, персонал, оборудование, бригада, причины)
+                        </span>
+                    </h6>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="resetFilters()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Сбросить
+                    </button>
+                </div>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Вид несоответствия</label>
+                        <select class="form-select" id="defectTypeFilter">
+                            <option value="">Все виды</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Диаметр</label>
+                        <select class="form-select" id="diameterFilter">
+                            <option value="">Все диаметры</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Конструкция металлокорда</label>
+                        <input type="text" class="form-control" id="constructionFilter" placeholder="Напр. 3+2х0,30НТ">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Код</label>
+                        <input type="number" class="form-control" id="productCodeFilter" placeholder="Код продукции">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Номер плавки</label>
+                        <input type="text" class="form-control" id="heatNumberFilter" placeholder="№ плавки">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Марка стали</label>
+                        <select class="form-select" id="steelGradeFilter">
+                            <option value="">Все марки</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Причина</label>
+                        <select class="form-select" id="defectCauseFilter">
+                            <option value="">Все причины</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Подпричина</label>
+                        <select class="form-select" id="defectSubcauseFilter">
+                            <option value="">Все подпричины</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Персонал (таб.№)</label>
+                        <input type="number" class="form-control" id="operatorFilter" placeholder="Табельный номер">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Оборудование</label>
+                        <input type="text" class="form-control" id="equipmentFilter" placeholder="№ стана / машины">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold small text-secondary">Бригада изготовителя</label>
+                        <input type="number" class="form-control" id="manufacturerBrigadeFilter" placeholder="№ бригады">
+                    </div>
+                </div>
+            </div>
+
             <div id="reportResult" style="display: none;">
                 <div class="report-card" id="reportContent">
                     <div class="text-center py-5" id="loadingIndicator">
@@ -227,6 +297,10 @@
 
         let url = '';
         let params = `dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        const filterParams = getFilterQueryParams();
+        if (filterParams) {
+            params += '&' + filterParams;
+        }
 
         switch(currentReportType) {
             case 'by-site':
@@ -348,17 +422,20 @@
         const { dateFrom, dateTo } = getExportParams();
         if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
 
+        const filterParams = getFilterQueryParams();
+        const filters = filterParams ? '&' + filterParams : '';
+
         let url = '';
         switch(type) {
-            case 'by-site': url = `/api/reports/export/excel/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-product-type': url = `/api/reports/export/excel/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-product-cause': url = `/api/reports/export/excel/by-product-cause?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-brigade': url = `/api/reports/export/excel/by-brigade?siteCode=${siteCode}&brigadeId=${brigadeId}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-equipment': url = `/api/reports/export/excel/by-equipment?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-personnel': url = `/api/reports/export/excel/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-plant': url = `/api/reports/export/excel/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-fault': url = `/api/reports/export/excel/by-fault?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'pareto': url = `/api/reports/export/excel/pareto?siteCode=${siteCode}&groupingType=${paretoGrouping}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-site': url = `/api/reports/export/excel/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-product-type': url = `/api/reports/export/excel/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-product-cause': url = `/api/reports/export/excel/by-product-cause?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-brigade': url = `/api/reports/export/excel/by-brigade?siteCode=${siteCode}&brigadeId=${brigadeId}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-equipment': url = `/api/reports/export/excel/by-equipment?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-personnel': url = `/api/reports/export/excel/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-plant': url = `/api/reports/export/excel/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-fault': url = `/api/reports/export/excel/by-fault?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'pareto': url = `/api/reports/export/excel/pareto?siteCode=${siteCode}&groupingType=${paretoGrouping}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
             default: alert('Экспорт не поддерживается'); return;
         }
         window.open(url, '_blank');
@@ -368,12 +445,15 @@
         const { dateFrom, dateTo } = getExportParams();
         if (!dateFrom || !dateTo) { alert('Выберите период'); return; }
 
+        const filterParams = getFilterQueryParams();
+        const filters = filterParams ? '&' + filterParams : '';
+
         let url = '';
         switch(type) {
-            case 'by-site': url = `/api/reports/export/word/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-product-type': url = `/api/reports/export/word/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-personnel': url = `/api/reports/export/word/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
-            case 'by-plant': url = `/api/reports/export/word/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}`; break;
+            case 'by-site': url = `/api/reports/export/word/by-site?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-product-type': url = `/api/reports/export/word/by-product-type?siteCode=${siteCode}&productTypeField=${productType}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-personnel': url = `/api/reports/export/word/by-personnel?siteCode=${siteCode}&dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
+            case 'by-plant': url = `/api/reports/export/word/by-plant?dateFrom=${dateFrom}&dateTo=${dateTo}${filters}`; break;
             default: alert('Word-экспорт доступен для: по участку, по виду продукции, по персоналу, по цеху'); return;
         }
         window.open(url, '_blank');
@@ -883,6 +963,109 @@
         `;
     }
 
+    async function loadFilterDictionaries() {
+        try {
+            const [defectTypes, diameters, steelGrades, causes] = await Promise.all([
+                fetch('/directories/defect-types').then(r => r.json()),
+                fetch('/directories/diameters').then(r => r.json()),
+                fetch('/directories/steel-grades').then(r => r.json()),
+                fetch('/directories/defect-causes').then(r => r.json())
+            ]);
+
+            const defectTypeSelect = document.getElementById('defectTypeFilter');
+            defectTypes.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.defectName;
+                defectTypeSelect.appendChild(opt);
+            });
+
+            const diameterSelect = document.getElementById('diameterFilter');
+            diameters.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.diameter;
+                diameterSelect.appendChild(opt);
+            });
+
+            const steelGradeSelect = document.getElementById('steelGradeFilter');
+            steelGrades.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.steelGrade;
+                opt.textContent = g.steelGrade;
+                steelGradeSelect.appendChild(opt);
+            });
+
+            const causeSelect = document.getElementById('defectCauseFilter');
+            causes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.causeName;
+                causeSelect.appendChild(opt);
+            });
+        } catch (error) {
+            console.error('Ошибка загрузки справочников фильтров:', error);
+        }
+    }
+
+    async function loadSubcausesForFilter(causeId) {
+        const subcauseSelect = document.getElementById('defectSubcauseFilter');
+        subcauseSelect.innerHTML = '<option value="">Все подпричины</option>';
+        if (!causeId) return;
+        try {
+            const subcauses = await fetch(`/directories/defect-causes/${causeId}/subcauses`).then(r => r.json());
+            subcauses.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = s.causeName;
+                subcauseSelect.appendChild(opt);
+            });
+        } catch (error) {
+            console.error('Ошибка загрузки подпричин:', error);
+        }
+    }
+
+    function resetFilters() {
+        ['defectTypeFilter', 'diameterFilter', 'constructionFilter', 'productCodeFilter',
+            'heatNumberFilter', 'steelGradeFilter', 'defectCauseFilter', 'defectSubcauseFilter',
+            'operatorFilter', 'equipmentFilter', 'manufacturerBrigadeFilter'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (el.tagName === 'SELECT') el.value = '';
+                else el.value = '';
+            }
+        });
+    }
+
+    function getFilterQueryParams() {
+        const params = new URLSearchParams();
+        const defectTypeId = document.getElementById('defectTypeFilter').value;
+        const diameterId = document.getElementById('diameterFilter').value;
+        const construction = document.getElementById('constructionFilter').value.trim();
+        const productCode = document.getElementById('productCodeFilter').value.trim();
+        const heatNumber = document.getElementById('heatNumberFilter').value.trim();
+        const steelGrade = document.getElementById('steelGradeFilter').value;
+        const causeId = document.getElementById('defectCauseFilter').value;
+        const subcauseId = document.getElementById('defectSubcauseFilter').value;
+        const operator = document.getElementById('operatorFilter').value.trim();
+        const equipment = document.getElementById('equipmentFilter').value.trim();
+        const brigade = document.getElementById('manufacturerBrigadeFilter').value.trim();
+
+        if (defectTypeId) params.append('defectTypeId', defectTypeId);
+        if (diameterId) params.append('diameterId', diameterId);
+        if (construction) params.append('steelCordConstruction', construction);
+        if (productCode) params.append('productCode', productCode);
+        if (heatNumber) params.append('heatNumber', heatNumber);
+        if (steelGrade) params.append('steelGrade', steelGrade);
+        if (causeId) params.append('defectCauseId', causeId);
+        if (subcauseId) params.append('defectSubcauseId', subcauseId);
+        if (operator) params.append('operatorPersonalNumber', operator);
+        if (equipment) params.append('equipmentKey', equipment);
+        if (brigade && currentReportType !== 'by-brigade') params.append('manufacturerBrigade', brigade);
+
+        return params.toString();
+    }
+
     async function loadSites() {
         try {
             const sites = await fetch('/directories/production-sites');
@@ -910,6 +1093,11 @@
 
         document.querySelector('.report-type-btn.active').click();
         loadSites();
+        loadFilterDictionaries();
+
+        document.getElementById('defectCauseFilter').addEventListener('change', function() {
+            loadSubcausesForFilter(this.value);
+        });
     });
 </script>
 

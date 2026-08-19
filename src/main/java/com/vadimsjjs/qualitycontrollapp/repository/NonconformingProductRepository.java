@@ -12,17 +12,6 @@ import java.util.List;
 @Repository
 public interface NonconformingProductRepository extends JpaRepository<NonconformingProduct, Long> {
 
-    @Query("SELECT n FROM NonconformingProduct n " +
-            "WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom) " +
-            "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
-            "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
-            "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId)")
-    List<NonconformingProduct> findWithFilters(
-            @Param("dateFrom") LocalDate dateFrom,
-            @Param("dateTo") LocalDate dateTo,
-            @Param("siteId") Long siteId,
-            @Param("defectTypeId") Long defectTypeId);
-
     @Query(value = "SELECT * FROM ( " +
             "SELECT a.*, ROWNUM rn FROM ( " +
             "SELECT " +
@@ -90,4 +79,41 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             @Param("defectTypeId") Long defectTypeId,
             @Param("equipmentKey") String equipmentKey,
             @Param("operatorPersonalNumber") Long operatorPersonalNumber);
+
+    /**
+     * Выборка записей по полному набору фильтров из ТЗ (п. 3.2):
+     * даты выявления, участок, вид несоответствия, причина, подпричина, диаметр,
+     * конструкция металлокорда, код, номер плавки, марка стали, оборудование,
+     * персональный номер оператора, бригада изготовителя.
+     */
+    @Query("SELECT n FROM NonconformingProduct n " +
+            "WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom) " +
+            "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
+            "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
+            "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId) " +
+            "AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId) " +
+            "AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId) " +
+            "AND (:diameterId IS NULL OR n.diameter.id = :diameterId) " +
+            "AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction) " +
+            "AND (:productCode IS NULL OR n.productCode = :productCode) " +
+            "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
+            "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
+            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey) " +
+            "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
+            "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)")
+    List<NonconformingProduct> findWithFilter(
+            @Param("dateFrom") LocalDate dateFrom,
+            @Param("dateTo") LocalDate dateTo,
+            @Param("siteId") Long siteId,
+            @Param("defectTypeId") Long defectTypeId,
+            @Param("defectCauseId") Long defectCauseId,
+            @Param("defectSubcauseId") Long defectSubcauseId,
+            @Param("diameterId") Long diameterId,
+            @Param("steelCordConstruction") String steelCordConstruction,
+            @Param("productCode") Long productCode,
+            @Param("heatNumber") String heatNumber,
+            @Param("steelGrade") String steelGrade,
+            @Param("equipmentKey") String equipmentKey,
+            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
+            @Param("manufacturerBrigade") Long manufacturerBrigade);
 }

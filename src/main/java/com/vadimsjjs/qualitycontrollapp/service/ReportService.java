@@ -1,5 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.service;
 
+import com.vadimsjjs.qualitycontrollapp.dto.DefectFilterDto;
 import com.vadimsjjs.qualitycontrollapp.dto.EquipmentDefectReport;
 import com.vadimsjjs.qualitycontrollapp.dto.ParetoReport;
 import com.vadimsjjs.qualitycontrollapp.dto.PersonnelDefectReport;
@@ -43,10 +44,29 @@ public class ReportService {
                 .orElseThrow(() -> new IllegalArgumentException("Участок с кодом '" + siteCode + "' не найден"));
     }
 
+    private List<NonconformingProduct> findDefects(DefectFilterDto filter, Long forcedSiteId) {
+        Long siteId = forcedSiteId != null ? forcedSiteId : filter.getProductionSiteId();
+        return nonconformingRepository.findWithFilter(
+                filter.getDateFrom(),
+                filter.getDateTo(),
+                siteId,
+                filter.getDefectTypeId(),
+                filter.getDefectCauseId(),
+                filter.getDefectSubcauseId(),
+                filter.getDiameterId(),
+                filter.getSteelCordConstruction(),
+                filter.getProductCode(),
+                filter.getHeatNumber(),
+                filter.getSteelGrade(),
+                filter.getEquipmentKey(),
+                filter.getOperatorPersonalNumber(),
+                filter.getManufacturerBrigade());
+    }
+
     @Transactional(readOnly = true)
-    public ReportDto.ReportBySite getReportBySite(String siteCode, LocalDate dateFrom, LocalDate dateTo) {
+    public ReportDto.ReportBySite getReportBySite(String siteCode, DefectFilterDto filter) {
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         List<ReportDto.ReportBySite.DefectRow> rows = defects.stream()
                 .collect(Collectors.groupingBy(d -> d.getDefectType().getDefectName()))
@@ -86,7 +106,7 @@ public class ReportService {
         if (!defects.isEmpty()) {
             NonconformingProduct sample = defects.get(0);
             Long siteId = sample.getProductionSite().getId();
-            producedWeight = productionRepository.sumProducedBySiteAndDateRange(dateFrom, dateTo, siteId);
+            producedWeight = productionRepository.sumProducedBySiteAndDateRange(filter.getDateFrom(), filter.getDateTo(), siteId);
             allowablePercent = site.getAllowableDefectPercent() != null
                     ? site.getAllowableDefectPercent()
                     : BigDecimal.ZERO;
@@ -97,8 +117,8 @@ public class ReportService {
 
         return ReportDto.ReportBySite.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .producedWeight(producedWeight)
                 .allowablePercent(allowablePercent)
                 .exceedsAllowable(exceedsAllowable)
@@ -115,10 +135,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByProductType getReportByProductType(
-            String siteCode, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, String productTypeField, DefectFilterDto filter) {
 
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractProductType(d, productTypeField)));
@@ -171,8 +191,8 @@ public class ReportService {
 
         return ReportDto.ReportByProductType.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .productTypeField(productTypeField)
                 .groups(groupList)
                 .totals(ReportDto.ReportByProductType.Totals.builder()
@@ -185,10 +205,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByProductAndCause getReportByProductAndCause(
-            String siteCode, String productTypeField, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, String productTypeField, DefectFilterDto filter) {
 
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractProductType(d, productTypeField)));
@@ -223,8 +243,8 @@ public class ReportService {
 
         return ReportDto.ReportByProductAndCause.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .productTypeField(productTypeField)
                 .groups(groupList)
                 .totals(ReportDto.ReportByProductAndCause.Totals.builder()
@@ -235,13 +255,11 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByBrigade getReportByBrigade(
-            String siteCode, Long brigadeId, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, Long brigadeId, DefectFilterDto filter) {
 
+        filter.setManufacturerBrigade(brigadeId);
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null)
-                .stream()
-                .filter(d -> d.getManufacturerBrigade() != null && d.getManufacturerBrigade().equals(brigadeId))
-                .collect(Collectors.toList());
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .collect(Collectors.groupingBy(d -> extractDiameter(d)));
@@ -294,8 +312,8 @@ public class ReportService {
 
         return ReportDto.ReportByBrigade.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .brigadeId(brigadeId)
                 .groups(groupList)
                 .totals(ReportDto.ReportByBrigade.Totals.builder()
@@ -308,10 +326,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByEquipment getReportByEquipment(
-            String siteCode, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, DefectFilterDto filter) {
 
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .filter(d -> d.getEquipmentKey() != null)
@@ -365,8 +383,8 @@ public class ReportService {
 
         return ReportDto.ReportByEquipment.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .groups(groupList)
                 .totals(ReportDto.ReportByEquipment.Totals.builder()
                         .total(totalAll)
@@ -377,8 +395,8 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public PersonnelDefectReport getPersonnelDefectReportV2(LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
+    public PersonnelDefectReport getPersonnelDefectReportV2(DefectFilterDto filter) {
+        List<NonconformingProduct> defects = findDefects(filter, null);
 
         Map<Long, List<NonconformingProduct>> byPersonnel = defects.stream()
                 .filter(d -> d.getOperatorPersonalNumber() != null)
@@ -438,16 +456,16 @@ public class ReportService {
                 .build();
 
         return PersonnelDefectReport.builder()
-                .periodFrom(dateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
-                .periodTo(dateTo.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodFrom(filter.getDateFrom().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodTo(filter.getDateTo().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
                 .personnelRows(rows)
                 .summary(summary)
                 .build();
     }
 
     @Transactional(readOnly = true)
-    public PersonnelDefectReport getPersonnelDefectReport(LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
+    public PersonnelDefectReport getPersonnelDefectReport(DefectFilterDto filter) {
+        List<NonconformingProduct> allDefects = findDefects(filter, null);
 
         List<PersonnelDefectReport.PersonnelRow> rows = buildPersonnelRows(allDefects);
 
@@ -466,8 +484,8 @@ public class ReportService {
         PersonnelDefectReport.Summary otkSummary = buildDefectSummary("Задержанное ОТК", otkDefects);
 
         return PersonnelDefectReport.builder()
-                .periodFrom(dateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
-                .periodTo(dateTo.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodFrom(filter.getDateFrom().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodTo(filter.getDateTo().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
                 .personnelRows(rows)
                 .summary(summary)
                 .liSummary(liSummary)
@@ -549,10 +567,10 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ReportDto.ReportByPersonnel getReportByPersonnel(
-            String siteCode, LocalDate dateFrom, LocalDate dateTo) {
+            String siteCode, DefectFilterDto filter) {
 
         ProductionSite site = getProductionSiteByCode(siteCode);
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
                 .filter(d -> d.getOperatorPersonalNumber() != null)
@@ -601,8 +619,8 @@ public class ReportService {
 
         return ReportDto.ReportByPersonnel.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .groups(groupList)
                 .totals(ReportDto.ReportByPersonnel.Totals.builder()
                         .total(totalAll)
@@ -612,9 +630,9 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public ReportDto.ReportByPlant getReportByPlant(LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
-        List<ProductionReport> productions = productionRepository.findByReportDateBetween(dateFrom, dateTo);
+    public ReportDto.ReportByPlant getReportByPlant(DefectFilterDto filter) {
+        List<NonconformingProduct> allDefects = findDefects(filter, null);
+        List<ProductionReport> productions = productionRepository.findByReportDateBetween(filter.getDateFrom(), filter.getDateTo());
 
         Map<String, List<NonconformingProduct>> defectsBySite = allDefects.stream()
                 .collect(Collectors.groupingBy(d -> d.getProductionSite().getSiteName()));
@@ -660,8 +678,8 @@ public class ReportService {
         BigDecimal totalPercent = calcPercent(totalDefect, totalProduced);
 
         return ReportDto.ReportByPlant.builder()
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .rows(rows)
                 .totals(ReportDto.ReportByPlant.Totals.builder()
                         .totalProduced(totalProduced)
@@ -673,9 +691,9 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public ReportDto.ReportByFault getReportByFault(LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
-        List<ProductionReport> productions = productionRepository.findByReportDateBetween(dateFrom, dateTo);
+    public ReportDto.ReportByFault getReportByFault(DefectFilterDto filter) {
+        List<NonconformingProduct> allDefects = findDefects(filter, null);
+        List<ProductionReport> productions = productionRepository.findByReportDateBetween(filter.getDateFrom(), filter.getDateTo());
 
         List<ReportDto.ReportByFault.FaultRow> rows = new ArrayList<>();
 
@@ -722,8 +740,8 @@ public class ReportService {
                 .build());
 
         return ReportDto.ReportByFault.builder()
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .rows(rows)
                 .totals(ReportDto.ReportByFault.Totals.builder()
                         .totalProduced(sumProduced(productions))
@@ -828,8 +846,8 @@ public class ReportService {
     }
 
     @Transactional(readOnly = true)
-    public EquipmentDefectReport getEquipmentDefectReport(LocalDate dateFrom, LocalDate dateTo) {
-        List<NonconformingProduct> allDefects = nonconformingRepository.findWithFilters(dateFrom, dateTo, null, null);
+    public EquipmentDefectReport getEquipmentDefectReport(DefectFilterDto filter) {
+        List<NonconformingProduct> allDefects = findDefects(filter, null);
 
         List<EquipmentDefectReport.EquipmentRow> rows = buildEquipmentRows(allDefects);
 
@@ -848,8 +866,8 @@ public class ReportService {
         EquipmentDefectReport.Summary otkSummary = buildDefectSummaryEquipment("Задержано ОТК", otkDefects);
 
         return EquipmentDefectReport.builder()
-                .periodFrom(dateFrom.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
-                .periodTo(dateTo.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodFrom(filter.getDateFrom().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
+                .periodTo(filter.getDateTo().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))
                 .equipmentRows(rows)
                 .summary(summary)
                 .liSummary(liSummary)
@@ -930,13 +948,13 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public ParetoReport getParetoReport(String siteCode, String groupingType,
-                                        LocalDate dateFrom, LocalDate dateTo) {
+                                        DefectFilterDto filter) {
 
         ProductionSite site = getProductionSiteByCode(siteCode);
-        log.info("=== getParetoReport START: siteCode='{}', groupingType='{}', dateFrom={}, dateTo={} ===", 
-                siteCode, groupingType, dateFrom, dateTo);
+        log.info("=== getParetoReport START: siteCode='{}', groupingType='{}', dateFrom={}, dateTo={} ===",
+                siteCode, groupingType, filter.getDateFrom(), filter.getDateTo());
         
-        List<NonconformingProduct> defects = nonconformingRepository.findWithFilters(dateFrom, dateTo, site.getId(), null);
+        List<NonconformingProduct> defects = findDefects(filter, site.getId());
         log.info("  defects.size() = {}", defects.size());
 
         List<ParetoReport.ParetoItem> items;
@@ -998,8 +1016,8 @@ public class ReportService {
 
         return ParetoReport.builder()
                 .siteName(site.getSiteName())
-                .periodFrom(dateFrom.format(DATE_FORMATTER))
-                .periodTo(dateTo.format(DATE_FORMATTER))
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
                 .groupingType(groupingType)
                 .items(items)
                 .totalWeight(totalWeight)
