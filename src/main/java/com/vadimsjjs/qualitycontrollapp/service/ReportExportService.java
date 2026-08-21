@@ -531,7 +531,7 @@ public class ReportExportService {
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             wb.write(baos);
-                        return baos.toByteArray();
+            return baos.toByteArray();
         }
     }
 
@@ -541,12 +541,10 @@ public class ReportExportService {
             Sheet sheet = wb.createSheet("Свод по актам");
             int rowIdx = 0;
 
-            CellStyle headerStyle = wb.createCellStyle();
-            Font headerFont = wb.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            headerStyle.setFillForegroundColor((short) 22);
-            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            // ТЗ раздел 5: шрифт Times New Roman (10–12), жирный — через единые хелперы,
+            CellStyle headerStyle = createHeaderStyle(wb);
+            CellStyle numStyle = createNumStyle(wb);
+            CellStyle boldStyle = createBoldStyle(wb);
 
             Row periodRow = sheet.createRow(rowIdx++);
             periodRow.createCell(0).setCellValue("Период: " + report.getPeriodFrom() + " — " + report.getPeriodTo());
@@ -567,28 +565,50 @@ public class ReportExportService {
                 gh.createCell(0).setCellValue(group.getActNumber());
                 gh.createCell(1).setCellValue(group.getDocumentType());
                 gh.createCell(2).setCellValue(group.getSiteName());
-                gh.createCell(3).setCellValue("Всего по документу:");
-                gh.createCell(5).setCellValue(group.getGroupTotals().getTotal().doubleValue());
-                gh.createCell(6).setCellValue(group.getGroupTotals().getReworked().doubleValue());
-                gh.createCell(8).setCellValue(group.getGroupTotals().getDefect().doubleValue());
+                Cell groupLabel = gh.createCell(3);
+                groupLabel.setCellValue("Всего по документу:");
+                groupLabel.setCellStyle(boldStyle);
+                Cell gTotal = gh.createCell(5);
+                gTotal.setCellValue(group.getGroupTotals().getTotal().doubleValue());
+                gTotal.setCellStyle(numStyle);
+                Cell gReworked = gh.createCell(6);
+                gReworked.setCellValue(group.getGroupTotals().getReworked().doubleValue());
+                gReworked.setCellStyle(numStyle);
+                Cell gDefect = gh.createCell(8);
+                gDefect.setCellValue(group.getGroupTotals().getDefect().doubleValue());
+                gDefect.setCellStyle(numStyle);
 
                 for (ReportDto.ReportByAct.DefectRow r : group.getRows()) {
                     Row row = sheet.createRow(rowIdx++);
                     row.createCell(3).setCellValue(r.getDefectType());
                     row.createCell(4).setCellValue(r.getCause());
-                    row.createCell(5).setCellValue(r.getTotal().doubleValue());
-                    row.createCell(6).setCellValue(r.getReworked().doubleValue());
+                    Cell rTotal = row.createCell(5);
+                    rTotal.setCellValue(r.getTotal().doubleValue());
+                    rTotal.setCellStyle(numStyle);
+                    Cell rReworked = row.createCell(6);
+                    rReworked.setCellValue(r.getReworked().doubleValue());
+                    rReworked.setCellStyle(numStyle);
                     row.createCell(7).setCellValue(r.getReworkType());
-                    row.createCell(8).setCellValue(r.getDefect().doubleValue());
+                    Cell rDefect = row.createCell(8);
+                    rDefect.setCellValue(r.getDefect().doubleValue());
+                    rDefect.setCellStyle(numStyle);
                 }
             }
 
             ReportDto.ReportByAct.Totals totals = report.getTotals();
             Row totalRow = sheet.createRow(rowIdx);
-            totalRow.createCell(0).setCellValue("Итого:");
-            totalRow.createCell(5).setCellValue(totals.getTotal().doubleValue());
-            totalRow.createCell(6).setCellValue(totals.getReworked().doubleValue());
-            totalRow.createCell(8).setCellValue(totals.getDefect().doubleValue());
+            Cell totalLabel = totalRow.createCell(0);
+            totalLabel.setCellValue("Итого:");
+            totalLabel.setCellStyle(boldStyle);
+            Cell tTotal = totalRow.createCell(5);
+            tTotal.setCellValue(totals.getTotal().doubleValue());
+            tTotal.setCellStyle(numStyle);
+            Cell tReworked = totalRow.createCell(6);
+            tReworked.setCellValue(totals.getReworked().doubleValue());
+            tReworked.setCellStyle(numStyle);
+            Cell tDefect = totalRow.createCell(8);
+            tDefect.setCellValue(totals.getDefect().doubleValue());
+            tDefect.setCellStyle(numStyle);
 
             for (int i = 0; i < headers.length; i++) {
                 sheet.autoSizeColumn(i);
@@ -802,7 +822,7 @@ public class ReportExportService {
             title.setAlignment(ParagraphAlignment.CENTER);
             XWPFRun titleRun = title.createRun();
             titleRun.setBold(true);
-            titleRun.setFontSize(16);
+            titleRun.setFontSize(14);
             titleRun.setFontFamily(FONT_NAME);
             titleRun.setText("Свод актов и справок о браке по цеху");
 

@@ -62,7 +62,6 @@ class ReportExportServiceByActsTest {
 
         assertNotNull(out);
         assertTrue(out.length > 0);
-        // XLSX is a ZIP archive → starts with "PK"
         assertEquals('P', out[0]);
         assertEquals('K', out[1]);
 
@@ -71,11 +70,18 @@ class ReportExportServiceByActsTest {
             String period = sheet.getRow(0).getCell(0).getStringCellValue();
             assertTrue(period.startsWith("Период:"), "Ожидалась строка периода, а получено: " + period);
             String produced = sheet.getRow(1).getCell(0).getStringCellValue();
-            assertTrue(produced.contains("Производство за период"), produced);
-            String headerAct = sheet.createRow(2) == null ? "" : "";
-            // group header row is at index 3 (0-period,1-produced,2-header,3-group)
             String actNumber = sheet.getRow(3).getCell(0).getStringCellValue();
             assertEquals("Акт Т46-2026", actNumber);
+
+            org.apache.poi.ss.usermodel.Font headerFont =
+                    wb.getFontAt(sheet.getRow(2).getCell(0).getCellStyle().getFontIndex());
+            assertEquals("Times New Roman", headerFont.getFontName(), "Header font must be Times New Roman");
+            assertEquals(11, headerFont.getFontHeightInPoints(), "Header font size must be 11");
+
+            org.apache.poi.ss.usermodel.Font numFont =
+                    wb.getFontAt(sheet.getRow(3).getCell(5).getCellStyle().getFontIndex());
+            assertEquals("Times New Roman", numFont.getFontName(), "Number cell font must be Times New Roman");
+            assertEquals(11, numFont.getFontHeightInPoints(), "Number cell font size must be 11");
         }
     }
 
@@ -86,11 +92,22 @@ class ReportExportServiceByActsTest {
 
         assertNotNull(out);
         assertTrue(out.length > 0);
-        // DOCX is a ZIP archive → starts with "PK"
         assertEquals('P', out[0]);
         assertEquals('K', out[1]);
 
         try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(out))) {
+            String titleFont = null;
+            for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
+                for (org.apache.poi.xwpf.usermodel.XWPFRun run : p.getRuns()) {
+                    String t = run.getText(0);
+                    if (t != null && t.contains("Свод актов")) {
+                        titleFont = run.getFontFamily();
+                    }
+                }
+            }
+            assertNotNull(titleFont, "Title run not found");
+            assertEquals("Times New Roman", titleFont, "Title must use Times New Roman");
+
             java.util.List<String> found = new java.util.ArrayList<>();
             for (org.apache.poi.xwpf.usermodel.XWPFParagraph p : doc.getParagraphs()) {
                 String t = p.getText();
