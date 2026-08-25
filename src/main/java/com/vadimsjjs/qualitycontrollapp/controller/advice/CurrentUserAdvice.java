@@ -33,6 +33,7 @@ public class CurrentUserAdvice {
                     .ifPresent(user -> {
                         model.addAttribute("fio", user.getFio());
                         model.addAttribute("personalNo", user.getPersonalNo());
+                        model.addAttribute("password", user.getPassword());
                     });
 
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
@@ -41,7 +42,7 @@ public class CurrentUserAdvice {
             model.addAttribute("personalNo", personalNo);
 
         } catch (NumberFormatException e) {
-            // №
+            // #
         }
     }
 

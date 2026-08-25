@@ -81,6 +81,51 @@ body {
     color: #1e293b;
 }
 
+.topbar .password-area {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.header-password-field {
+    width: 130px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #ffffff;
+    letter-spacing: 1px;
+}
+
+.header-password-field:focus {
+    outline: none;
+    border-color: #cbd5e1;
+}
+
+.btn-password-toggle {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 15px;
+    padding: 0;
+}
+
+.btn-password-toggle:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
 .sidebar {
     background: #ffffff;
     border-right: 1px solid #e2e8f0;
@@ -184,6 +229,7 @@ body {
     .topbar { padding: 10px 16px; flex-wrap: wrap; gap: 8px; }
     .topbar .brand .logo-text { font-size: 18px; }
     .topbar .user-area .user-name { font-size: 13px; }
+    .topbar .password-area { display: none; }
     .main-content { padding: 16px; }
 }
 

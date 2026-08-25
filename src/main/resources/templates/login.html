@@ -72,6 +72,9 @@
                                required
                                th:classappend="${error != null ? 'is-invalid' : ''}">
                         <i class="bi bi-lock input-icon"></i>
+                        <button type="button" id="togglePassword" class="password-toggle" autocomplete="off" aria-label="Показать пароль">
+                            <i class="bi bi-eye-slash"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -94,6 +97,8 @@
         </div>
     </div>
 </div>
+
+<script src="/js/password-toggle.js"></script>
 
 </body>
 </html>

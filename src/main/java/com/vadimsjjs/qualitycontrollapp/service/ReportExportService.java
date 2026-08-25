@@ -18,7 +18,6 @@ public class ReportExportService {
 
     private static final String FONT_NAME = "Times New Roman";
     private static final short FONT_SIZE = 11;
-
     // ===== EXCEL EXPORT =====
 
     public byte[] exportBySiteToExcel(ReportDto.ReportBySite report) throws Exception {

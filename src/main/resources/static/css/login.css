@@ -298,3 +298,36 @@ body {
         margin-bottom: 32px;
     }
 }
+
+#password.form-control {
+    padding-right: 44px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 18px;
+    padding: 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--brand-primary);
+}
+
+.password-toggle:focus {
+    outline: none;
+    color: var(--brand-primary);
+}

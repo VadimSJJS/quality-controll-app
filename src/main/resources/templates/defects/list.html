@@ -29,6 +29,13 @@
                       th:text="${roles}">ROLE_VIEWER</span>
             </div>
         </div>
+        <div class="password-area" th:if="${password != null and password != ''}">
+            <input type="password" id="headerPassword" class="header-password-field"
+                   th:value="${password}" readonly autocomplete="off" aria-label="Пароль">
+            <button type="button" id="toggleHeaderPassword" class="btn-password-toggle" aria-label="Показать пароль">
+                <i class="bi bi-eye-slash"></i>
+            </button>
+        </div>
         <form th:action="@{/logout}" method="post" class="m-0">
             <button type="submit" class="btn-logout">
                 <i class="bi bi-box-arrow-right"></i> Выйти
@@ -229,6 +236,7 @@
 </div>
 
 <script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="/js/password-toggle.js"></script>
 
 <script>
     let currentPage = 0;

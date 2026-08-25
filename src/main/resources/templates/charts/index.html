@@ -31,6 +31,13 @@
                       th:text="${roles}">ROLE_VIEWER</span>
             </div>
         </div>
+        <div class="password-area" th:if="${password != null and password != ''}">
+            <input type="password" id="headerPassword" class="header-password-field"
+                   th:value="${password}" readonly autocomplete="off" aria-label="Пароль">
+            <button type="button" id="toggleHeaderPassword" class="btn-password-toggle" aria-label="Показать пароль">
+                <i class="bi bi-eye-slash"></i>
+            </button>
+        </div>
         <form th:action="@{/logout}" method="post" class="m-0">
             <button type="submit" class="btn-logout">
                 <i class="bi bi-box-arrow-right"></i> Выйти
@@ -475,6 +482,7 @@
 </div>
 
 <script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="/js/password-toggle.js"></script>
 
 <script>
 
@@ -1109,22 +1117,18 @@
         const today = new Date();
         const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
         
-        // Equipment report dates
         document.getElementById('equipmentDateFrom').value = formatDateInput(firstDay);
         document.getElementById('equipmentDateTo').value = formatDateInput(today);
         loadEquipmentReport();
         
-        // Personnel report dates
         document.getElementById('personnelDateFrom').value = formatDateInput(firstDay);
         document.getElementById('personnelDateTo').value = formatDateInput(today);
         loadPersonnelReport();
         
-        // Personnel V2 report dates
         document.getElementById('personnelV2DateFrom').value = formatDateInput(firstDay);
         document.getElementById('personnelV2DateTo').value = formatDateInput(today);
         loadPersonnelReportV2();
         
-        // Pareto dates — sites and report will be loaded by loadParetoSites
         document.getElementById('paretoDateFrom').value = formatDateInput(firstDay);
         document.getElementById('paretoDateTo').value = formatDateInput(today);
         loadParetoSites();
