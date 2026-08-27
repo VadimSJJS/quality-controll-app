@@ -36,8 +36,8 @@ public class SeedDataService {
             return;
         }
 
-        ProductionSite utvMk = productionSiteRepository.findBySiteCode("УТВ_МК")
-                .orElseThrow(() -> new RuntimeException("Участок УТВ_МК не найден"));
+        ProductionSite utvMk = productionSiteRepository.findBySiteCode("УТВ-МК")
+                .orElseThrow(() -> new RuntimeException("Участок УТВ-МК не найден"));
         ProductionSite ku1 = productionSiteRepository.findBySiteCode("КУ-1")
                 .orElseThrow(() -> new RuntimeException("Участок КУ-1 не найден"));
         ProductionSite ku2 = productionSiteRepository.findBySiteCode("КУ-2")
@@ -50,8 +50,10 @@ public class SeedDataService {
                 .orElseThrow(() -> new RuntimeException("Участок ТУ не найден"));
         ProductionSite sk = productionSiteRepository.findBySiteCode("СК")
                 .orElseThrow(() -> new RuntimeException("Участок СК не найден"));
-        ProductionSite utvRml = productionSiteRepository.findBySiteCode("УТВ_РМЛ")
-                .orElseThrow(() -> new RuntimeException("Участок УТВ_РМЛ не найден"));
+        ProductionSite utvRml = productionSiteRepository.findBySiteCode("УТВ-РМЛ")
+                .orElseThrow(() -> new RuntimeException("Участок УТВ-РМЛ не найден"));
+        ProductionSite utvSv = productionSiteRepository.findBySiteCode("УТВ-СВ")
+                .orElseThrow(() -> new RuntimeException("Участок УТВ-СВ не найден"));
 
         DefectType defectNamat = defectTypeRepository.findById(1L).orElse(null);
         DefectType defectKoltso = defectTypeRepository.findById(2L).orElse(null);
@@ -163,7 +165,14 @@ public class SeedDataService {
                     null, "65Г", BigDecimal.valueOf(0.015), LocalDate.of(2026, 7, 29), reworkVosstan, BigDecimal.valueOf(0.015)),
             createRecord(utvRml, defectKoltso, causeWear, null,
                     "Акт Т46-2026 №23", LocalDate.of(2026, 7, 30), "К-6002", "Стан-Р-2",
-                    null, "70Г", BigDecimal.valueOf(0.028), LocalDate.of(2026, 7, 31), reworkVosstan, BigDecimal.valueOf(0.028))
+                    null, "70Г", BigDecimal.valueOf(0.028), LocalDate.of(2026, 7, 31), reworkVosstan, BigDecimal.valueOf(0.028)),
+
+            createRecord(utvSv, defectNamat, causeWear, null,
+                    "Акт Т46-2026 №26", LocalDate.of(2026, 7, 28), "Кас-7001", "Свароч-1",
+                    null, "70С2", BigDecimal.valueOf(0.030), LocalDate.of(2026, 7, 29), reworkVosstan, BigDecimal.valueOf(0.030)),
+            createRecord(utvSv, defectKoltso, causeHuman, causeHumanSub,
+                    "Акт Т46-2026 №27", LocalDate.of(2026, 7, 30), "Кас-7002", "Свароч-2",
+                    null, "80С2", BigDecimal.valueOf(0.045), null, null, null)
         );
 
         nonconformingRepository.saveAll(records);

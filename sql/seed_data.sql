@@ -7,7 +7,7 @@
     STEEL_GRADE, UNIT_NUMBER, WORKPIECE_KEY, QUANTITY, REWORK_QUANTITY, REWORK_DATE,
     ID_REWORK_TYPE, REWORK_WEIGHT_TONNES
 ) VALUES (
-    DATE '2026-07-28', 5, 1,  -- УТВ_МК, ОТК
+    DATE '2026-07-28', 5, 1,  -- УТВ-МК, ОТК
     0.050, NULL, 1, 1, 11,  -- Намот, Сбой укладчик -> IZNOS_VOLOKI
     'Акт Т46-2026 №1', 20, 'К-1001', 'Пл.4521',
     1, NULL, 'СтПЦ-2', 'Стан-14',
@@ -430,7 +430,7 @@ INSERT INTO NONCONFORMING_PRODUCT (
     STEEL_GRADE, UNIT_NUMBER, WORKPIECE_KEY, QUANTITY, REWORK_QUANTITY, REWORK_DATE,
     ID_REWORK_TYPE, REWORK_WEIGHT_TONNES
 ) VALUES (
-    DATE '2026-07-28', 6, 1,  -- УТВ_РМЛ, ОТК
+    DATE '2026-07-28', 6, 1,  -- УТВ-РМЛ, ОТК
     0.015, NULL, 1, 1, 11,  -- Намот
     'Акт Т46-2026 №22', 60, 'К-6001', 'Пл.9001',
     1, 'УТВ-РМЛ', 'СтПЦ-2', 'Стан-Р-1',

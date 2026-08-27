@@ -75,8 +75,17 @@ public class NonconformingProductService {
             LocalDate dateTo,
             Long productionSiteId,
             Long defectTypeId,
+            Long defectCauseId,
+            Long defectSubcauseId,
+            Long diameterId,
+            String steelCordConstruction,
+            Long productCode,
+            String heatNumber,
+            String steelGrade,
             String equipmentKey,
             Long operatorPersonalNumber,
+            Long manufacturerBrigade,
+            Long detectionSourceId,
             Pageable pageable) {
 
         int pageNumber = pageable.getPageNumber();
@@ -85,10 +94,14 @@ public class NonconformingProductService {
         int endRow = startRow + pageSize;
 
         List<NonconformingProduct> content = repository.findWithFiltersNative(
-                dateFrom, dateTo, productionSiteId, defectTypeId, equipmentKey, operatorPersonalNumber, startRow, endRow);
+                dateFrom, dateTo, productionSiteId, defectTypeId, defectCauseId, defectSubcauseId,
+                diameterId, steelCordConstruction, productCode, heatNumber, steelGrade,
+                equipmentKey, operatorPersonalNumber, manufacturerBrigade, detectionSourceId, startRow, endRow);
 
         long total = repository.countWithFilters(
-                dateFrom, dateTo, productionSiteId, defectTypeId, equipmentKey, operatorPersonalNumber);
+                dateFrom, dateTo, productionSiteId, defectTypeId, defectCauseId, defectSubcauseId,
+                diameterId, steelCordConstruction, productCode, heatNumber, steelGrade,
+                equipmentKey, operatorPersonalNumber, manufacturerBrigade, detectionSourceId);
 
         List<NonconformingProductResponse> responses = content.stream()
                 .map(this::toResponse)

@@ -1,7 +1,8 @@
 package com.vadimsjjs.qualitycontrollapp.aspect;
 
+import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
+import com.vadimsjjs.qualitycontrollapp.repository.NonconformingProductRepository;
 import com.vadimsjjs.qualitycontrollapp.service.AuditService;
-import com.vadimsjjs.qualitycontrollapp.service.NonconformingProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -12,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Aspect
@@ -20,6 +23,7 @@ import java.lang.reflect.Method;
 public class AuditAspect {
 
     private final AuditService auditService;
+    private final NonconformingProductRepository repository;
 
     @Around("execution(* com.vadimsjjs.qualitycontrollapp.service.NonconformingProductService.create(..))")
     public Object logCreate(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -89,15 +93,28 @@ public class AuditAspect {
 
     private Object getOldValue(Long id) {
         try {
-            Method method = NonconformingProductService.class.getMethod("findById", Long.class);
-            return method.invoke(getTargetObject(), id);
+            return repository.findById(id).map(this::toSnapshot).orElse(null);
         } catch (Exception e) {
             return null;
         }
     }
 
-    private Object getTargetObject() {
-        return null;
+    private Map<String, Object> toSnapshot(NonconformingProduct entity) {
+        Map<String, Object> snapshot = new HashMap<>();
+        snapshot.put("detectionDate", entity.getDetectionDate());
+        snapshot.put("weightTonnes", entity.getWeightTonnes());
+        snapshot.put("irreparableWeightTonnes", entity.getIrreparableWeightTonnes());
+        snapshot.put("productCode", entity.getProductCode());
+        snapshot.put("reelNumber", entity.getReelNumber());
+        snapshot.put("heatNumber", entity.getHeatNumber());
+        snapshot.put("steelGrade", entity.getSteelGrade());
+        snapshot.put("equipmentKey", entity.getEquipmentKey());
+        snapshot.put("operatorPersonalNumber", entity.getOperatorPersonalNumber());
+        snapshot.put("manufacturerBrigade", entity.getManufacturerBrigade());
+        snapshot.put("reworkDate", entity.getReworkDate());
+        snapshot.put("reworkWeightTonnes", entity.getReworkWeightTonnes());
+        snapshot.put("note", entity.getNote());
+        return snapshot;
     }
 
     private Long getCurrentUser() {

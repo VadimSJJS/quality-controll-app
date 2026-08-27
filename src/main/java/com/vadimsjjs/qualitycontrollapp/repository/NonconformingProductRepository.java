@@ -49,8 +49,17 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "AND (:dateTo IS NULL OR n.DETECTION_DATE <= :dateTo) " +
             "AND (:siteId IS NULL OR n.ID_PRODUCTION_SITE = :siteId) " +
             "AND (:defectTypeId IS NULL OR n.ID_DEFECT_TYPE = :defectTypeId) " +
+            "AND (:defectCauseId IS NULL OR n.ID_DEFECT_CAUSE = :defectCauseId) " +
+            "AND (:defectSubcauseId IS NULL OR n.ID_DEFECT_SUBCAUSE = :defectSubcauseId) " +
+            "AND (:diameterId IS NULL OR n.ID_DIAMETER = :diameterId) " +
+            "AND (:steelCordConstruction IS NULL OR n.STEEL_CORD_CONSTRUCTION = :steelCordConstruction) " +
+            "AND (:productCode IS NULL OR n.PRODUCT_CODE = :productCode) " +
+            "AND (:heatNumber IS NULL OR n.HEAT_NUMBER = :heatNumber) " +
+            "AND (:steelGrade IS NULL OR n.STEEL_GRADE = :steelGrade) " +
             "AND (:equipmentKey IS NULL OR n.EQUIPMENT_KEY = :equipmentKey) " +
             "AND (:operatorPersonalNumber IS NULL OR n.OPERATOR_PERSONAL_NUMBER = :operatorPersonalNumber) " +
+            "AND (:manufacturerBrigade IS NULL OR n.MANUFACTURER_BRIGADE = :manufacturerBrigade) " +
+            "AND (:detectionSourceId IS NULL OR n.ID_DETECTION_SOURCE = :detectionSourceId) " +
             "ORDER BY n.DETECTION_DATE DESC " +
             ") a WHERE ROWNUM <= :endRow " +
             ") WHERE rn > :startRow",
@@ -60,8 +69,17 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             @Param("dateTo") LocalDate dateTo,
             @Param("siteId") Long siteId,
             @Param("defectTypeId") Long defectTypeId,
+            @Param("defectCauseId") Long defectCauseId,
+            @Param("defectSubcauseId") Long defectSubcauseId,
+            @Param("diameterId") Long diameterId,
+            @Param("steelCordConstruction") String steelCordConstruction,
+            @Param("productCode") Long productCode,
+            @Param("heatNumber") String heatNumber,
+            @Param("steelGrade") String steelGrade,
             @Param("equipmentKey") String equipmentKey,
             @Param("operatorPersonalNumber") Long operatorPersonalNumber,
+            @Param("manufacturerBrigade") Long manufacturerBrigade,
+            @Param("detectionSourceId") Long detectionSourceId,
             @Param("startRow") int startRow,
             @Param("endRow") int endRow);
 
@@ -70,15 +88,33 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
             "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
             "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId) " +
+            "AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId) " +
+            "AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId) " +
+            "AND (:diameterId IS NULL OR n.diameter.id = :diameterId) " +
+            "AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction) " +
+            "AND (:productCode IS NULL OR n.productCode = :productCode) " +
+            "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
+            "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
             "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey) " +
-            "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber)")
+            "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
+            "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade) " +
+            "AND (:detectionSourceId IS NULL OR n.detectionSource.id = :detectionSourceId)")
     long countWithFilters(
             @Param("dateFrom") LocalDate dateFrom,
             @Param("dateTo") LocalDate dateTo,
             @Param("siteId") Long siteId,
             @Param("defectTypeId") Long defectTypeId,
+            @Param("defectCauseId") Long defectCauseId,
+            @Param("defectSubcauseId") Long defectSubcauseId,
+            @Param("diameterId") Long diameterId,
+            @Param("steelCordConstruction") String steelCordConstruction,
+            @Param("productCode") Long productCode,
+            @Param("heatNumber") String heatNumber,
+            @Param("steelGrade") String steelGrade,
             @Param("equipmentKey") String equipmentKey,
-            @Param("operatorPersonalNumber") Long operatorPersonalNumber);
+            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
+            @Param("manufacturerBrigade") Long manufacturerBrigade,
+            @Param("detectionSourceId") Long detectionSourceId);
 
     /**
      * Выборка записей по полному набору фильтров из ТЗ (п. 3.2):
