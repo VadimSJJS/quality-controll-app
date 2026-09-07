@@ -5,13 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Аналитика — БМЗ · СтПЦ-2</title>
-    <link href="/lib/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/lib/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/compat.css}">
     <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link href="/fonts/inter.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/reports.css}">
     <link rel="stylesheet" th:href="@{/css/defects.css}">
-    <script src="/lib/chartjs/4.4.0/chart.umd.min.js"></script>
+    <script src="/lib/chartjs/2.9.4/chart.min.js"></script>
 </head>
 <body>
 
@@ -481,7 +482,6 @@
     </main>
 </div>
 
-<script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="/js/password-toggle.js"></script>
 
 <script>
@@ -517,6 +517,10 @@
 
         fetch(`/api/reports/equipment-defects?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login?expired=true';
+                    throw new Error('Сессия истекла, необходимо войти заново');
+                }
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
             })
@@ -650,6 +654,10 @@
 
         fetch(`/api/reports/personnel-defects?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login?expired=true';
+                    throw new Error('Сессия истекла, необходимо войти заново');
+                }
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
             })
@@ -791,6 +799,10 @@
 
         fetch(`/api/reports/personnel-defects-v2?dateFrom=${dateFrom}&dateTo=${dateTo}`)
             .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login?expired=true';
+                    throw new Error('Сессия истекла, необходимо войти заново');
+                }
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
             })
@@ -910,6 +922,10 @@
 
         fetch(url)
             .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/login?expired=true';
+                    throw new Error('Сессия истекла, необходимо войти заново');
+                }
                 if (!response.ok) throw new Error('Ошибка загрузки данных');
                 return response.json();
             })
@@ -969,8 +985,7 @@
                         backgroundColor: 'rgba(26, 58, 92, 0.7)',
                         borderColor: 'rgba(26, 58, 92, 1)',
                         borderWidth: 1,
-                        yAxisID: 'y',
-                        order: 2
+                        yAxisID: 'y-axis-0'
                     },
                     {
                         label: 'Накопительный %',
@@ -982,83 +997,93 @@
                         pointBackgroundColor: '#e8b830',
                         pointRadius: 4,
                         fill: false,
-                        yAxisID: 'y1',
-                        order: 1
+                        yAxisID: 'y-axis-1'
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                interaction: {
+                tooltips: {
                     mode: 'index',
-                    intersect: false
+                    intersect: false,
+                    backgroundColor: '#1e293b',
+                    titleFontFamily: 'Inter',
+                    titleFontSize: 14,
+                    bodyFontFamily: 'Inter',
+                    bodyFontSize: 13,
+                    padding: 12,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            var label = data.datasets[tooltipItem.datasetIndex].label || '';
+                            var value = tooltipItem.yLabel;
+                            return label + ': ' + (tooltipItem.datasetIndex === 0
+                                ? Number(value).toFixed(3) + ' т'
+                                : Number(value).toFixed(1) + '%');
+                        }
+                    }
                 },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: {
-                            font: { family: 'Inter', size: 13 }
-                        }
-                    },
-                    tooltip: {
-                        backgroundColor: '#1e293b',
-                        titleFont: { family: 'Inter', size: 14 },
-                        bodyFont: { family: 'Inter', size: 13 },
-                        padding: 12,
-                        cornerRadius: 8,
-                        callbacks: {
-                            label: function(context) {
-                                if (context.datasetIndex === 0) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(3) + ' т';
-                                }
-                                return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
-                            }
-                        }
+                legend: {
+                    position: 'top',
+                    labels: {
+                        fontFamily: 'Inter',
+                        fontSize: 13
                     }
                 },
                 scales: {
-                    x: {
-                        grid: { display: false },
+                    xAxes: [{
+                        gridLines: { display: false },
                         ticks: {
-                            font: { family: 'Inter', size: 12 },
+                            fontFamily: 'Inter',
+                            fontSize: 12,
                             maxRotation: 45,
                             minRotation: 45
                         }
-                    },
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        title: {
+                    }],
+                    yAxes: [
+                        {
+                            id: 'y-axis-0',
+                            type: 'linear',
                             display: true,
-                            text: 'Масса, т',
-                            font: { family: 'Inter', size: 13, weight: '600' }
+                            position: 'left',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Масса, т',
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontStyle: '600'
+                            },
+                            gridLines: { color: 'rgba(0,0,0,0.05)' },
+                            ticks: {
+                                fontFamily: 'Inter',
+                                fontSize: 12,
+                                callback: function(value) { return Number(value).toFixed(2); }
+                            }
                         },
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: {
-                            font: { family: 'Inter', size: 12 },
-                            callback: function(value) { return value.toFixed(2); }
+                        {
+                            id: 'y-axis-1',
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Накопительный %',
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontStyle: '600'
+                            },
+                            gridLines: { drawOnChartArea: false },
+                            ticks: {
+                                fontFamily: 'Inter',
+                                fontSize: 12,
+                                callback: function(value) { return value + '%'; },
+                                stepSize: 20
+                            },
+                            min: 0,
+                            max: 100
                         }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: {
-                            display: true,
-                            text: 'Накопительный %',
-                            font: { family: 'Inter', size: 13, weight: '600' }
-                        },
-                        grid: { drawOnChartArea: false },
-                        ticks: {
-                            font: { family: 'Inter', size: 12 },
-                            callback: function(value) { return value + '%'; },
-                            stepSize: 20
-                        },
-                        min: 0,
-                        max: 100
-                    }
+                    ]
                 }
             }
         });

@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +37,19 @@ public class ReportService {
     private final DetectionSourceRepository detectionSourceRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+    private static final BigDecimal PLANT_ALLOWABLE_TOTAL = new BigDecimal("0.55");
+
+    private static final BigDecimal PLANT_ALLOWABLE_IRREPARABLE_TOTAL = new BigDecimal("0.04");
+
+    private static final Map<String, BigDecimal> SITE_ALLOWABLE_IRREPARABLE = Map.of(
+            "ГСВ", new BigDecimal("0.00"),
+            "ТТГУ", new BigDecimal("0.01"),
+            "УТВ-МК", new BigDecimal("0.01"),
+            "УТВ-РМЛ", new BigDecimal("0.01"),
+            "КУ-1", new BigDecimal("0.07"),
+            "КУ-2", new BigDecimal("0.07")
+    );
 
     private ProductionSite getProductionSiteByCode(String siteCode) {
         return productionSiteRepository.findBySiteCode(siteCode)
@@ -634,48 +646,62 @@ public class ReportService {
         List<NonconformingProduct> allDefects = findDefects(filter, null);
         List<ProductionReport> productions = productionRepository.findByReportDateBetween(filter.getDateFrom(), filter.getDateTo());
 
-        Map<String, List<NonconformingProduct>> defectsBySite = allDefects.stream()
-                .collect(Collectors.groupingBy(d -> d.getProductionSite().getSiteName()));
-
         Map<String, BigDecimal> producedBySite = productions.stream()
                 .collect(Collectors.groupingBy(
                         p -> p.getProductionSite().getSiteName(),
-                        Collectors.reducing(BigDecimal.ZERO,
-                                ProductionReport::getProducedWeightTonnes,
-                                BigDecimal::add)
-                ));
-
-        List<ReportDto.ReportByPlant.SiteRow> rows = new ArrayList<>();
-
-        for (Map.Entry<String, List<NonconformingProduct>> entry : defectsBySite.entrySet()) {
-            String siteName = entry.getKey();
-            List<NonconformingProduct> defectList = entry.getValue();
-
-            BigDecimal defectWeight = sumWeight(defectList);
-            BigDecimal produced = producedBySite.getOrDefault(siteName, BigDecimal.ZERO);
-            BigDecimal percent = calcPercent(defectWeight, produced);
-
-            BigDecimal allowable = defectList.stream()
-                    .findFirst()
-                    .map(d -> d.getProductionSite().getAllowableDefectPercent())
-                    .orElse(BigDecimal.ZERO);
-
-            boolean exceedsAllowable = percent.compareTo(allowable) > 0;
-
-            rows.add(ReportDto.ReportByPlant.SiteRow.builder()
-                    .siteName(siteName)
-                    .produced(produced)
-                    .nonconforming(defectWeight)
-                    .nonconformingPercent(percent)
-                    .allowablePercent(allowable)
-                    .type("total")
-                    .exceedsAllowable(exceedsAllowable)
-                    .build());
-        }
-
+                        Collectors.reducing(BigDecimal.ZERO, ProductionReport::getProducedWeightTonnes, BigDecimal::add)));
         BigDecimal totalProduced = sumProduced(productions);
         BigDecimal totalDefect = sumWeight(allDefects);
-        BigDecimal totalPercent = calcPercent(totalDefect, totalProduced);
+        BigDecimal totalIrreparable = sumIrreparable(allDefects);
+        BigDecimal totalReworkable = totalDefect.subtract(totalIrreparable);
+        BigDecimal totalReworked = sumReworked(allDefects);
+
+        Map<String, BigDecimal> reworkableAllowableBySiteName = productionSiteRepository.findAll().stream()
+                .collect(Collectors.toMap(ProductionSite::getSiteName,
+                        s -> s.getAllowableDefectPercent() != null ? s.getAllowableDefectPercent() : BigDecimal.ZERO));
+        Map<String, String> siteCodeByName = productionSiteRepository.findAll().stream()
+                .collect(Collectors.toMap(ProductionSite::getSiteName, ProductionSite::getSiteCode));
+
+        List<NonconformingProduct> plantFaultDefects= allDefects.stream()
+                .filter(this::isPlantFault)
+                .collect(Collectors.toList());
+        BigDecimal plantFaultDefect= sumWeight(plantFaultDefects);
+        BigDecimal plantFaultIrreparable = sumIrreparable(plantFaultDefects);
+
+        BigDecimal externalDefect= allDefects.stream()
+                .filter(d -> !isPlantFault(d))
+                .filter(this::isExternalReturn)
+                .map(d -> d.getIrreparableWeightTonnes() != null ? d.getIrreparableWeightTonnes() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal ncpDefect= allDefects.stream()
+                .filter(d -> !isPlantFault(d))
+                .filter(d -> !isExternalReturn(d))
+                .map(d -> d.getIrreparableWeightTonnes() != null ? d.getIrreparableWeightTonnes() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<ReportDto.ReportByPlant.SiteRow> rows = new ArrayList<>();
+        rows.add(plantRow("Итого по СтПЦ-2", totalProduced, totalDefect, calcPercent(totalDefect, totalProduced), PLANT_ALLOWABLE_TOTAL, "total"));
+        rows.add(plantRow("Несоответствующая по вине цеха", totalProduced, plantFaultDefect, calcPercent(plantFaultDefect, totalProduced), PLANT_ALLOWABLE_TOTAL, "by_fault"));
+        rows.add(plantRow("Несоответствующая исправимая, в т.ч.", totalProduced, totalReworkable, calcPercent(totalReworkable, totalProduced), PLANT_ALLOWABLE_TOTAL, "reworkable_total"));
+        addPlantSiteRows(rows, "reworkable_site", allDefects, producedBySite, reworkableAllowableBySiteName, siteCodeByName, true);
+
+        rows.add(plantRow("Несоответствующая неисправимая всего, в т.ч.", totalProduced, totalIrreparable, calcPercent(totalIrreparable, totalProduced), PLANT_ALLOWABLE_IRREPARABLE_TOTAL, "irreparable_total"));
+        rows.add(plantRow("Несоответствующая неисправимая по вине цеха", totalProduced, plantFaultIrreparable, calcPercent(plantFaultIrreparable, totalProduced), PLANT_ALLOWABLE_IRREPARABLE_TOTAL, "irreparable_by_fault"));
+        addPlantSiteRows(rows, "irreparable_site", allDefects, producedBySite, reworkableAllowableBySiteName, siteCodeByName, false);
+
+        rows.add(plantRow("НЦП", totalProduced, ncpDefect, calcPercent(ncpDefect, totalProduced), BigDecimal.ZERO, "ncp"));
+        rows.add(plantRow("Внешний брак", totalProduced, externalDefect, calcPercent(externalDefect, totalProduced), BigDecimal.ZERO, "external"));
+
+        rows.add(ReportDto.ReportByPlant.SiteRow.builder()
+                .siteName("Восстановлено")
+                .produced(null)
+                .nonconforming(totalReworked)
+                .nonconformingPercent(null)
+                .allowablePercent(null)
+                .type("reworked")
+                .exceedsAllowable(false)
+                .build());
 
         return ReportDto.ReportByPlant.builder()
                 .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
@@ -684,12 +710,79 @@ public class ReportService {
                 .totals(ReportDto.ReportByPlant.Totals.builder()
                         .totalProduced(totalProduced)
                         .totalNonconforming(totalDefect)
-                        .totalNonconformingPercent(totalPercent)
-                        .totalAllowable(BigDecimal.valueOf(0.55)) // 0.55%З
+                        .totalNonconformingPercent(calcPercent(totalDefect, totalProduced))
+                        .totalAllowable(PLANT_ALLOWABLE_TOTAL)
                         .build())
                 .build();
     }
+    private ReportDto.ReportByPlant.SiteRow plantRow(String name, BigDecimal produced, BigDecimal nonconf,
+                                                          BigDecimal percent, BigDecimal allowable, String type) {
+        boolean exceeds = percent != null && allowable != null && percent.compareTo(allowable) > 0;
+        return ReportDto.ReportByPlant.SiteRow.builder()
+                .siteName(name)
+                .produced(produced)
+                .nonconforming(nonconf)
+                .nonconformingPercent(percent)
+                .allowablePercent(allowable)
+                .type(type)
+                .exceedsAllowable(exceeds)
+                .build();
+    }
 
+
+    private void addPlantSiteRows(List<ReportDto.ReportByPlant.SiteRow> rows, String type,
+                                    List<NonconformingProduct> allDefects, Map<String, BigDecimal> producedBySite,
+                                    Map<String, BigDecimal> reworkableAllowableBySiteName, Map<String, String> siteCodeByName,
+                                    boolean reworkable) {
+        allDefects.stream()
+                .collect(Collectors.groupingBy(d -> d.getProductionSite().getSiteName()))
+                .entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> {
+                    String siteName = entry.getKey();
+                    List<NonconformingProduct> defs = entry.getValue();
+                    BigDecimal mass;
+                    if (reworkable) {
+                        mass = defs.stream().map(this::reworkableWeight).reduce(BigDecimal.ZERO, BigDecimal::add);
+                    } else {
+                        mass = sumIrreparable(defs);
+                    }
+                    if (mass.compareTo(BigDecimal.ZERO) == 0) {
+                        return;
+                    }
+                    BigDecimal produced = producedBySite.getOrDefault(siteName, BigDecimal.ZERO);
+                    BigDecimal allowable = reworkable
+                            ? reworkableAllowableBySiteName.getOrDefault(siteName, BigDecimal.ZERO)
+                            : SITE_ALLOWABLE_IRREPARABLE.getOrDefault(siteCodeByName.get(siteName), BigDecimal.ZERO);
+                    BigDecimal percent = calcPercent(mass, produced);
+                    rows.add(ReportDto.ReportByPlant.SiteRow.builder()
+                            .siteName(siteName)
+                            .produced(produced)
+                            .nonconforming(mass)
+                            .nonconformingPercent(percent)
+                            .allowablePercent(allowable)
+                            .type(type)
+                            .exceedsAllowable(percent.compareTo(allowable) > 0)
+                            .build());
+                });
+    }
+    private BigDecimal reworkableWeight(NonconformingProduct d) {
+        BigDecimal weight = d.getWeightTonnes() != null ? d.getWeightTonnes() : BigDecimal.ZERO;
+        BigDecimal irreparable = d.getIrreparableWeightTonnes() != null ? d.getIrreparableWeightTonnes() : BigDecimal.ZERO;
+        BigDecimal result = weight.subtract(irreparable);
+        return result.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : result;
+    }
+
+    private boolean isPlantFault(NonconformingProduct d) {
+        String workshop = d.getManufacturerWorkshop();
+        return workshop == null || workshop.isBlank() || workshop.toLowerCase().contains("стпц");
+    }
+
+    private boolean isExternalReturn(NonconformingProduct d) {
+        return d.getDetectionSource() != null
+                && d.getDetectionSource().getSourceName() != null
+                && d.getDetectionSource().getSourceName().toLowerCase().contains("внешн");
+    }
     @Transactional(readOnly = true)
     public ReportDto.ReportByFault getReportByFault(DefectFilterDto filter) {
         List<NonconformingProduct> allDefects = findDefects(filter, null);

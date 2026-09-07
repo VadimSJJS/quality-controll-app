@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отчёты — БМЗ · СтПЦ-2</title>
-    <link href="/lib/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/lib/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/compat.css}">
     <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link href="/fonts/inter.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/base.css}">
@@ -265,7 +266,6 @@
     </main>
 </div>
 
-<script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="/js/password-toggle.js"></script>
 
 <script>
@@ -871,33 +871,50 @@
     }
 
     function renderByPlant(data) {
-        let rows = data.rows.map(r => {
-            let rowClass = '';
-            if (r.exceedsAllowable && r.type === 'total') {
-                rowClass = 'table-danger';
+        const f3 = v => v != null ? v.toFixed(3) : '—';
+        const f2 = v => v != null ? v.toFixed(2) : '—';
+        let rows = data.rows.map((r, idx) => {
+            let isSite = r.type != null && r.type.endsWith('_site');
+            let isSection = ['total', 'by_fault', 'reworkable_total', 'reworkable_site',
+                             'irreparable_total', 'irreparable_by_fault', 'irreparable_site',
+                             'ncp', 'external'].includes(r.type);
+            let cls = isSite ? 'table-light' : (isSection ? 'fw-bold' : '');
+            if (r.type === 'total') cls += ' table-primary';
+            let exceedsCls = r.exceedsAllowable ? 'text-danger fw-bold' : '';
+            let producedCell = r.type === 'reworked' ? '—' : f3(r.produced);
+            let percentCell = r.type === 'reworked' ? '—'
+                : `<td class="text-end ${exceedsCls}">${f2(r.nonconformingPercent)}%</td>`;
+            let statusCell;
+            if (r.type === 'reworked') {
+                statusCell = '<td></td>';
+            } else if (r.exceedsAllowable && isSection) {
+                statusCell = '<td class="text-center text-danger" title="Превысен допустимый уровень">⚠</td>';
+            } else if (r.exceedsAllowable) {
+                statusCell = '<td class="text-center text-danger fw-bold">⚠</td>';
+            } else {
+                statusCell = '<td class="text-center">✓</td>';
             }
             return `
-            <tr class="${rowClass}">
+            <tr class="${cls}">
+                <td class="text-end">${idx + 1}</td>
                 <td>${r.siteName}</td>
-                <td class="text-end">${r.produced.toFixed(3)}</td>
-                <td class="text-end">${r.nonconforming.toFixed(3)}</td>
-                <td class="text-end ${r.exceedsAllowable && r.type === 'total' ? 'text-danger fw-bold' : ''}">
-                    ${r.nonconformingPercent.toFixed(2)}%
-                </td>
-                <td class="text-end">${r.allowablePercent ? r.allowablePercent.toFixed(2) + '%' : '—'}</td>
-                ${r.type === 'total' ? `<td>${r.exceedsAllowable ? '⚠' : '✓'}</td>` : ''}
+                <td class="text-end">${producedCell}</td>
+                <td class="text-end">${f3(r.nonconforming)}</td>
+                ${percentCell}
+                <td class="text-end">${r.allowablePercent != null ? f2(r.allowablePercent) + '%' : '—'}</td>
+                ${statusCell}
             </tr>
-        `
+            `;
         }).join('');
-
         return `
-            <h5>Данные по несоответствующей продукции по цеху</h5>
+            <h5>Данные по неноответствующей продукции по цеху</h5>
             <p class="text-secondary small">за период с ${data.periodFrom} по ${data.periodTo}</p>
             <div class="table-responsive">
                 <table class="table table-sm table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th>Участки</th>
+                            <th style="width:3%">№ п/п</th>
+                            <th>Наименование</th>
                             <th class="text-end">Производство, т</th>
                             <th class="text-end">Несоответствующая, т</th>
                             <th class="text-end">Несоответствующая, %</th>
@@ -906,16 +923,6 @@
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
-                    <tfoot class="table-primary fw-bold">
-                        <tr>
-                            <td>Итого по цеху</td>
-                            <td class="text-end">${data.totals.totalProduced.toFixed(3)}</td>
-                            <td class="text-end">${data.totals.totalNonconforming.toFixed(3)}</td>
-                            <td class="text-end">${data.totals.totalNonconformingPercent.toFixed(2)}%</td>
-                            <td class="text-end">${data.totals.totalAllowable.toFixed(2)}%</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
                 </table>
             </div>
         `;

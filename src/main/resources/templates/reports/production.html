@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отчёты производства</title>
-    <link href="/lib/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/lib/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/compat.css}">
     <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" th:href="@{/css/base.css}">
     <link rel="stylesheet" th:href="@{/css/production.css}">
@@ -185,7 +186,6 @@
     </main>
 </div>
 
-<script src="/lib/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 <script src="/js/password-toggle.js"></script>
 
 <script>
@@ -194,8 +194,16 @@
 
     async function fetchJson(url, errorMsg) {
         const response = await fetch(url);
+        if (response.status === 401) {
+            window.location.href = '/login?expired=true';
+            throw new Error('Сессия истекла, необходимо войти заново');
+        }
         if (!response.ok) {
             throw new Error(`${errorMsg}: ${response.status} ${response.statusText}`);
+        }
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            throw new Error(`${errorMsg}: сервер вернул не JSON (${contentType || 'пусто'})`);
         }
         return response.json();
     }

@@ -25,7 +25,10 @@ import org.springframework.security.web.authentication.rememberme.JdbcTokenRepos
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import javax.sql.DataSource;
+
+import java.io.IOException;
 
 import java.util.List;
 import java.util.List;
@@ -80,7 +83,10 @@ public class SecurityConfig {
                         .maximumSessions(1)
                         .expiredUrl("/login?expired=true")
                 )
-                .exceptionHandling(ex -> ex.accessDeniedPage("/access-denied"))
+                .exceptionHandling(ex -> ex
+                    .authenticationEntryPoint(new RestAwareAuthenticationEntryPoint())
+                    .accessDeniedPage("/access-denied")
+                )
                 .authenticationProvider(authenticationProvider());
 
         return http.build();
@@ -147,5 +153,23 @@ public class SecurityConfig {
     @SuppressWarnings("deprecation")
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
+    }
+
+    public static class RestAwareAuthenticationEntryPoint
+            implements org.springframework.security.web.AuthenticationEntryPoint {
+
+        @Override
+        public void commence(HttpServletRequest request, HttpServletResponse response,
+                             org.springframework.security.core.AuthenticationException authException)
+                throws IOException {
+            String path = request.getRequestURI();
+            if (path != null && path.startsWith("/api/")) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"status\":401,\"message\":\"Сессия истекла. Войдите в систему повторно.\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/login");
+            }
+        }
     }
 }

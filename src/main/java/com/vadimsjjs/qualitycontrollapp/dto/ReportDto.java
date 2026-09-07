@@ -18,9 +18,9 @@ public class ReportDto {
         private String siteName;
         private String periodFrom;
         private String periodTo;
-        private BigDecimal producedWeight;  // Производство за период
-        private BigDecimal allowablePercent; // Допустимый уровень %
-        private boolean exceedsAllowable;    // Превышен ли допустимый уровень
+        private BigDecimal producedWeight;
+        private BigDecimal allowablePercent;
+        private boolean exceedsAllowable;
         private List<DefectRow> rows;
         private Totals totals;
 
@@ -44,12 +44,11 @@ public class ReportDto {
             private BigDecimal total;
             private BigDecimal reworked;
             private BigDecimal defect;
-            private BigDecimal defectPercent;   // % от производства
-            private boolean exceedsAllowable;   // Превышен ли допустимый
+            private BigDecimal defectPercent;
+            private boolean exceedsAllowable;
         }
     }
 
-    // ===== отчет по участку по виду продукции
     @Data
     @Builder
     @NoArgsConstructor
@@ -97,7 +96,6 @@ public class ReportDto {
         }
     }
 
-    // Отчет по участкам по виду продукци и причинам
     @Data
     @Builder
     @NoArgsConstructor
@@ -141,7 +139,6 @@ public class ReportDto {
         }
     }
 
-    // отчет по участку бригаде
     @Data
     @Builder
     @NoArgsConstructor
@@ -187,7 +184,6 @@ public class ReportDto {
         }
     }
 
-    // ===== отчет по участку оборудованию
     @Data
     @Builder
     @NoArgsConstructor
@@ -232,7 +228,6 @@ public class ReportDto {
         }
     }
 
-    // отчет по участку по персоналу
     @Data
     @Builder
     @NoArgsConstructor
@@ -275,7 +270,6 @@ public class ReportDto {
         }
     }
 
-    // отчет по цеху сводный
     @Data
     @Builder
     @NoArgsConstructor
@@ -296,8 +290,8 @@ public class ReportDto {
             private BigDecimal nonconforming;
             private BigDecimal nonconformingPercent;
             private BigDecimal allowablePercent;
-            private String type; // "total", "reworkable", "irreparable", "by_fault"
-            private boolean exceedsAllowable; // Превышен допустимый уровень
+            private String type;
+            private boolean exceedsAllowable;
         }
 
         @Data
@@ -312,7 +306,6 @@ public class ReportDto {
         }
     }
 
-    // ===== отчет по цеху по вине
     @Data
     @Builder
     @NoArgsConstructor
