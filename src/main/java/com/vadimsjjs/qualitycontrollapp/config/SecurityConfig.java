@@ -94,8 +94,12 @@ public class SecurityConfig {
 
     @Bean
     public TokenBasedRememberMeServices rememberMeServices() {
+        String rememberMeKey = System.getenv("REMEMBER_ME_KEY");
+        if (rememberMeKey == null || rememberMeKey.isBlank()) {
+            rememberMeKey = "change-me-in-production";
+        }
         TokenBasedRememberMeServices rememberMeServices =
-                new TokenBasedRememberMeServices("uniqueAndSecretKeyForRememberMe", userDetailsService);
+                new TokenBasedRememberMeServices(rememberMeKey, userDetailsService);
         rememberMeServices.setTokenValiditySeconds(1209600);
         rememberMeServices.setCookieName("remember-me");
         rememberMeServices.setAlwaysRemember(true);
