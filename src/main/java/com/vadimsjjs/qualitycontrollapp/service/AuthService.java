@@ -5,45 +5,50 @@ import com.vadimsjjs.qualitycontrollapp.dto.LoginRequest;
 import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Optional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final AuthenticationManager authenticationManager;
     private final PersonalRepository personalRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
-    public AuthResponse login(LoginRequest request) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getPersonalNo().toString(),
-                        request.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(auth);
+    public Optional<Personal> authenticate(LoginRequest request) {
+        Optional<Personal> user = personalRepository.findByPersonalNo(request.getPersonalNo());
 
-        Personal personal = personalRepository.findByPersonalNo(request.getPersonalNo())
-                .orElseThrow(() -> new IllegalStateException("Пользователь не найден"));
+        if (user.isPresent()) {
+            Personal personal = user.get();
+            String key = String.valueOf(personal.getPersonalNo());
 
-        return AuthResponse.success(
-                request.getPersonalNo(),
-                personal.getFio(),
-                auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
-        );
+            if (loginAttemptService.isLocked(key)) {
+                long remainingTime = loginAttemptService.getLockRemainingTime(key);
+                throw new RuntimeException("Учетная запись заблокирована. Осталось ждать: " + remainingTime + " мин.");
+            }
+
+            if (passwordEncoder.matches(request.getPassword(), personal.resolvePassword())) {
+                loginAttemptService.loginSucceeded(key);
+                return user;
+            } else {
+                loginAttemptService.loginFailed(key);
+
+                if (loginAttemptService.isLocked(key)) {
+                    throw new RuntimeException("Учетная запись заблокирована на 15 минут из-за слишком большого количества неудачных попыток ввода пароля.");
+                }
+
+                throw new RuntimeException("Неверный табельный номер или пароль");
+            }
+        }
+
+        throw new RuntimeException("Неверный табельный номер или пароль");
     }
 
     public AuthResponse logout() {
-        SecurityContextHolder.clearContext();
         return AuthResponse.logout();
     }
 
@@ -53,7 +58,6 @@ public class AuthService {
         }
 
         String personalNoStr = authentication.getName();
-
         try {
             Long personalNo = Long.parseLong(personalNoStr);
             Personal personal = personalRepository.findByPersonalNo(personalNo)
@@ -62,10 +66,9 @@ public class AuthService {
             return AuthResponse.success(
                     personalNo,
                     personal.getFio(),
-                    authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
+                    java.util.List.of()
             );
         } catch (NumberFormatException e) {
-            log.error("Неверный формат табельного номера: {}", personalNoStr);
             return AuthResponse.unauthorized();
         }
     }

@@ -15,20 +15,26 @@ public class AuthResponse {
     private String fio;
     private List<String> roles;
     private String message;
+    private boolean locked;
+    private long remainingTimeMinutes;
 
     public static AuthResponse success(Long personalNo, String fio, List<String> roles) {
-        return new AuthResponse(personalNo, fio, roles, "Вход выполнен успешно");
+        return new AuthResponse(personalNo, fio, roles, "Вход выполнен успешно", false, 0);
     }
 
     public static AuthResponse logout() {
-        return new AuthResponse(null, null, null, "Выход выполнен успешно");
+        return new AuthResponse(null, null, null, "Выход выполнен успешно", false, 0);
     }
 
     public static AuthResponse unauthorized() {
-        return new AuthResponse(null, null, null, "Пользователь не аутентифицирован");
+        return new AuthResponse(null, null, null, "Пользователь не аутентифицирован", false, 0);
     }
 
     public static AuthResponse error(String message) {
-        return new AuthResponse(null, null, null, message);
+        return new AuthResponse(null, null, null, message, false, 0);
+    }
+
+    public static AuthResponse locked(String message, long remainingTimeMinutes) {
+        return new AuthResponse(null, null, null, message, true, remainingTimeMinutes);
     }
 }

@@ -20,10 +20,14 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final PersonalRepository personalRepository;
+    private final LoginAttemptService loginAttemptService;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        if (loginAttemptService.isBlocked(username)) {
+            throw new UsernameNotFoundException("Слишком много неудачных попыток входа. Попробуйте позже.");
+        }
         log.info("=== loadUserByUsername вызван с username: '{}' ===", username);
 
         try {

@@ -331,3 +331,22 @@ body {
     outline: none;
     color: var(--brand-primary);
 }
+
+.alert-warning-custom {
+    background-color: #fffbeb;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.countdown-timer {
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.form-wrapper.form-locked .form-group,
+.form-wrapper.form-locked .remember-me,
+.form-wrapper.form-locked .btn-login {
+    pointer-events: none;
+    opacity: 0.5;
+}

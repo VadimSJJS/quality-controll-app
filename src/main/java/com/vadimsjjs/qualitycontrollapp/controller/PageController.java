@@ -13,10 +13,16 @@ public class PageController {
     public String login(@RequestParam(required = false) String error,
                         @RequestParam(required = false) String logout,
                         @RequestParam(required = false) String expired,
+                        @RequestParam(required = false) String blocked,
+                        @RequestParam(required = false) String minutes,
                         Model model) {
         if (error != null) model.addAttribute("error", "Неверный табельный номер или пароль");
         if (logout != null) model.addAttribute("message", "Вы успешно вышли из системы");
         if (expired != null) model.addAttribute("error", "Сессия истекла, войдите заново");
+        if (blocked != null && minutes != null) {
+            model.addAttribute("blocked", true);
+            model.addAttribute("remainingMinutes", minutes);
+        }
         return "login";
     }
 

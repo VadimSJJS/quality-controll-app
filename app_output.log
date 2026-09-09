@@ -149,3 +149,16 @@ Loaded from .env: DriverData=C:\Windows\System32\Drivers\DriverData
 2026-09-09T13:07:10.795+03:00  INFO 10532 --- [quality-controll-app] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
 2026-09-09T13:07:11.199+03:00  INFO 10532 --- [quality-controll-app] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
 2026-09-09T13:07:11.207+03:00  INFO 10532 --- [quality-controll-app] [           main] c.v.q.QualityControllAppApplication      : Started QualityControllAppApplication in 5.045 seconds (process running for 5.315)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  11:32 min
+[INFO] Finished at: 2026-09-09T13:18:33+03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.4.1:run (default-cli) on project quality-control-app: Process terminated with exit code: 1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

@@ -2,6 +2,7 @@ package com.vadimsjjs.qualitycontrollapp.config;
 
 import com.vadimsjjs.qualitycontrollapp.service.AuditService;
 import com.vadimsjjs.qualitycontrollapp.service.CustomUserDetailsService;
+import com.vadimsjjs.qualitycontrollapp.service.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +41,9 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final AuditService auditService;
+    private final LoginAttemptService loginAttemptService;
+    private final LoginFailureHandler loginFailureHandler;
+    private final SessionLogoutHandler sessionLogoutHandler;
     private final DataSource dataSource;
 
     private static final String[] PUBLIC_PATHS = {
@@ -65,7 +69,20 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .successHandler(successHandler())
-                        .failureUrl("/login?error=true")
+                        .failureHandler(loginFailureHandler)
+                        .permitAll()
+                )
+                .sessionManagement(session -> session
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .addLogoutHandler(sessionLogoutHandler)
+                        .logoutSuccessHandler(logoutSuccessHandler())
+                        .deleteCookies("JSESSIONID", "remember-me")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
                         .permitAll()
                 )
                 .logout(logout -> logout

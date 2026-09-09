@@ -41,12 +41,18 @@
                 <span th:text="${error}">Неверный табельный номер или пароль</span>
             </div>
 
+            <div id="blockedAlert" class="alert-custom alert-warning-custom" role="alert" style="display: none;">
+                <i class="bi bi-lock-fill"></i>
+                <span id="blockedMessage">Учетная запись заблокирована.</span>
+                <div id="countdown" class="countdown-timer"></div>
+            </div>
+
             <div th:if="${message}" class="alert-custom alert-success-custom" role="alert">
                 <i class="bi bi-check-circle-fill"></i>
                 <span th:text="${message}">Вы успешно вышли из системы</span>
             </div>
 
-            <form th:action="@{/login}" method="post">
+            <form th:action="@{/login}" method="post" id="loginForm">
                 <div class="form-group">
                     <label for="username" class="form-label">Табельный номер</label>
                     <div class="input-wrapper">
@@ -85,7 +91,7 @@
                     <label for="remember-me">Запомнить меня на 14 дней</label>
                 </div>
 
-                <button type="submit" class="btn-login">
+                <button type="submit" class="btn-login" id="loginBtn">
                     <span>Войти в систему</span>
                     <i class="bi bi-arrow-right"></i>
                 </button>
@@ -100,6 +106,7 @@
 </div>
 
 <script src="/js/password-toggle.js"></script>
+<script src="/js/login.js"></script>
 
 </body>
 </html>

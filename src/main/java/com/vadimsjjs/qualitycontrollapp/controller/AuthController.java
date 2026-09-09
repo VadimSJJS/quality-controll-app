@@ -2,13 +2,12 @@ package com.vadimsjjs.qualitycontrollapp.controller;
 
 import com.vadimsjjs.qualitycontrollapp.dto.AuthResponse;
 import com.vadimsjjs.qualitycontrollapp.dto.LoginRequest;
+import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.service.AuthService;
-import jakarta.validation.Valid;
+import com.vadimsjjs.qualitycontrollapp.service.LoginAttemptService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,17 +16,33 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final LoginAttemptService loginAttemptService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         try {
-            return ResponseEntity.ok(authService.login(request));
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(AuthResponse.error("Неверный табельный номер или пароль"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(AuthResponse.error("Внутренняя ошибка сервера"));
+            Personal user = authService.authenticate(request)
+                    .orElseThrow(() -> new RuntimeException("Неверный табельный номер или пароль"));
+
+            AuthResponse response = AuthResponse.success(
+                    user.getPersonalNo(),
+                    user.getFio(),
+                    java.util.List.of()
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+
+
+            if (message.contains("Заблокирована")) {
+                Long personalNo = request.getPersonalNo();
+                if (personalNo != null && loginAttemptService.isLocked(String.valueOf(personalNo))) {
+                    long remainingMinutes = loginAttemptService.getLockRemainingTime(String.valueOf(personalNo));
+                    return ResponseEntity.status(429).body(AuthResponse.locked(message, remainingMinutes));
+                }
+            }
+
+            return ResponseEntity.status(401).body(AuthResponse.error(message));
         }
     }
 
