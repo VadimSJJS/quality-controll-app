@@ -86,6 +86,13 @@
             <version>5.2.5</version>
         </dependency>
 
+        <!-- ===== DOTENV FOR LOCAL CONFIGURATION ===== -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
         <!-- ===== TEST ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
