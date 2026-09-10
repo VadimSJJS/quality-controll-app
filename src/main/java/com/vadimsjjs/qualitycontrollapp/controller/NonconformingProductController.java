@@ -27,12 +27,14 @@ public class NonconformingProductController {
     private final NonconformingProductService service;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<Page<NonconformingProductResponse>> getAll(
             @PageableDefault(size = 20, sort = "detectionDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/filter")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<Page<NonconformingProductResponse>> filter(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
@@ -58,6 +60,7 @@ public class NonconformingProductController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<NonconformingProductResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -36,6 +37,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -59,6 +61,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
+                        .requestMatchers("/api/**").authenticated()
                         .requestMatchers("/defects/**").hasAnyRole("OTK_MASTER", "OTK", "OTK_CHIEF", "ADMIN", "PPB")
                         .requestMatchers("/reports/**").authenticated()
                         .requestMatchers("/directories/**").authenticated()
@@ -75,30 +78,21 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
+                        .expiredUrl("/login?expired=true")
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
                         .addLogoutHandler(sessionLogoutHandler)
-                        .logoutSuccessHandler(logoutSuccessHandler())
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .invalidateHttpSession(true)
-                        .clearAuthentication(true)
+                        .invalidateHttpSession(true)          // уничтожить HTTP-сессию на сервере
+                        .deleteCookies("JSESSIONID", "remember-me")  // удалить куки
+                        .clearAuthentication(true)             // очистить SecurityContext
                         .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessHandler(logoutSuccessHandler())
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
                 )
                 .rememberMe(rememberMe -> rememberMe
                         .rememberMeServices(rememberMeServices())
                         .key("uniqueAndSecretKeyForRememberMe")
                         .tokenValiditySeconds(1209600) // 14 дней
-                )
-                .sessionManagement(session -> session
-                        .maximumSessions(1)
-                        .expiredUrl("/login?expired=true")
                 )
                 .exceptionHandling(ex -> ex
                     .authenticationEntryPoint(new RestAwareAuthenticationEntryPoint())

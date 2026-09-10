@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,6 +18,7 @@ public class ExcelController {
     private final ExcelImportExportService excelService;
 
     @GetMapping("/template")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> downloadTemplate() {
         try {
             byte[] template = excelService.generateTemplate();
@@ -35,6 +37,7 @@ public class ExcelController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
         try {
             ExcelImportResult result = excelService.importFromExcel(file);

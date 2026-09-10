@@ -3,6 +3,7 @@ package com.vadimsjjs.qualitycontrollapp.controller;
 import com.vadimsjjs.qualitycontrollapp.entity.ProductionSite;
 import com.vadimsjjs.qualitycontrollapp.repository.ProductionSiteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,6 +32,7 @@ public class ProductionSiteController {
     );
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public List<ProductionSite> getAll() {
         List<ProductionSite> sites = repository.findAll();
         sites.sort(Comparator.comparingInt(s -> SITE_ORDER.getOrDefault(s.getSiteCode(), 999)));

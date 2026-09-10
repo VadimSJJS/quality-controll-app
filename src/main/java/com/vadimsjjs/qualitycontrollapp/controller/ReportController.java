@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -28,6 +29,7 @@ public class ReportController {
     private final ExcelExportService excelExportService;
 
     @GetMapping("/personnel-defects")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<PersonnelDefectReport> getPersonnelDefectReport(
             @ModelAttribute @Valid DefectFilterDto filter) {
         PersonnelDefectReport report = reportService.getPersonnelDefectReport(filter);
@@ -35,6 +37,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-site")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportBySite> getReportBySite(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) {
@@ -42,6 +45,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-product-type")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByProductType> getReportByProductType(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
@@ -50,6 +54,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-product-cause")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByProductAndCause> getReportByProductAndCause(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
@@ -58,6 +63,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-brigade")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByBrigade> getReportByBrigade(
             @RequestParam String siteCode,
             @RequestParam Long brigadeId,
@@ -66,6 +72,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-equipment")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByEquipment> getReportByEquipment(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) {
@@ -73,6 +80,7 @@ public class ReportController {
     }
 
     @GetMapping("/by-personnel")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByPersonnel> getReportByPersonnel(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) {
@@ -80,34 +88,40 @@ public class ReportController {
     }
 
     @GetMapping("/personnel-defects-v2")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<PersonnelDefectReport> getPersonnelDefectReportV2(
             @ModelAttribute @Valid DefectFilterDto filter) {
         return ResponseEntity.ok(reportService.getPersonnelDefectReportV2(filter));
     }
 
     @GetMapping("/by-plant")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByPlant> getReportByPlant(
             @ModelAttribute @Valid DefectFilterDto filter) {
         return ResponseEntity.ok(reportService.getReportByPlant(filter));
     }
     @GetMapping("/by-fault")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByFault> getReportByFault(
             @ModelAttribute @Valid DefectFilterDto filter) {
                 return ResponseEntity.ok(reportService.getReportByFault(filter));
     }
 
     @GetMapping("/by-acts")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ReportDto.ReportByAct> getReportByActs(
             @ModelAttribute @Valid DefectFilterDto filter) {
         return ResponseEntity.ok(reportService.getReportByActs(filter));
     }
     @GetMapping("/equipment-defects")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<EquipmentDefectReport> getEquipmentDefectReport(
             @ModelAttribute @Valid DefectFilterDto filter) {
         return ResponseEntity.ok(reportService.getEquipmentDefectReport(filter));
     }
 
     @GetMapping("/pareto")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<ParetoReport> getParetoReport(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "defect") String groupingType,
@@ -118,6 +132,7 @@ public class ReportController {
     // ===== EXPORT ENDPOINTS =====
 
     @GetMapping("/export/excel/by-site")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportBySiteToExcel(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
@@ -127,6 +142,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-product-type")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByProductTypeToExcel(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
@@ -137,6 +153,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-product-cause")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByProductAndCauseToExcel(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
@@ -147,6 +164,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-brigade")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByBrigadeToExcel(
             @RequestParam String siteCode,
             @RequestParam Long brigadeId,
@@ -157,6 +175,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-equipment")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByEquipmentToExcel(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
@@ -166,6 +185,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-personnel")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByPersonnelToExcel(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
@@ -175,6 +195,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-plant")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByPlantToExcel(
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
         ReportDto.ReportByPlant report = reportService.getReportByPlant(filter);
@@ -183,6 +204,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-fault")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByFaultToExcel(
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
         ReportDto.ReportByFault report = reportService.getReportByFault(filter);
@@ -191,6 +213,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/by-acts")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByActsToExcel(
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
         ReportDto.ReportByAct report = reportService.getReportByActs(filter);
@@ -199,6 +222,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/word/by-acts")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByActsToWord(
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
         ReportDto.ReportByAct report = reportService.getReportByActs(filter);
@@ -207,6 +231,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/excel/pareto")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportParetoToExcel(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "defect") String groupingType,
@@ -219,6 +244,7 @@ public class ReportController {
     // ===== WORD EXPORT =====
 
     @GetMapping("/export/word/by-site")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportBySiteToWord(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
@@ -228,6 +254,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/word/by-product-type")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByProductTypeToWord(
             @RequestParam String siteCode,
             @RequestParam(defaultValue = "диаметр") String productTypeField,
@@ -238,6 +265,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/word/by-personnel")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByPersonnelToWord(
             @RequestParam String siteCode,
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
@@ -247,6 +275,7 @@ public class ReportController {
     }
 
     @GetMapping("/export/word/by-plant")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public ResponseEntity<byte[]> exportByPlantToWord(
             @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
         ReportDto.ReportByPlant report = reportService.getReportByPlant(filter);

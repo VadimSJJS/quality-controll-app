@@ -1,5 +1,6 @@
 package com.vadimsjjs.qualitycontrollapp.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,7 +34,9 @@ public class PageController {
         return "index";
     }
 
+    // ОТК и ППБ
     @GetMapping("/defects")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public String defectsList(Model model) {
         model.addAttribute("currentPage", "defects");
         model.addAttribute("pageTitle", "Журнал несоответствий");
@@ -41,6 +44,7 @@ public class PageController {
     }
 
     @GetMapping("/defects/add")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public String addDefect(Model model) {
         model.addAttribute("currentPage", "add-defect");
         model.addAttribute("pageTitle", "Добавление записи");
@@ -50,6 +54,7 @@ public class PageController {
     }
 
     @GetMapping("/defects/edit/{id}")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
     public String editDefect(@PathVariable Long id, Model model) {
         model.addAttribute("defectId", id);
         model.addAttribute("currentPage", "add-defect");
@@ -59,6 +64,7 @@ public class PageController {
     }
 
     @GetMapping("/reports")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public String reports(Model model) {
         model.addAttribute("currentPage", "reports");
         model.addAttribute("pageTitle", "Отчёты");
@@ -66,20 +72,25 @@ public class PageController {
     }
 
     @GetMapping("/reports/production")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public String productionReports(Model model) {
         model.addAttribute("currentPage", "production-reports");
         model.addAttribute("pageTitle", "Отчёты производства");
         return "reports/production";
     }
 
+    // analetics
     @GetMapping("/charts")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public String charts(Model model) {
         model.addAttribute("currentPage", "charts");
         model.addAttribute("pageTitle", "Аналитика");
         return "charts/index";
     }
 
+    // admin
     @GetMapping("/directories")
+    @PreAuthorize("hasRole('ADMIN')")
     public String directories(Model model) {
         model.addAttribute("currentPage", "directories");
         model.addAttribute("pageTitle", "Справочники");

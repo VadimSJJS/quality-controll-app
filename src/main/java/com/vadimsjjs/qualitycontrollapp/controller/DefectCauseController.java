@@ -5,6 +5,7 @@ import com.vadimsjjs.qualitycontrollapp.repository.DefectCauseRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,11 +22,13 @@ public class DefectCauseController {
     private final DefectCauseRepository repository;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public List<DefectCause> getAll() {
         return repository.findByParentCauseIsNull();
     }
 
     @GetMapping("/{id}/subcauses")
+    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
     public List<DefectCause> getSubcauses(@PathVariable Long id) {
         log.info("Запрос подпричин для ID: {}", id);
         List<DefectCause> result = repository.findByParentCauseId(id);
