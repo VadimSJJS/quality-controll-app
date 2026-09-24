@@ -21,11 +21,7 @@ public class WebConfig {
     }
 
     @Bean
-    public TomcatServletWebServerFactory tomcatFactory() {
-        return new TomcatServletWebServerFactory() {{
-            addConnectorCustomizers(connector -> {
-                connector.setURIEncoding("UTF-8");
-            });
-        }};
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatFactoryCustomizer() {
+        return factory -> factory.addConnectorCustomizers(connector -> connector.setURIEncoding("UTF-8"));
     }
 }

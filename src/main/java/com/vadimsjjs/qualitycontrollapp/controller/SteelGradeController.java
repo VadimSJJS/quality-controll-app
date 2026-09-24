@@ -19,20 +19,20 @@ public class SteelGradeController {
     private final SteelGradeRepository steelGradeRepository;
 
     @GetMapping("/steel-grades")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<List<SteelGrade>> getSteelGrades() {
         List<SteelGrade> grades = steelGradeRepository.findAllOrderBySteelGrade();
         return ResponseEntity.ok(grades);
     }
 
     @GetMapping("/test-steel")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<String> testSteel() {
         try {
             List<SteelGrade> grades = steelGradeRepository.findAllOrderBySteelGrade();
-            return ResponseEntity.ok("Найдено: " + grades.size() + " записей");
+            return ResponseEntity.ok("РќР°Р№РґРµРЅРѕ: " + grades.size() + " Р·Р°РїРёСЃРµР№");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Ошибка: " + e.getMessage());
+            return ResponseEntity.status(500).body("РћС€РёР±РєР°: " + e.getMessage());
         }
     }
 }

@@ -18,7 +18,7 @@ public class DetectionSourceController {
     private final DetectionSourceRepository repository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public List<DetectionSource> getAll() {
         return repository.findAll();
     }

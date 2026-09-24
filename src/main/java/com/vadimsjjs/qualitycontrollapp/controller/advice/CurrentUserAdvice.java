@@ -2,6 +2,7 @@ package com.vadimsjjs.qualitycontrollapp.controller.advice;
 
 import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
+import com.vadimsjjs.qualitycontrollapp.security.RoleChecker;
 import com.vadimsjjs.qualitycontrollapp.security.RoleResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,7 @@ import java.util.Collection;
 public class CurrentUserAdvice {
 
     private final PersonalRepository personalRepository;
+    private final RoleChecker roleChecker;
 
     @ModelAttribute
     public void addCurrentUserToModel(Authentication authentication, Model model) {
@@ -41,8 +43,13 @@ public class CurrentUserAdvice {
             model.addAttribute("roleGroup", RoleResolver.resolveGroup(authorities));
             model.addAttribute("personalNo", personalNo);
 
+            // Флаги прав для скрытия недоступных элементов интерфейса
+            model.addAttribute("canEdit", roleChecker.canEdit());
+            model.addAttribute("canDelete", roleChecker.canDelete());
+            model.addAttribute("isAdmin", roleChecker.isAdmin());
+
         } catch (NumberFormatException e) {
-            // #
+            // # EMPTY BLOCK
         }
     }
 

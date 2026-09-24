@@ -19,7 +19,7 @@ public class DiameterController {
     private final DiameterRepository diameterRepository;
 
     @GetMapping("/diameters")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<List<Diameter>> getAllDiameters() {
         List<Diameter> diameters = diameterRepository.findAllByOrderByDiameter();
         return ResponseEntity.ok(diameters);

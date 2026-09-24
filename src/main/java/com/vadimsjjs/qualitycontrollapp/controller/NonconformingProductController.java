@@ -27,14 +27,14 @@ public class NonconformingProductController {
     private final NonconformingProductService service;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<Page<NonconformingProductResponse>> getAll(
             @PageableDefault(size = 20, sort = "detectionDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(service.findAll(pageable));
     }
 
     @GetMapping("/filter")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<Page<NonconformingProductResponse>> filter(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
@@ -60,20 +60,20 @@ public class NonconformingProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<NonconformingProductResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
+    @PreAuthorize("@roleChecker.canEdit()")
     public ResponseEntity<NonconformingProductResponse> create(@Valid @RequestBody NonconformingProductRequest request) {
         NonconformingProductResponse response = service.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
+    @PreAuthorize("@roleChecker.canEdit()")
     public ResponseEntity<NonconformingProductResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody NonconformingProductRequest request) {
@@ -81,7 +81,7 @@ public class NonconformingProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN')")
+    @PreAuthorize("@roleChecker.canDelete()")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

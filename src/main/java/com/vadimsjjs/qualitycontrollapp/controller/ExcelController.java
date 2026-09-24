@@ -18,12 +18,12 @@ public class ExcelController {
     private final ExcelImportExportService excelService;
 
     @GetMapping("/template")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<byte[]> downloadTemplate() {
         try {
             byte[] template = excelService.generateTemplate();
 
-            String filename = "Шаблон_ввода_данных_по_несоответствующей_продукции.xlsx";
+            String filename = "РЁР°Р±Р»РѕРЅ_РІРІРѕРґР°_РґР°РЅРЅС‹С…_РїРѕ_РЅРµСЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РµР№_РїСЂРѕРґСѓРєС†РёРё.xlsx";
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" +
@@ -37,13 +37,13 @@ public class ExcelController {
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
+    @PreAuthorize("@roleChecker.canEdit()")
     public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
         try {
             ExcelImportResult result = excelService.importFromExcel(file);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Ошибка импорта: " + e.getMessage());
+            return ResponseEntity.badRequest().body("РћС€РёР±РєР° РёРјРїРѕСЂС‚Р°: " + e.getMessage());
         }
     }
 }

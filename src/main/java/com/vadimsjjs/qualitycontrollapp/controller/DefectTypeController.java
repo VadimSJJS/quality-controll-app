@@ -18,7 +18,7 @@ public class DefectTypeController {
     private final DefectTypeRepository repository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public List<DefectType> getAll() {
         return repository.findAll();
     }

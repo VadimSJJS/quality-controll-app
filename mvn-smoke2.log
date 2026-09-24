@@ -36,7 +36,7 @@
 [WARNING] /D:/Vadim/pet-projects/quality-controll-app/src/test/java/com/vadimsjjs/qualitycontrollapp/controller/ReportControllerByActsSmokeTest.java:[52,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
 [WARNING] /D:/Vadim/pet-projects/quality-controll-app/src/test/java/com/vadimsjjs/qualitycontrollapp/controller/ReportControllerByActsSmokeTest.java:[52,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
 [WARNING] /D:/Vadim/pet-projects/quality-controll-app/src/test/java/com/vadimsjjs/qualitycontrollapp/controller/ReportControllerByActsSmokeTest.java:[52,6] org.springframework.boot.test.mock.mockito.MockBean in org.springframework.boot.test.mock.mockito has been deprecated and marked for removal
-[INFO] 15 warnings 
+[INFO] 15 warnings f
 [INFO] -------------------------------------------------------------
 [INFO] -------------------------------------------------------------
 [ERROR] COMPILATION ERROR : 

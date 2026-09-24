@@ -1,7 +1,6 @@
 /* ===== Стили для печати ===== */
 
 @media print {
-    /* Скрываем элементы навигации и управления */
     header.topbar,
     aside.sidebar,
     .export-bar,
@@ -15,7 +14,6 @@
         display: none !important;
     }
 
-    /* Основной контент на всю ширину */
     .main-wrapper {
         width: 100% !important;
         max-width: 100% !important;
@@ -30,7 +28,6 @@
         padding: 0 !important;
     }
 
-    /* Убираем фоны и тени */
     .report-card {
         border: none !important;
         box-shadow: none !important;
@@ -38,7 +35,6 @@
         background: transparent !important;
     }
 
-    /* Шрифт Times New Roman 10-12 */
     body {
         font-family: "Times New Roman", Times, serif !important;
         font-size: 11pt !important;
@@ -103,13 +99,11 @@
         print-color-adjust: exact !important;
     }
 
-    /* Скрываем спниннеры и пустые элементы */
     .spinner-border,
     .loading-indicator {
         display: none !important;
     }
 
-    /* Разрыв страницы перед каждым отчётом */
     .report-card {
         page-break-inside: avoid;
     }

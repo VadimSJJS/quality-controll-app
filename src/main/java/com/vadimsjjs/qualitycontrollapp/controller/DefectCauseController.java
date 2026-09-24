@@ -22,17 +22,17 @@ public class DefectCauseController {
     private final DefectCauseRepository repository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public List<DefectCause> getAll() {
         return repository.findByParentCauseIsNull();
     }
 
     @GetMapping("/{id}/subcauses")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public List<DefectCause> getSubcauses(@PathVariable Long id) {
-        log.info("Запрос подпричин для ID: {}", id);
+        log.info("Р—Р°РїСЂРѕСЃ РїРѕРґРїСЂРёС‡РёРЅ РґР»СЏ ID: {}", id);
         List<DefectCause> result = repository.findByParentCauseId(id);
-        log.info("Найдено подпричин: {}", result.size());
+        log.info("РќР°Р№РґРµРЅРѕ РїРѕРґРїСЂРёС‡РёРЅ: {}", result.size());
         return result;
     }
 }

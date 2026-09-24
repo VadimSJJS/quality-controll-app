@@ -37,14 +37,14 @@ public class ProductionReportController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
+    @PreAuthorize("@roleChecker.canEdit()")
     public ResponseEntity<ProductionReportResponse> create(@Valid @RequestBody ProductionReportRequest request) {
         ProductionReportResponse response = service.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB')")
+    @PreAuthorize("@roleChecker.canEdit()")
     public ResponseEntity<ProductionReportResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody ProductionReportRequest request) {
@@ -52,7 +52,7 @@ public class ProductionReportController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN')")
+    @PreAuthorize("@roleChecker.canDelete()")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();

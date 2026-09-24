@@ -1,5 +1,6 @@
 # Environment secrets — never commit real credentials!
 .env
+.env.local
 
 HELP.md
 target/
@@ -34,3 +35,10 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Внутренний CA и приватные ключи не храним в git
+/pki/
+src/main/resources/keystore/*.p12
+*.pfx
+devteam7keystore.pfx
+cert/

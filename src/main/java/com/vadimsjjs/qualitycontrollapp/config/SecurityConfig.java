@@ -19,21 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import javax.sql.DataSource;
-
 import java.io.IOException;
-
-import java.util.List;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -43,21 +33,26 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final AuditService auditService;
-    private final LoginAttemptService loginAttemptService;
     private final LoginFailureHandler loginFailureHandler;
     private final SessionLogoutHandler sessionLogoutHandler;
-    private final DataSource dataSource;
 
+    // Публичные пути: страница входа, API входа и статика.
+    // /api/seed/** сюда НЕ входит — тестовые данные доступны только администратору.
     private static final String[] PUBLIC_PATHS = {
-            "/login", "/css/**", "/js/**", "/fonts/**", "/webjars/**", "/error", "/api/seed/**", "/lib/**"
+            "/login", "/api/auth/login",
+            "/css/**", "/js/**", "/fonts/**", "/lib/**", "/webjars/**", "/error", "/favicon.ico"
     };
 
-    private static final List<String> OTK_ROLES = List.of("OTK_MASTER", "OTK", "OTK_CHIEF");
-    private static final List<String> EDIT_ROLES = List.of("ADMIN", "PPB");
+    // Сессия 14 дней
+    private static final int REMEMBER_ME_VALIDITY_SECONDS = 14 * 24 * 60 * 60;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .requiresChannel(channel -> channel
+                        .requestMatchers(r -> r.getScheme().equals("http"))
+                        .requiresSecure()
+                )
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
@@ -82,7 +77,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
+                        .logoutSuccessHandler(logoutSuccessHandler())
                         .addLogoutHandler(sessionLogoutHandler)
                         .invalidateHttpSession(true)          // уничтожить HTTP-сессию на сервере
                         .deleteCookies("JSESSIONID", "remember-me")  // удалить куки
@@ -91,8 +86,6 @@ public class SecurityConfig {
                 )
                 .rememberMe(rememberMe -> rememberMe
                         .rememberMeServices(rememberMeServices())
-                        .key("uniqueAndSecretKeyForRememberMe")
-                        .tokenValiditySeconds(1209600) // 14 дней
                 )
                 .exceptionHandling(ex -> ex
                     .authenticationEntryPoint(new RestAwareAuthenticationEntryPoint())
@@ -111,9 +104,9 @@ public class SecurityConfig {
         }
         TokenBasedRememberMeServices rememberMeServices =
                 new TokenBasedRememberMeServices(rememberMeKey, userDetailsService);
-        rememberMeServices.setTokenValiditySeconds(1209600);
+        rememberMeServices.setTokenValiditySeconds(REMEMBER_ME_VALIDITY_SECONDS);
         rememberMeServices.setCookieName("remember-me");
-        rememberMeServices.setAlwaysRemember(true);
+        rememberMeServices.setAlwaysRemember(false);
         return rememberMeServices;
     }
 

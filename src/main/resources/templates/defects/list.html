@@ -289,10 +289,13 @@
     })();
 </script>
 
-<script>
+<script th:inline="javascript">
     let currentPage = 0;
     const pageSize = 20;
     let totalPages = 0;
+
+    // Флаги прав текущего пользователя (для скрытия кнопок без прав)
+    const canDelete = /*[[${canDelete}]]*/ true;
 
     function loadDirectories() {
         fetch('/directories/production-sites')
@@ -426,9 +429,9 @@
                     <a href="/defects/edit/${d.id}" class="btn btn-sm btn-outline-primary me-1" title="Редактировать">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDefect(${d.id})" title="Удалить">
+                    ${canDelete ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteDefect(${d.id})" title="Удалить">
                         <i class="bi bi-trash"></i>
-                    </button>
+                    </button>` : ''}
                 </td>
             </tr>
         `).join('');

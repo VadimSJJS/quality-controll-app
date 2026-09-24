@@ -18,7 +18,7 @@ public class ReworkTypeController {
     private final ReworkTypeRepository repository;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('OTK_MASTER', 'OTK', 'OTK_CHIEF', 'ADMIN', 'PPB', 'VIEWER')")
+    @PreAuthorize("@roleChecker.canView()")
     public List<ReworkType> getAll() {
         return repository.findAll();
     }
