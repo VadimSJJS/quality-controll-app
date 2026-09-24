@@ -35,8 +35,6 @@ public class DotEnvConfigLoader {
                     .addFirst(new PropertiesPropertySource("dotenv", base));
         }
         if (!local.isEmpty()) {
-            // .env.local имеет приоритет над .env — используется для локальной разработки
-            // (на сервере этого файла нет, поэтому там действует .env).
             environment.getPropertySources()
                     .addFirst(new PropertiesPropertySource("dotenv-local", local));
             System.out.println("[ENV] " + ENV_LOCAL_FILE + " перекрывает значения из " + ENV_FILE);
