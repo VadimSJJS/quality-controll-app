@@ -33,8 +33,19 @@ public class NonconformingProductRequest {
     @PositiveOrZero(message = "Вес неисправимого брака должен быть ≥ 0")
     private BigDecimal irreparableWeightTonnes;
 
-    @NotNull(message = "Вид несоответствия обязателен")
+    /**
+     * Идентификатор вида несоответствия из справочника.
+     * Можно не указывать, если передан defectTypeName.
+     */
     private Long defectTypeId;
+
+    /**
+     * Название вида несоответствия, введённое пользователем.
+     * Если такого названия нет в справочнике — оно автоматически добавляется
+     * в справочник HLP_DEFECT_TYPE, чтобы отчёты и диаграммы Парето работали.
+     */
+    @jakarta.validation.constraints.Size(max = 100, message = "Название дефекта не длиннее 100 символов")
+    private String defectTypeName;
 
     private Long defectCauseId;
     private Long defectSubcauseId;

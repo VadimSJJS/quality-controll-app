@@ -23,7 +23,7 @@ public class ExcelController {
         try {
             byte[] template = excelService.generateTemplate();
 
-            String filename = "РЁР°Р±Р»РѕРЅ_РІРІРѕРґР°_РґР°РЅРЅС‹С…_РїРѕ_РЅРµСЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РµР№_РїСЂРѕРґСѓРєС†РёРё.xlsx";
+            String filename = "Шаблон_ввода_данных_по_несоответствующей_продукции.xlsx";
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" +
@@ -43,7 +43,7 @@ public class ExcelController {
             ExcelImportResult result = excelService.importFromExcel(file);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("РћС€РёР±РєР° РёРјРїРѕСЂС‚Р°: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Ошибка импорта: " + e.getMessage());
         }
     }
 }

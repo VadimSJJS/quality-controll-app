@@ -57,7 +57,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_PATHS).permitAll()
                         .requestMatchers("/api/**").authenticated()
-                        .requestMatchers("/defects/**").hasAnyRole("OTK_MASTER", "OTK", "OTK_CHIEF", "ADMIN", "PPB")
+                        // Права на операции (добавление/редактирование/удаление) проверяются
+                        // в @PreAuthorize через @roleChecker. Здесь достаточно факта входа,
+                        // иначе пользователи с ролью вне списка получали бы 403 на весь раздел.
+                        .requestMatchers("/defects/**").authenticated()
                         .requestMatchers("/reports/**").authenticated()
                         .requestMatchers("/directories/**").authenticated()
                         .requestMatchers("/charts/**").authenticated()

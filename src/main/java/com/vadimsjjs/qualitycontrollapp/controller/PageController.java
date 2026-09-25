@@ -17,9 +17,9 @@ public class PageController {
                         @RequestParam(required = false) String blocked,
                         @RequestParam(required = false) String minutes,
                         Model model) {
-        if (error != null) model.addAttribute("error", "РќРµРІРµСЂРЅС‹Р№ С‚Р°Р±РµР»СЊРЅС‹Р№ РЅРѕРјРµСЂ РёР»Рё РїР°СЂРѕР»СЊ");
-        if (logout != null) model.addAttribute("message", "Р’С‹ СѓСЃРїРµС€РЅРѕ РІС‹С€Р»Рё РёР· СЃРёСЃС‚РµРјС‹");
-        if (expired != null) model.addAttribute("error", "РЎРµСЃСЃРёСЏ РёСЃС‚РµРєР»Р°, РІРѕР№РґРёС‚Рµ Р·Р°РЅРѕРІРѕ");
+        if (error != null) model.addAttribute("error", "Неверный табельный номер или пароль");
+        if (logout != null) model.addAttribute("message", "Вы успешно вышли из системы");
+        if (expired != null) model.addAttribute("error", "Сессия истекла, войдите заново");
         if (blocked != null && minutes != null) {
             model.addAttribute("blocked", true);
             model.addAttribute("remainingMinutes", minutes);
@@ -30,7 +30,7 @@ public class PageController {
     @GetMapping("/")
     public String index(Model model) {
         model.addAttribute("currentPage", "index");
-        model.addAttribute("pageTitle", "Р“Р»Р°РІРЅР°СЏ");
+        model.addAttribute("pageTitle", "Главная");
         return "index";
     }
 
@@ -38,7 +38,7 @@ public class PageController {
     @PreAuthorize("@roleChecker.canEdit()")
     public String defectsList(Model model) {
         model.addAttribute("currentPage", "defects");
-        model.addAttribute("pageTitle", "Р–СѓСЂРЅР°Р» РЅРµСЃРѕРѕС‚РІРµС‚СЃС‚РІРёР№");
+        model.addAttribute("pageTitle", "Журнал несоответствий");
         return "defects/list";
     }
 
@@ -46,7 +46,7 @@ public class PageController {
     @PreAuthorize("@roleChecker.canEdit()")
     public String addDefect(Model model) {
         model.addAttribute("currentPage", "add-defect");
-        model.addAttribute("pageTitle", "Р”РѕР±Р°РІР»РµРЅРёРµ Р·Р°РїРёСЃРё");
+        model.addAttribute("pageTitle", "Добавление записи");
         model.addAttribute("isEdit", false);
         model.addAttribute("defectId", null);
         return "defects/add";
@@ -57,7 +57,7 @@ public class PageController {
     public String editDefect(@PathVariable Long id, Model model) {
         model.addAttribute("defectId", id);
         model.addAttribute("currentPage", "add-defect");
-        model.addAttribute("pageTitle", "Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ Р·Р°РїРёСЃРё");
+        model.addAttribute("pageTitle", "Редактирование записи");
         model.addAttribute("isEdit", true);
         return "defects/add";
     }
@@ -66,7 +66,7 @@ public class PageController {
     @PreAuthorize("@roleChecker.canView()")
     public String reports(Model model) {
         model.addAttribute("currentPage", "reports");
-        model.addAttribute("pageTitle", "РћС‚С‡С‘С‚С‹");
+        model.addAttribute("pageTitle", "Отчёты");
         return "reports/index";
     }
 
@@ -74,7 +74,7 @@ public class PageController {
     @PreAuthorize("@roleChecker.canView()")
     public String productionReports(Model model) {
         model.addAttribute("currentPage", "production-reports");
-        model.addAttribute("pageTitle", "РћС‚С‡С‘С‚С‹ РїСЂРѕРёР·РІРѕРґСЃС‚РІР°");
+        model.addAttribute("pageTitle", "Отчёты производства");
         return "reports/production";
     }
 
@@ -83,23 +83,23 @@ public class PageController {
     @PreAuthorize("@roleChecker.canView()")
     public String charts(Model model) {
         model.addAttribute("currentPage", "charts");
-        model.addAttribute("pageTitle", "РђРЅР°Р»РёС‚РёРєР°");
+        model.addAttribute("pageTitle", "Аналитика");
         return "charts/index";
     }
 
-    // admin
+    // Справочники (виды дефектов и др.): доступны всем, кто работает с данными
     @GetMapping("/directories")
-    @PreAuthorize("@roleChecker.isAdmin()")
+    @PreAuthorize("@roleChecker.canView()")
     public String directories(Model model) {
         model.addAttribute("currentPage", "directories");
-        model.addAttribute("pageTitle", "РЎРїСЂР°РІРѕС‡РЅРёРєРё");
+        model.addAttribute("pageTitle", "Справочники");
         return "directories/index";
     }
 
     @GetMapping("/access-denied")
     public String accessDenied(Model model) {
         model.addAttribute("currentPage", "index");
-        model.addAttribute("pageTitle", "Р”РѕСЃС‚СѓРї Р·Р°РїСЂРµС‰С‘РЅ");
+        model.addAttribute("pageTitle", "Доступ запрещён");
         return "access-denied";
     }
 }

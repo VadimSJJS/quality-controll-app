@@ -117,6 +117,12 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             @Param("detectionSourceId") Long detectionSourceId);
 
     /**
+     * Используется ли вид дефекта в записях о несоответствующей продукции.
+     * Нужен, чтобы не дать удалить из справочника значение, на которое ссылаются записи.
+     */
+    boolean existsByDefectType_Id(Long defectTypeId);
+
+    /**
      * Выборка записей по полному набору фильтров из ТЗ (п. 3.2):
      * даты выявления, участок, вид несоответствия, причина, подпричина, диаметр,
      * конструкция металлокорда, код, номер плавки, марка стали, оборудование,

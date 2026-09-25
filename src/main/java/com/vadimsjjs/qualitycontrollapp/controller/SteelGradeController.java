@@ -30,9 +30,9 @@ public class SteelGradeController {
     public ResponseEntity<String> testSteel() {
         try {
             List<SteelGrade> grades = steelGradeRepository.findAllOrderBySteelGrade();
-            return ResponseEntity.ok("РќР°Р№РґРµРЅРѕ: " + grades.size() + " Р·Р°РїРёСЃРµР№");
+            return ResponseEntity.ok("Найдено: " + grades.size() + " записей");
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("РћС€РёР±РєР°: " + e.getMessage());
+            return ResponseEntity.status(500).body("Ошибка: " + e.getMessage());
         }
     }
 }

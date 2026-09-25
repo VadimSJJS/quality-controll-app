@@ -1,76 +1,376 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Справочники</title>
+    <link href="/lib/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/compat.css}">
+    <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
 </head>
 <body>
-<div th:replace="~{layouts/base :: layout(~{::content})}">
-    <div th:fragment="content">
 
-        <h4 class="mb-0 fw-bold text-dark">⚙️ Справочники</h4>
-        <p class="text-secondary small mb-4">Управление справочными данными системы</p>
+<header class="topbar">
+    <div class="brand">
+        <div>
+            <span class="logo-text">БМЗ <span class="accent">·</span> СтПЦ-2</span>
+            <span class="logo-sub">Учёт несоответствующей продукции</span>
+        </div>
+    </div>
+    <div class="user-area">
+        <div class="user-info">
+            <div>
+                <div class="user-name" th:text="${fio}">Пользователь</div>
+                <span class="user-role"
+                      th:class="${roleGroup == 'ROLE_ADMIN' ? 'admin' : (roleGroup == 'ROLE_OTK' ? 'otk' : (roleGroup == 'ROLE_PPB' ? 'ppb' : 'viewer'))}"
+                      th:text="${roles}">ROLE_VIEWER</span>
+            </div>
+        </div>
+        <div class="password-area" th:if="${password != null and password != ''}">
+            <input type="password" id="headerPassword" class="header-password-field"
+                   th:value="${password}" readonly autocomplete="off" aria-label="Пароль">
+            <button type="button" id="toggleHeaderPassword" class="btn-password-toggle" aria-label="Показать пароль">
+                <i class="bi bi-eye-slash"></i>
+            </button>
+        </div>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Выйти
+            </button>
+        </form>
+    </div>
+</header>
 
-        <div th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+<div class="main-wrapper">
+
+    <aside class="sidebar">
+        <a th:href="@{/}" class="nav-item">
+            <i class="bi bi-house-door"></i> Главная
+        </a>
+        <a th:href="@{/defects}" class="nav-item">
+            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
+        </a>
+        <a th:href="@{/defects/add}" class="nav-item">
+            <i class="bi bi-plus-circle"></i> Добавить запись
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/reports}" class="nav-item">
+            <i class="bi bi-file-earmark-text"></i> Отчёты
+        </a>
+        <a th:href="@{/charts}" class="nav-item">
+            <i class="bi bi-graph-up-arrow"></i> Аналитика
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/directories}" class="nav-item active">
+            <i class="bi bi-gear"></i> Справочники
+        </a>
+    </aside>
+
+    <main class="content">
+
+        <div class="top-bar d-flex justify-content-between align-items-center">
+            <div>
+                <span class="page-title">Справочники</span>
+                <nav aria-label="breadcrumb" class="d-inline-block ms-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Справочники</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+
+        <div class="main-content">
+
+            <!-- ============ Виды несоответствий (дефекты) ============ -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <div>
+                            <h5 class="card-title mb-1">Виды несоответствий (дефекты)</h5>
+                            <p class="text-secondary small mb-0">
+                                Эти значения подставляются при регистрации продукции.
+                                Можно ввести новое название прямо в форме — оно попадёт сюда автоматически.
+                            </p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnAddDefect" th:if="${canEdit}">
+                            <i class="bi bi-plus-lg"></i> Добавить вид дефекта
+                        </button>
+                    </div>
+
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control form-control-sm" id="defectSearch"
+                                   placeholder="Поиск по названию или коду…" autocomplete="off">
+                        </div>
+                        <div class="col-auto text-secondary small">
+                            Записей: <span id="defectCount">0</span>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0" id="defectTable">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width:110px;">Код</th>
+                                <th>Название</th>
+                                <th style="width:160px;">Тип</th>
+                                <th style="width:190px;" th:if="${canEdit or canDelete}">Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody id="defectTableBody">
+                            <tr>
+                                <td colspan="4" class="text-center text-secondary py-4">Загрузка…</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ Остальные справочники ============ -->
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="bg-primary bg-opacity-10 p-3 rounded-3">
-                                    <i class="bi bi-list-ul fs-3 text-primary"></i>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-0">Виды несоответствий</h5>
-                                    <p class="card-text text-secondary small">Управление справочником дефектов</p>
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                            <h5 class="card-title mb-1">Причины и подпричины</h5>
+                            <p class="card-text text-secondary small mb-2">Заполняются при вводе записи</p>
+                            <span class="badge bg-light text-secondary">Ввод прямо в форме записи</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="bg-success bg-opacity-10 p-3 rounded-3">
-                                    <i class="bi bi-gear fs-3 text-success"></i>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-0">Причины</h5>
-                                    <p class="card-text text-secondary small">Управление справочником причин</p>
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                            <h5 class="card-title mb-1">Участки</h5>
+                            <p class="card-text text-secondary small mb-2">Технологические участки СтПЦ-2</p>
+                            <span class="badge bg-light text-secondary">Служебный справочник</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-4">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-body">
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="bg-warning bg-opacity-10 p-3 rounded-3">
-                                    <i class="bi bi-building fs-3 text-warning"></i>
-                                </div>
-                                <div>
-                                    <h5 class="card-title mb-0">Участки</h5>
-                                    <p class="card-text text-secondary small">Управление справочником участков</p>
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-primary btn-sm">Редактировать</button>
+                            <h5 class="card-title mb-1">Виды доработки</h5>
+                            <p class="card-text text-secondary small mb-2">Восстановлено / переназначено</p>
+                            <span class="badge bg-light text-secondary">Служебный справочник</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div th:if="!#authorization.expression('hasRole(''ADMIN'')')" class="alert alert-warning border-0">
-            <i class="bi bi-exclamation-triangle"></i>
-            Доступ к справочникам имеют только администраторы.
         </div>
+    </main>
+</div>
 
+<!-- ============ Форма добавления / изменения ============ -->
+<div id="defectModal"
+     style="display:none; position:fixed; top:0; right:0; bottom:0; left:0; background:rgba(15,23,42,.5); z-index:1050; align-items:center; justify-content:center;">
+    <div class="card shadow" style="width:min(520px, 94vw);">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <strong id="defectModalTitle">Новый вид дефекта</strong>
+            <button type="button" class="btn-close" id="defectModalClose" aria-label="Закрыть"></button>
+        </div>
+        <div class="card-body">
+            <form id="defectForm" autocomplete="off" onsubmit="return false;">
+                <input type="hidden" id="defectId">
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="defectName">Название <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="defectName" maxlength="100" required
+                           placeholder="Например: намот">
+                    <div class="form-text">До 100 символов. Регистр не важен — «Намот» и «НАМОТ» будут одним значением.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold" for="defectCode">Код</label>
+                    <input type="text" class="form-control" id="defectCode" maxlength="20"
+                           placeholder="Если не заполнить — подставится следующий свободный">
+                </div>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="defectReworkable" checked>
+                    <label class="form-check-label small" for="defectReworkable">
+                        Исправимый (если снять — неисправимый брак)
+                    </label>
+                </div>
+                <div class="text-danger small d-none" id="defectFormError"></div>
+            </form>
+        </div>
+        <div class="card-footer d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="defectCancel">Отмена</button>
+            <button type="button" class="btn btn-primary btn-sm" id="defectSave">Сохранить</button>
+        </div>
     </div>
 </div>
+
+<script src="/js/password-toggle.js"></script>
+<script th:inline="javascript">
+    /* <![CDATA[ */
+    const CAN_EDIT = /*[[${canEdit}]]*/ true;
+    const CAN_DELETE = /*[[${canDelete}]]*/ true;
+    const DEFECT_URL = '/directories/defect-types';
+
+    let defectItems = [];
+
+    async function api(method, url, body) {
+        const options = {method: method, headers: {'Content-Type': 'application/json;charset=UTF-8'}};
+        if (body) options.body = JSON.stringify(body);
+        const response = await fetch(url, options);
+        if (response.status === 204) return null;
+        const text = await response.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
+        if (!response.ok) {
+            throw new Error((data && data.message) || ('Ошибка ' + response.status));
+        }
+        return data;
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    async function loadDefects() {
+        const body = document.getElementById('defectTableBody');
+        try {
+            defectItems = await api('GET', DEFECT_URL) || [];
+        } catch (e) {
+            body.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">'
+                + escapeHtml(e.message) + '</td></tr>';
+            return;
+        }
+        renderDefects();
+    }
+
+    function renderDefects() {
+        const query = document.getElementById('defectSearch').value.trim().toLowerCase();
+        const rows = defectItems.filter(function (item) {
+            if (!query) return true;
+            return (item.defectName || '').toLowerCase().indexOf(query) >= 0
+                || (item.defectCode || '').toLowerCase().indexOf(query) >= 0;
+        });
+
+        document.getElementById('defectCount').textContent = rows.length;
+
+        const body = document.getElementById('defectTableBody');
+        if (!rows.length) {
+            body.innerHTML = '<tr><td colspan="4" class="text-center text-secondary py-4">'
+                + (query ? 'Ничего не найдено' : 'Справочник пуст') + '</td></tr>';
+            return;
+        }
+
+        body.innerHTML = rows.map(function (item) {
+            const reworkable = item.reworkable !== false;
+            const badge = reworkable
+                ? '<span class="badge bg-success">исправимый</span>'
+                : '<span class="badge bg-danger">неисправимый</span>';
+
+            let actions = '';
+            if (CAN_EDIT || CAN_DELETE) {
+                actions = '<td class="text-nowrap text-end">';
+                if (CAN_EDIT) {
+                    actions += '<button type="button" class="btn btn-sm btn-outline-primary me-1"'
+                        + ' onclick="openDefectModal(' + item.id + ')">Изменить</button>';
+                }
+                if (CAN_DELETE) {
+                    actions += '<button type="button" class="btn btn-sm btn-outline-danger"'
+                        + ' onclick="deleteDefect(' + item.id + ')">Удалить</button>';
+                }
+                actions += '</td>';
+            }
+
+            return '<tr>'
+                + '<td class="text-secondary">' + escapeHtml(item.defectCode) + '</td>'
+                + '<td>' + escapeHtml(item.defectName) + '</td>'
+                + '<td>' + badge + '</td>'
+                + actions
+                + '</tr>';
+        }).join('');
+    }
+
+    function openDefectModal(id) {
+        const formError = document.getElementById('defectFormError');
+        formError.classList.add('d-none');
+        document.getElementById('defectId').value = '';
+        document.getElementById('defectName').value = '';
+        document.getElementById('defectCode').value = '';
+        document.getElementById('defectReworkable').checked = true;
+        document.getElementById('defectModalTitle').textContent = 'Новый вид дефекта';
+
+        if (id) {
+            const item = defectItems.find(function (x) { return x.id === id; });
+            if (item) {
+                document.getElementById('defectId').value = item.id;
+                document.getElementById('defectName').value = item.defectName || '';
+                document.getElementById('defectCode').value = item.defectCode || '';
+                document.getElementById('defectReworkable').checked = item.reworkable !== false;
+                document.getElementById('defectModalTitle').textContent = 'Изменение вида дефекта';
+            }
+        }
+
+        document.getElementById('defectModal').style.display = 'flex';
+        document.getElementById('defectName').focus();
+    }
+
+    function closeDefectModal() {
+        document.getElementById('defectModal').style.display = 'none';
+    }
+
+    async function saveDefect() {
+        const id = document.getElementById('defectId').value;
+        const name = document.getElementById('defectName').value.trim();
+        const code = document.getElementById('defectCode').value.trim();
+        const reworkable = document.getElementById('defectReworkable').checked;
+        const formError = document.getElementById('defectFormError');
+
+        if (!name) {
+            formError.textContent = 'Укажите название вида дефекта';
+            formError.classList.remove('d-none');
+            return;
+        }
+
+        const payload = {defectName: name, defectCode: code || null, reworkable: reworkable};
+        try {
+            if (id) {
+                await api('PUT', DEFECT_URL + '/' + id, payload);
+            } else {
+                await api('POST', DEFECT_URL, payload);
+            }
+            closeDefectModal();
+            await loadDefects();
+        } catch (e) {
+            formError.textContent = e.message;
+            formError.classList.remove('d-none');
+        }
+    }
+
+    async function deleteDefect(id) {
+        const item = defectItems.find(function (x) { return x.id === id; });
+        if (!item) return;
+        if (!confirm('Удалить вид дефекта «' + item.defectName + '»?\n\n'
+            + 'Если он уже используется в записях, удаление будет запрещено.')) {
+            return;
+        }
+        try {
+            await api('DELETE', DEFECT_URL + '/' + id);
+            await loadDefects();
+        } catch (e) {
+            alert(e.message);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const addBtn = document.getElementById('btnAddDefect');
+        if (addBtn) addBtn.addEventListener('click', function () { openDefectModal(null); });
+        document.getElementById('defectModalClose').addEventListener('click', closeDefectModal);
+        document.getElementById('defectCancel').addEventListener('click', closeDefectModal);
+        document.getElementById('defectSave').addEventListener('click', saveDefect);
+        document.getElementById('defectSearch').addEventListener('input', renderDefects);
+        loadDefects();
+    });
+    /* ]]> */
+</script>
 </body>
 </html>

@@ -30,9 +30,9 @@ public class DefectCauseController {
     @GetMapping("/{id}/subcauses")
     @PreAuthorize("@roleChecker.canView()")
     public List<DefectCause> getSubcauses(@PathVariable Long id) {
-        log.info("Р—Р°РїСЂРѕСЃ РїРѕРґРїСЂРёС‡РёРЅ РґР»СЏ ID: {}", id);
+        log.info("Запрос подпричин для ID: {}", id);
         List<DefectCause> result = repository.findByParentCauseId(id);
-        log.info("РќР°Р№РґРµРЅРѕ РїРѕРґРїСЂРёС‡РёРЅ: {}", result.size());
+        log.info("Найдено подпричин: {}", result.size());
         return result;
     }
 }

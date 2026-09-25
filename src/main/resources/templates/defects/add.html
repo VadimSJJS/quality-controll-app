@@ -68,7 +68,7 @@
             <i class="bi bi-graph-up-arrow"></i> Аналитика
         </a>
         <div class="nav-divider"></div>
-        <a th:href="@{/directories}" class="nav-item" sec:authorize="hasRole('ADMIN')">
+        <a th:href="@{/directories}" class="nav-item">
             <i class="bi bi-gear"></i> Справочники
         </a>
     </aside>
@@ -133,9 +133,12 @@
 
                             <div class="col-md-3 dynamic-field" data-field="defectType" style="display:block;">
                                 <label class="form-label fw-semibold small text-secondary">Вид дефекта <span class="text-danger">*</span></label>
-                                <select class="form-select" id="defectTypeId" required>
-                                    <option value="">Выберите вид</option>
-                                </select>
+                                <input type="text" class="form-control" id="defectTypeName"
+                                       list="defectTypeSuggestions" required
+                                       autocomplete="off"
+                                       placeholder="Начните вводить или выберите">
+                                <datalist id="defectTypeSuggestions"></datalist>
+                                <div class="form-text">Подсказки появляются при вводе. Нет нужного? Впишите своё название — оно добавится в справочник.</div>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="brigade" style="display:none;">
@@ -654,14 +657,19 @@
                 siteSelect.appendChild(opt);
             });
 
+            // Виды дефекта: подсказки для поля ввода (можно выбрать или вписать своё)
             const types = await fetchJson('/directories/defect-types', 'Ошибка загрузки видов дефектов');
-            const typeSelect = document.getElementById('defectTypeId');
-            typeSelect.innerHTML = '<option value="">Выберите вид</option>';
+            const typeInput = document.getElementById('defectTypeName');
+            const typeList = document.getElementById('defectTypeSuggestions');
+            typeList.innerHTML = '';
             types.forEach(t => {
                 const opt = document.createElement('option');
-                opt.value = t.id;
-                opt.textContent = t.defectName;
-                typeSelect.appendChild(opt);
+                opt.value = t.defectName;
+                opt.label = t.reworkable === false ? 'неисправимый' : 'исправимый';
+                typeList.appendChild(opt);
+            });
+            typeInput.addEventListener('input', () => {
+                typeInput.setCustomValidity('');
             });
 
             const sources = await fetchJson('/directories/detection-sources', 'Ошибка загрузки источников');
@@ -748,7 +756,7 @@
             document.getElementById('weightTonnes').value = data.weightTonnes || '';
             document.getElementById('note').value = data.note || '';
             document.getElementById('productionSiteId').value = data.productionSiteId || '';
-            document.getElementById('defectTypeId').value = data.defectTypeId || '';
+            document.getElementById('defectTypeName').value = data.defectTypeName || '';
             document.getElementById('detectionSourceId').value = data.detectionSourceId || '';
             document.getElementById('defectCauseId').value = data.defectCauseId || '';
             document.getElementById('reworkTypeId').value = data.reworkTypeId || '';
@@ -805,18 +813,18 @@
         const productionSiteId = document.getElementById('productionSiteId').value;
         const detectionSourceId = document.getElementById('detectionSourceId').value;
         const weightTonnes = document.getElementById('weightTonnes').value;
-        const defectTypeId = document.getElementById('defectTypeId').value;
+        const defectTypeName = document.getElementById('defectTypeName').value.trim();
 
         console.log('   detectionDate:', detectionDate);
         console.log('   productionSiteId:', productionSiteId);
         console.log('   detectionSourceId:', detectionSourceId);
         console.log('   weightTonnes:', weightTonnes);
-        console.log('   defectTypeId:', defectTypeId);
+        console.log('   defectTypeName:', defectTypeName);
 
-        if (!detectionDate || !productionSiteId || !detectionSourceId || !weightTonnes || !defectTypeId) {
+        if (!detectionDate || !productionSiteId || !detectionSourceId || !weightTonnes || !defectTypeName) {
             const errorMsg = 'Заполните обязательные поля: дата, участок, источник выявления, вес, вид дефекта';
             console.error('❌ Не заполнены обязательные поля:', {
-                detectionDate, productionSiteId, detectionSourceId, weightTonnes, defectTypeId
+                detectionDate, productionSiteId, detectionSourceId, weightTonnes, defectTypeName
             });
             alert(errorMsg);
             submitBtn.disabled = false;
@@ -831,7 +839,7 @@
             productionSiteId: document.getElementById('productionSiteId').value ? parseInt(document.getElementById('productionSiteId').value) : null,
             detectionSourceId: document.getElementById('detectionSourceId').value ? parseInt(document.getElementById('detectionSourceId').value) : null,
             weightTonnes: document.getElementById('weightTonnes').value ? parseFloat(document.getElementById('weightTonnes').value) : null,
-            defectTypeId: document.getElementById('defectTypeId').value ? parseInt(document.getElementById('defectTypeId').value) : null,
+            defectTypeName: document.getElementById('defectTypeName').value.trim() || null,
             defectCategory: document.getElementById('defectCategory').value || null,
             defectCauseId: document.getElementById('defectCauseId').value ? parseInt(document.getElementById('defectCauseId').value) : null,
             defectSubcauseId: document.getElementById('defectSubcauseId').value ? parseInt(document.getElementById('defectSubcauseId').value) : null,

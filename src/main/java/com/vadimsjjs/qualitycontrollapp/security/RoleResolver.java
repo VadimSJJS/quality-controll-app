@@ -20,6 +20,7 @@ public final class RoleResolver {
                 .orElse("");
 
         if (roles.contains("ADMIN")) return "ROLE_ADMIN";
+        if (roles.contains("FULL_ACCESS")) return "ROLE_FULL_ACCESS";
         if (roles.contains("OTK")) return "ROLE_OTK";
         if (roles.contains("6_PPB")) return "ROLE_PPB";
         return "ROLE_VIEWER";

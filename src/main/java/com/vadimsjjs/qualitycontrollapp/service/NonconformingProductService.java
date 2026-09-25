@@ -59,6 +59,51 @@ public class NonconformingProductService {
         log.info("Удалена запись с ID: {}", id);
     }
 
+    /**
+     * Определяет вид несоответствия для записи.
+     *
+     * <p>Порядок: если пришёл идентификатор — берём его. Иначе работаем с названием,
+     * которое пользователь напечатал вручную: ищем в справочнике без учёта регистра,
+     * а если не нашли — добавляем новое значение в справочник. Так пользователь может
+     * вводить новые дефекты прямо при регистрации продукции, не заходя в справочник.
+     */
+    private DefectType resolveDefectType(NonconformingProductRequest request) {
+        if (request.getDefectTypeId() != null) {
+            return defectTypeRepository.findById(request.getDefectTypeId())
+                    .orElseThrow(() -> new RuntimeException("Вид несоответствия не найден"));
+        }
+
+        String name = request.getDefectTypeName();
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("Укажите вид несоответствия");
+        }
+
+        String trimmed = name.trim();
+        return defectTypeRepository.findByDefectNameIgnoreCase(trimmed)
+                .orElseGet(() -> createDefectTypeOnTheFly(trimmed));
+    }
+
+    private DefectType createDefectTypeOnTheFly(String name) {
+        DefectType created = new DefectType();
+        created.setDefectName(name);
+        created.setReworkable(Boolean.TRUE);
+        created.setDefectCode(nextDefectCode());
+        DefectType saved = defectTypeRepository.save(created);
+        log.info("Добавлен новый вид несоответствия в справочник: '{}' (код {})", name, saved.getDefectCode());
+        return saved;
+    }
+
+    /** Следующий свободный числовой код вида дефекта (001, 002, ...). */
+    private String nextDefectCode() {
+        long max = defectTypeRepository.findAll().stream()
+                .map(DefectType::getDefectCode)
+                .filter(code -> code != null && code.matches("\\d+"))
+                .mapToLong(Long::parseLong)
+                .max()
+                .orElse(0L);
+        return String.format("%03d", max + 1);
+    }
+
     public NonconformingProductResponse findById(Long id) {
         NonconformingProduct entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена с ID: " + id));
@@ -125,8 +170,7 @@ public class NonconformingProductService {
         entity.setWeightTonnes(request.getWeightTonnes());
         entity.setIrreparableWeightTonnes(request.getIrreparableWeightTonnes());
 
-        DefectType defectType = defectTypeRepository.findById(request.getDefectTypeId())
-                .orElseThrow(() -> new RuntimeException("Вид несоответствия не найден"));
+        DefectType defectType = resolveDefectType(request);
         entity.setDefectType(defectType);
 
         if (request.getDefectCauseId() != null) {
