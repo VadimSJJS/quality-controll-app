@@ -1,6 +1,7 @@
 package com.vadimsjjs.qualitycontrollapp.controller;
 
 import com.vadimsjjs.qualitycontrollapp.dto.DefectFilterDto;
+import com.vadimsjjs.qualitycontrollapp.dto.DistributionReport;
 import com.vadimsjjs.qualitycontrollapp.dto.EquipmentDefectReport;
 import com.vadimsjjs.qualitycontrollapp.dto.ParetoReport;
 import com.vadimsjjs.qualitycontrollapp.dto.PersonnelDefectReport;
@@ -19,6 +20,16 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * REST API отчётов и аналитики.
+ *
+ * <p>Каждый отчёт ТЗ имеет отдельный метод: по участку, по виду продукции, по причинам,
+ * по бригаде, по оборудованию, по персоналу, сводный по цеху, по вине, свод по актам
+ * (Приложение А), а также аналитика — Парето и распределение по оборудованию/бригадам.
+ * Для каждого есть выгрузка в Excel, у части — в Word.
+ *
+ * <p>Права на просмотр проверяется через {@code @roleChecker.canView()}.
+ */
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
@@ -127,6 +138,14 @@ public class ReportController {
             @RequestParam(defaultValue = "defect") String groupingType,
             @ModelAttribute @Valid DefectFilterDto filter) {
         return ResponseEntity.ok(reportService.getParetoReport(siteCode, groupingType, filter));
+    }
+
+    @GetMapping("/distribution")
+    @PreAuthorize("@roleChecker.canView()")
+    public ResponseEntity<DistributionReport> getDistribution(
+            @RequestParam(defaultValue = "equipment") String dimension,
+            @ModelAttribute @Valid DefectFilterDto filter) {
+        return ResponseEntity.ok(reportService.getDistributionReport(dimension, filter));
     }
 
     // ===== EXPORT ENDPOINTS =====
@@ -239,6 +258,17 @@ public class ReportController {
         ParetoReport report = reportService.getParetoReport(siteCode, groupingType, filter);
         byte[] data = reportExportService.exportParetoToExcel(report);
         return downloadResponse(data, "диаграмма_парето.xlsx");
+    }
+
+    @GetMapping("/export/excel/distribution")
+    @PreAuthorize("@roleChecker.canView()")
+    public ResponseEntity<byte[]> exportDistributionToExcel(
+            @RequestParam(defaultValue = "equipment") String dimension,
+            @ModelAttribute @Valid DefectFilterDto filter) throws Exception {
+        DistributionReport report = reportService.getDistributionReport(dimension, filter);
+        byte[] data = reportExportService.exportDistributionToExcel(report);
+        String name = "brigade".equals(dimension) ? "распределение_по_бригадам.xlsx" : "распределение_по_оборудованию.xlsx";
+        return downloadResponse(data, name);
     }
 
     // ===== WORD EXPORT =====

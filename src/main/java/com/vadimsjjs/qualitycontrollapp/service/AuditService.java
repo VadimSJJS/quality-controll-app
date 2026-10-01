@@ -14,6 +14,12 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 
+/**
+ * Пишет действия пользователей в таблицу AUDIT_LOG: кто, когда, что изменил,
+ * с какого IP и из какого браузера. Требование ТЗ — прослеживание действий пользователя.
+ *
+ * <p>Ошибка записи в журнал не должна ломать основную операцию, поэтому она ловится и логируется.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

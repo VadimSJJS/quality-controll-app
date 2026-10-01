@@ -16,6 +16,13 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Перехватывает создание, изменение, удаление записей о несоответствующей продукции
+ * и события входа/выхода, передавая их в {@link AuditService}.
+ *
+ * <p>Для UPDATE и DELETE перед изменением снимается снимок старых значений записи,
+ * чтобы в журнале было видно, что именно было изменено.
+ */
 @Slf4j
 @Aspect
 @Component

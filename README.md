@@ -33,7 +33,7 @@
 Порядок действий:
 
 1. **Выпуск сертификатов** — `.\create-devteam7-certificate.ps1`
-2. **Сборка и запуск на сервере** — `.\mvnw.cmd -DskipTests package` и `start-server.bat`
+2. **Сборка и запуск на сервере** — `.\mvnw.cmd clean package` и `start-server.bat`
 3. **Установка доверия** (на сервере и на каждом ПК, либо через GPO) — `.\install-devteam7-cert.ps1`
 4. **Проверка** — `.\check-server-certificate.ps1 -ServerName devteam7`
 
@@ -58,7 +58,7 @@
 **Локальная разработка:**
 
 ```bat
-.\mvnw.cmd -q clean package -DskipTests   :: собрать jar
+.\mvnw.cmd -q clean package   :: собрать jar
 start-local.bat                            :: запустить локально -> https://localhost:8082/
 ```
 
@@ -75,7 +75,7 @@ start-local.bat                            :: запустить локальн�
 **Обновление сервера:**
 
 ```bat
-.\mvnw.cmd -q clean package -DskipTests
+.\mvnw.cmd -q clean package
 :: скопировать target\quality-control-app-0.0.1-SNAPSHOT.jar на сервер (и сам start-server.bat,
 :: если он менялся), затем на сервере запустить start-server.bat
 ```

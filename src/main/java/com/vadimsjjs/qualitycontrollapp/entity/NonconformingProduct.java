@@ -7,7 +7,16 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Главная таблица системы: записи о несоответствующей (исправимой и неисправимой) продукции.
+ * Одна строка = одно несоответствие, зарегистрированное на участке (см. ТЗ, Приложение А, Рис. 1).
+ *
+ * <p>Масса хранится в тоннах: WEIGHT_TONNES — всего несоответствия,
+ * IRREPARABLE_WEIGHT_TONNES — неисправимый брак, REWORK_WEIGHT_TONNES — доработано.
+ */
 @Entity
 @Table(name = "NONCONFORMING_PRODUCT")
 @Getter
@@ -111,4 +120,21 @@ public class NonconformingProduct {
 
     @Column(name = "REWORK_WEIGHT_TONNES", precision = 10, scale = 3)
     private BigDecimal reworkWeightTonnes;
+
+    /** Восстановлено, т — часть задержанной продукции, исправленная браком. */
+    @Column(name = "RESTORED_WEIGHT_TONNES", precision = 10, scale = 3)
+    private BigDecimal restoredWeightTonnes;
+
+    /** Переназначено, т — часть задержанной продукции, отданная другому потребителю. */
+    @Column(name = "REASSIGNED_WEIGHT_TONNES", precision = 10, scale = 3)
+    private BigDecimal reassignedWeightTonnes;
+
+    /**
+     * Отдельные действия по доработке этой записи.
+     * Даёт прослеживаемость: что, когда и в каком объёме сделано с каждой катушкой.
+     */
+    @OneToMany(mappedBy = "nonconformingProduct", cascade = CascadeType.ALL, orphanRemoval = true,
+            fetch = FetchType.LAZY)
+    @OrderBy("actionDate ASC, id ASC")
+    private List<ReworkAction> reworkActions = new ArrayList<>();
 }

@@ -12,6 +12,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Выгрузка отчётов в Excel и Word по шаблонам Приложения А.
+ * Шрифт отчётов — Times New Roman 11 пт (требование ТЗ).
+ */
 @Service
 @RequiredArgsConstructor
 public class ReportExportService {
@@ -616,6 +620,90 @@ public class ReportExportService {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             wb.write(baos);
             return baos.toByteArray();
+        }
+    }
+
+
+    public byte[] exportDistributionToExcel(DistributionReport report) throws Exception {
+        try (Workbook wb = new XSSFWorkbook()) {
+            Sheet sheet = wb.createSheet("Распределение");
+            CellStyle titleStyle = createTitleStyle(wb);
+            CellStyle headerStyle = createHeaderStyle(wb);
+            CellStyle numStyle = createNumStyle(wb);
+            CellStyle boldStyle = createBoldStyle(wb);
+            int rowNum = 0;
+            Row title = sheet.createRow(rowNum++);
+            title.createCell(0).setCellValue("Распределение несоответствующей продукции");
+            title.getCell(0).setCellStyle(titleStyle);
+            sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, Math.max(1, report.getDefectTypes().size() + 1)));
+            sheet.createRow(rowNum++).createCell(0).setCellValue("Период: " + report.getPeriodFrom() + " — " + report.getPeriodTo());
+
+            Row header = sheet.createRow(rowNum);
+            final int headerRow = rowNum++;
+            header.createCell(0).setCellValue("Группа");
+            header.getCell(0).setCellStyle(headerStyle);
+            for (int i = 0; i < report.getDefectTypes().size(); i++) {
+                Cell cell = header.createCell(i + 1);
+                cell.setCellValue(report.getDefectTypes().get(i));
+                cell.setCellStyle(headerStyle);
+            }
+            Cell totalHeader = header.createCell(report.getDefectTypes().size() + 1);
+            totalHeader.setCellValue("Итого, т");
+            totalHeader.setCellStyle(headerStyle);
+
+            for (DistributionReport.Row item : report.getRows()) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(item.getKey());
+                for (int i = 0; i < report.getDefectTypes().size(); i++) {
+                    BigDecimal value = item.getByDefect().getOrDefault(report.getDefectTypes().get(i), BigDecimal.ZERO);
+                    Cell cell = row.createCell(i + 1);
+                    cell.setCellValue(value.doubleValue());
+                    cell.setCellStyle(numStyle);
+                }
+                Cell total = row.createCell(report.getDefectTypes().size() + 1);
+                total.setCellValue(item.getTotal() != null ? item.getTotal().doubleValue() : 0);
+                total.setCellStyle(boldStyle);
+            }
+            Row total = sheet.createRow(rowNum++);
+            total.createCell(0).setCellValue("Итого");
+            total.getCell(0).setCellStyle(boldStyle);
+            for (int i = 1; i <= report.getDefectTypes().size(); i++) {
+                final int defectIndex = i - 1;
+                Cell cell = total.createCell(i);
+                cell.setCellValue(report.getRows().stream()
+                        .map(r -> r.getByDefect().getOrDefault(report.getDefectTypes().get(defectIndex), BigDecimal.ZERO))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .doubleValue());
+                cell.setCellStyle(boldStyle);
+            }
+            Cell grandTotal = total.createCell(report.getDefectTypes().size() + 1);
+            grandTotal.setCellValue(report.getTotalWeight() != null ? report.getTotalWeight().doubleValue() : 0);
+            grandTotal.setCellStyle(boldStyle);
+            for (int i = 0; i <= report.getDefectTypes().size() + 1; i++) sheet.autoSizeColumn(i);
+
+            // Встроенная диаграмма Excel: распределение массы по группам и видам дефектов.
+            org.apache.poi.xssf.usermodel.XSSFDrawing drawing = ((org.apache.poi.xssf.usermodel.XSSFSheet) sheet).createDrawingPatriarch();
+            org.apache.poi.ss.usermodel.ClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 0, rowNum + 1,
+                    Math.max(3, report.getDefectTypes().size() + 2), rowNum + 25);
+            org.apache.poi.xddf.usermodel.chart.XDDFChart chart = drawing.createChart(anchor);
+            org.apache.poi.xddf.usermodel.chart.XDDFCategoryAxis bottom = chart.createCategoryAxis(org.apache.poi.xddf.usermodel.chart.AxisPosition.BOTTOM);
+            org.apache.poi.xddf.usermodel.chart.XDDFValueAxis left = chart.createValueAxis(org.apache.poi.xddf.usermodel.chart.AxisPosition.LEFT);
+            left.setCrosses(org.apache.poi.xddf.usermodel.chart.AxisCrosses.AUTO_ZERO);
+            org.apache.poi.xssf.usermodel.XSSFSheet xssfSheet = (org.apache.poi.xssf.usermodel.XSSFSheet) sheet;
+            org.apache.poi.xddf.usermodel.chart.XDDFDataSource<String> categories = org.apache.poi.xddf.usermodel.chart.XDDFDataSourcesFactory.fromStringCellRange(xssfSheet,
+                    new org.apache.poi.ss.util.CellRangeAddress(headerRow + 1, headerRow + report.getRows().size(), 0, 0));
+            org.apache.poi.xddf.usermodel.chart.XDDFChartData chartData = chart.createData(org.apache.poi.xddf.usermodel.chart.ChartTypes.BAR, bottom, left);
+            for (int i = 0; i < report.getDefectTypes().size(); i++) {
+                org.apache.poi.xddf.usermodel.chart.XDDFNumericalDataSource<Double> values = org.apache.poi.xddf.usermodel.chart.XDDFDataSourcesFactory.fromNumericCellRange(xssfSheet,
+                        new org.apache.poi.ss.util.CellRangeAddress(headerRow + 1, headerRow + report.getRows().size(), i + 1, i + 1));
+                org.apache.poi.xddf.usermodel.chart.XDDFChartData.Series series = chartData.addSeries(categories, values);
+                series.setTitle(report.getDefectTypes().get(i), null);
+            }
+            chart.plot(chartData);
+
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            wb.write(out);
+            return out.toByteArray();
         }
     }
 

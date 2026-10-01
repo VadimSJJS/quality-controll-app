@@ -12,6 +12,11 @@ import java.util.List;
 @Repository
 public interface NonconformingProductRepository extends JpaRepository<NonconformingProduct, Long> {
 
+    /**
+     * Выборка с фильтрами и постраничности. Нативный SQL нужен из-за Oracle 11g:
+     * постраничный отбор выполняется через ROWNUM, а не через OFFSET/FETCH.
+     * Каждый параметр nullable — если он null, условие не применяется.
+     */
     @Query(value = "SELECT * FROM ( " +
             "SELECT a.*, ROWNUM rn FROM ( " +
             "SELECT " +
@@ -43,7 +48,9 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "    REWORK_QUANTITY, " +
             "    REWORK_DATE, " +
             "    ID_REWORK_TYPE, " +
-            "    REWORK_WEIGHT_TONNES " +
+            "    REWORK_WEIGHT_TONNES, " +
+            "    RESTORED_WEIGHT_TONNES, " +
+            "    REASSIGNED_WEIGHT_TONNES " +
             "FROM NONCONFORMING_PRODUCT n " +
             "WHERE (:dateFrom IS NULL OR n.DETECTION_DATE >= :dateFrom) " +
             "AND (:dateTo IS NULL OR n.DETECTION_DATE <= :dateTo) " +

@@ -17,6 +17,10 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+/**
+ * Производство продукции за отчётный период по участкам (данные ППБ).
+ * Используется как знаменатель ПΣ при расчёте уровня несоответствующей продукции.
+ */
 @Entity
 @Table(name = "PRODUCTION_REPORT")
 @Getter

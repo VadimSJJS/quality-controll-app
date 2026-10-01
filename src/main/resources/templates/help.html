@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Инструкция — БМЗ · СтПЦ-2</title>
+    <link href="/lib/bootstrap/4.6.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/compat.css}">
+    <link rel="stylesheet" href="/lib/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+    <link href="/fonts/inter.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/base.css}">
+    <link rel="stylesheet" th:href="@{/css/reports.css}">
+    <style>
+        .help-step { display: flex; gap: 14px; margin-bottom: 18px; }
+        .help-num {
+            flex: 0 0 34px; width: 34px; height: 34px; border-radius: 50%;
+            background: var(--brand-primary, #1f5f8b); color: #fff;
+            font-weight: 700; font-size: 17px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .help-step h6 { font-weight: 600; margin-bottom: 4px; }
+        .help-step p { margin-bottom: 0; color: #475569; font-size: 14px; line-height: 1.55; }
+        .help-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 22px 24px; margin-bottom: 18px; }
+        .help-card h5 { font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+        .help-card h5 i { color: var(--brand-primary, #1f5f8b); }
+        .help-table td, .help-table th { font-size: 14px; vertical-align: top; }
+        .help-note { background: #fff8e1; border-left: 4px solid #f0a500; padding: 12px 16px; border-radius: 4px; font-size: 14px; }
+        .help-toc a { display: block; padding: 7px 12px; border-radius: 6px; color: #1f5f8b; font-size: 14px; }
+        .help-toc a:hover { background: #eef4f9; text-decoration: none; }
+        .btn-help {
+            display: flex; align-items: center; justify-content: center;
+            width: 38px; height: 38px; border-radius: 50%;
+            background: #eef4f9; color: #1f5f8b; font-size: 20px;
+            text-decoration: none; margin-right: 12px; flex: 0 0 auto;
+        }
+        .btn-help:hover { background: #1f5f8b; color: #fff; }
+    </style>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div>
+            <span class="logo-text">БМЗ <span class="accent">·</span> СтПЦ-2</span>
+            <span class="logo-sub">Учёт несоответствующей продукции</span>
+        </div>
+    </div>
+    <div class="user-area">
+        <div class="user-info">
+            <div>
+                <div class="user-name" th:text="${fio}">Пользователь</div>
+                <span class="user-role"
+                      th:class="${roleGroup == 'ROLE_ADMIN' ? 'admin' : (roleGroup == 'ROLE_OTK' ? 'otk' : (roleGroup == 'ROLE_PPB' ? 'ppb' : 'viewer'))}"
+                      th:text="${roles}">ROLE_VIEWER</span>
+            </div>
+        </div>
+        <div class="password-area" th:if="${password != null and password != ''}">
+            <input type="password" id="headerPassword" class="header-password-field"
+                   th:value="${password}" readonly autocomplete="off" aria-label="Пароль">
+            <button type="button" id="toggleHeaderPassword" class="btn-password-toggle" aria-label="Показать пароль">
+                <i class="bi bi-eye-slash"></i>
+            </button>
+        </div>
+        <a th:href="@{/help}" class="btn-help" title="Инструкция для пользователей" aria-label="Инструкция">
+            <i class="bi bi-question-circle-fill"></i>
+        </a>
+        <form th:action="@{/logout}" method="post" class="m-0">
+            <button type="submit" class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i> Выйти
+            </button>
+        </form>
+    </div>
+</header>
+
+<div class="main-wrapper">
+
+    <aside class="sidebar">
+        <a th:href="@{/}" class="nav-item">
+            <i class="bi bi-house-door"></i> Главная
+        </a>
+        <a th:href="@{/defects}" class="nav-item">
+            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
+        </a>
+        <a th:href="@{/defects/add}" class="nav-item">
+            <i class="bi bi-plus-circle"></i> Добавить запись
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/reports}" class="nav-item">
+            <i class="bi bi-file-earmark-text"></i> Отчёты
+        </a>
+        <a th:href="@{/charts}" class="nav-item">
+            <i class="bi bi-graph-up-arrow"></i> Аналитика
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/directories}" class="nav-item">
+            <i class="bi bi-gear"></i> Справочники
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/help}" class="nav-item active">
+            <i class="bi bi-question-circle"></i> Инструкция
+        </a>
+    </aside>
+
+    <main class="content">
+
+        <div class="top-bar d-flex justify-content-between align-items-center">
+            <div>
+                <span class="page-title">❓ Инструкция</span>
+                <nav aria-label="breadcrumb" class="d-inline-block ms-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Инструкция</li>
+                    </ol>
+                </nav>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-secondary small">
+                    <i class="bi bi-person"></i>
+                    <span sec:authentication="name"></span>
+                </span>
+            </div>
+        </div>
+
+        <div class="main-content">
+
+            <div class="mb-4">
+                <h4 class="mb-0 fw-bold text-dark">❓ Как работать с программой</h4>
+                <p class="text-secondary small mb-0">Короткая инструкция для сотрудников ОТК, ППБ и производственного персонала</p>
+            </div>
+
+            <div class="help-card" style="background:#eef4f9; border-color:#c5dcec;">
+                <h5><i class="bi bi-hand-index-thumb"></i> С чего начать</h5>
+                <p class="mb-0" style="font-size: 15px; line-height: 1.6;">
+                    Нажмите на раздел ниже, который вам сейчас нужен. Всё написано по шагам — 
+                    делайте действия по порядку, и всё получится. Ничего устанавливать не нужно: программа работает в браузере.
+                </p>
+                <div class="help-toc mt-2">
+                    <a href="#start">1. Как начать работу</a>
+                    <a href="#add">2. Как добавить запись о браке</a>
+                    <a href="#find">3. Как найти и изменить запись</a>
+                    <a href="#reports">4. Как посмотреть отчёты</a>
+                    <a href="#analytics">5. Как смотреть графики</a>
+                    <a href="#directory">6. Как вести справочник дефектов</a>
+                    <a href="#faq">7. Частые вопросы</a>
+                </div>
+            </div>
+
+            <div class="help-card" id="start">
+                <h5><i class="bi bi-1-circle-fill"></i> Как начать работу</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте программу</h6>
+                        <p>В браузере наберите адрес: <strong>https://devteam7:8082/</strong>. Всё делается в браузере — ничего устанавливать не нужно.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Войдите в систему</h6>
+                        <p>Введите свой <strong>табельный номер</strong> и <strong>пароль</strong>, нажмите «Войти». Табельный номер выдаёт отдел кадров.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Запомните, где что находится</h6>
+                        <p>Слева находится меню: <strong>Журнал несоответствий</strong> — просмотр записей, <strong>Добавить запись</strong> — ввод новой, <strong>Отчёты</strong> и <strong>Аналитика</strong> — графики и таблицы, <strong>Справочники</strong> — список дефектов.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-card" id="add">
+                <h5><i class="bi bi-pencil-square"></i> Как добавить запись о браке</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте «Добавить запись»</h6>
+                        <p>В меню слева нажмите <strong>Добавить запись</strong>. Так же можно нажать зелёную кнопку на главной странице.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Выберите участок</h6>
+                        <p>Самый первый и самый важный выбор. От участка зависит, какие поля нужно заполнить. Например, на канатном участке спрашивают конструкцию металлокорда, а на травлении — плавку и бунт.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Заполните обязательные поля</h6>
+                        <p>Поля со звёздочкой <strong style="color:#c00">*</strong> заполнить обязательно. Остальные — по возможности: чем больше данных, тем точнее отчёты.</p>
+                        <table class="table table-sm help-table mt-2 mb-0">
+                            <thead class="table-light">
+                            <tr><th>Поле</th><th>Что вписать</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>Дата выявления</td><td>Дата, когда обнаружили дефект</td></tr>
+                            <tr><td>Вид дефекта</td><td>Начните вводить — появятся подсказки. Можно выбрать из списка или вписать свой вариант</td></tr>
+                            <tr><td>Масса, т</td><td>Вес несоответствующей продукции в тоннах</td></tr>
+                            <tr><td>Кем выявлено</td><td>ОТК, цех, ЦЗЛ или возврат с последующего передела</td></tr>
+                            <tr><td>Причина</td><td>Выберите из справочника. Не знаете причину — оставьте пустым, это не обязательно</td></tr>
+                            <tr><td>Табельный номер оператора</td><td>От 4 до 6 цифр. Это оператор, который работал на участке (не ваш номер)</td></tr>
+                            <tr><td>Примечание</td><td>Например: «Акт Т46-2026 №12» или «Выдан ТП»</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">4</div>
+                    <div>
+                        <h6>Заполните доработку — если её проводили</h6>
+                        <p>Если продукцию доработали, укажите <strong>дату доработки</strong>, <strong>вид доработки</strong> (восстановлено или переназначено) и <strong>массу доработки</strong>. Если не дорабатывали — оставьте эти поля пустыми.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">5</div>
+                    <div>
+                        <h6>Нажмите «Сохранить»</h6>
+                        <p>После сохранения появится сообщение об успехе. Если вместо него появилась <strong style="color:#c00">красная надпись</strong> — проверьте обязательные поля, обычно подсвечивается именно незаполненное поле.</p>
+                    </div>
+                </div>
+                <div class="help-note mt-3">
+                    <strong>Важно:</strong> если в поле «Вид дефекта» написать новое название, программа сама добавит его в справочник. Проверьте написание — опечатка создаст отдельный дефект, и в отчётах цифры разойдутся.
+                </div>
+            </div>
+
+            <div class="help-card" id="find">
+                <h5><i class="bi bi-search"></i> Как найти и изменить запись</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте «Журнал несоответствий»</h6>
+                        <p>Здесь видны все записи, самые новые сверху. Записи выводятся по страницам — внизу кнопки «Назад» и «Вперёд».</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Отфильтруйте записи</h6>
+                        <p>Вверху есть поля фильтра: участок, вид дефекта, оборудование, табельный номер. Заполните нужное и нажмите «Найти» — так быстрее, чем листать страницы.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Исправьте или удалите</h6>
+                        <p>В каждой строке есть кнопки: <strong>✏️</strong> — изменить запись, <strong>🗑</strong> — удалить. После удаления отменить действие нельзя, поэтому проверьте, что выбрали нужную строку.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-card" id="reports">
+                <h5><i class="bi bi-file-earmark-text"></i> Как посмотреть отчёты</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте «Отчёты»</h6>
+                        <p>Вверху выберите тип отчёта кнопками: по участку, по виду продукции, по причинам, по бригадам, по оборудованию, по персоналу, по цеху.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Укажите период</h6>
+                        <p>Задайте «Дата с» и «Дата по» — отчёт сформируется только за этот период.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Нажмите «Сформировать»</h6>
+                        <p>Отчёт появится на странице. Если в отчёте пусто — проверьте период: возможно, за выбранные дни записей не было.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">4</div>
+                    <div>
+                        <h6>Скачайте отчёт в Excel</h6>
+                        <p>Кнопка <strong>Excel</strong> сохраняет файл на ваш компьютер. Его можно открыть в Excel, посмотреть, распечатать или отправить.</p>
+                    </div>
+                </div>
+                <div class="help-note mt-3">
+                    <strong>Обратите внимание:</strong> в сводном отчёте по цеху есть колонка «Допустимый уровень, %». Если значение в колонке «Несоответствующая, %» больше — уровень превышен, такая строка выделяется.
+                </div>
+            </div>
+
+            <div class="help-card" id="analytics">
+                <h5><i class="bi bi-graph-up-arrow"></i> Как смотреть графики (Аналитика)</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте «Аналитика»</h6>
+                        <p>Здесь графики: распределение по видам дефектов, по оборудованию, по бригадам и по персоналу.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Выберите период</h6>
+                        <p>Вверху есть кнопки быстрого выбора: «Сегодня», «Неделя», «Месяц», «Квартал» — они сразу подставляют даты. Либо поставьте даты вручную.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Диаграмма Парето — что смотреть</h6>
+                        <p>Столбики отсортированы от большего к меньшему. Красная линия — накопительный процент. То, что попало в первые 80% линии, — главные причины брака, на них и нужно обращать внимание.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">4</div>
+                    <div>
+                        <h6>Переключите вид группировки</h6>
+                        <p>В списке «Тип группировки» можно выбрать <strong>По видам дефектов</strong> или <strong>По причинам</strong>, затем нажать «Применить».</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">5</div>
+                    <div>
+                        <h6>Скачайте график в Excel</h6>
+                        <p>Кнопка <strong>Excel</strong> рядом с графиком сохраняет таблицу с данными и диаграмму — удобно вставить в документ или на печать.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-card" id="directory">
+                <h5><i class="bi bi-gear"></i> Как вести справочник дефектов</h5>
+                <div class="help-step">
+                    <div class="help-num">1</div>
+                    <div>
+                        <h6>Откройте «Справочники»</h6>
+                        <p>Здесь список всех видов несоответствий, которые используются в программе.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">2</div>
+                    <div>
+                        <h6>Добавьте новый дефект</h6>
+                        <p>Нажмите «Добавить вид дефекта», впишите название. Код проставляется автоматически — заполнять не нужно.</p>
+                    </div>
+                </div>
+                <div class="help-step">
+                    <div class="help-num">3</div>
+                    <div>
+                        <h6>Измените или удалите</h6>
+                        <p>Название можно исправить. Удалить можно только тот дефект, который ещё нигде не использовался — если он есть в записях, программа не даст удалить, чтобы не испортить отчёты.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="help-card" id="faq">
+                <h5><i class="bi bi-question-circle"></i> Частые вопросы</h5>
+                <table class="table table-sm help-table mb-0">
+                    <thead class="table-light">
+                    <tr><th style="width: 40%">Вопрос</th><th>Что делать</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Не открывается страница</td>
+                        <td>Проверьте, что адрес набран полностью: <strong>https://devteam7:8082/</strong>. Если браузер предупреждает о сертификате — обратитесь к администратору.</td>
+                    </tr>
+                    <tr>
+                        <td>Забыл пароль</td>
+                        <td>Обратитесь к администратору системы. Восстановить пароль самостоятельно нельзя.</td>
+                    </tr>
+                    <tr>
+                        <td>Не могу войти, пишет «слишком много попыток»</td>
+                        <td>Подождите 15 минут и попробуйте снова. Вводите табельный номер и пароль внимательно.</td>
+                    </tr>
+                    <tr>
+                        <td>Красная надпись при сохранении</td>
+                        <td>Не заполнено обязательное поле — оно подсвечивается. Проверьте также: масса должна быть числом, табельный номер — 4–6 цифр.</td>
+                    </tr>
+                    <tr>
+                        <td>В отчёте всё пусто</td>
+                        <td>Проверьте период: возможно, за выбранные даты записей не было. Также проверьте, выбран ли нужный участок.</td>
+                    </tr>
+                    <tr>
+                        <td>Не нахожу свою запись</td>
+                        <td>Воспользуйтесь фильтрами в журнале или найдите её по дате. Записи выводятся по страницам.</td>
+                    </tr>
+                    <tr>
+                        <td>Случайно удалил запись</td>
+                        <td>Сообщите администратору: все действия записываются в журнал, запись можно восстановить.</td>
+                    </tr>
+                    <tr>
+                        <td>В браузере старый вид графика</td>
+                        <td>Нажмите <strong>Ctrl + F5</strong> — это обновит страницу и загрузит свежую версию.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </main>
+</div>
+
+<script src="/js/password-toggle.js"></script>
+
+</body>
+</html>

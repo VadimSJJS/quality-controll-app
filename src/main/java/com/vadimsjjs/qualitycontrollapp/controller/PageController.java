@@ -96,6 +96,15 @@ public class PageController {
         return "directories/index";
     }
 
+    // Инструкция для пользователей
+    @GetMapping("/help")
+    @PreAuthorize("@roleChecker.canView()")
+    public String help(Model model) {
+        model.addAttribute("currentPage", "help");
+        model.addAttribute("pageTitle", "Инструкция");
+        return "help";
+    }
+
     @GetMapping("/access-denied")
     public String accessDenied(Model model) {
         model.addAttribute("currentPage", "index");

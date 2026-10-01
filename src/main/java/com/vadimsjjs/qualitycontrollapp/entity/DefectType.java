@@ -11,6 +11,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Справочник видов несоответствия (дефектов).
+ * Заполняется пользователями через /directories; новое название, введённое при вводе
+ * продукции, добавляется сюда автоматически.
+ */
 @Entity
 @Table(name = "HLP_DEFECT_TYPE")
 @Getter

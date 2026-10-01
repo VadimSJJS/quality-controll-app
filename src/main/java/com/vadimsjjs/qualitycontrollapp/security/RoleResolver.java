@@ -4,6 +4,10 @@ import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collection;
 
+/**
+ * Определяет, к какой группе относится роль пользователя (администратор, ОТК, ППБ, просмотр).
+ * Группа используется в шаблонах для отображения бейджа и подсветки элементов меню.
+ */
 public final class RoleResolver {
 
     private RoleResolver() {

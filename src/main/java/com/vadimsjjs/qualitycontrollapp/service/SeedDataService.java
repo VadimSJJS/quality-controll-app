@@ -11,6 +11,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * Служебная загрузка демонстрационных данных для проверки отчётов и аналитики.
+ *
+ * <p>Работает только если таблица несоответствующей продукции пуста — иначе ничего не меняет.
+ * Доступна только администратору: POST /api/seed/test-data.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

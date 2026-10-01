@@ -20,6 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
+/**
+ * Импорт данных о несоответствующей продукции из Excel и выгрузка шаблона формы ввода.
+ * Номера колонок соответствуют шаблону из Приложения А.
+ */
 @Service
 @RequiredArgsConstructor
 public class ExcelImportExportService {

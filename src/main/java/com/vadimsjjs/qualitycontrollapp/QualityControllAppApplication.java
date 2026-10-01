@@ -4,6 +4,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.ConfigurableEnvironment;
 
+/**
+ * Точка входа приложения.
+ *
+ * <p>Здесь подключается загрузка переменных из .env и .env.local — она должна выполняться
+ * до создания Spring-контекста, иначе значения из файлов не попадут в настройки.
+ */
 @SpringBootApplication
 public class QualityControllAppApplication {
 

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -50,6 +51,15 @@ public class NonconformingProductResponse {
     private Long operatorPersonalNumber;
     private LocalDate reworkDate;
     private BigDecimal reworkWeightTonnes;
+
+    /** Восстановлено, т. */
+    private BigDecimal restoredWeightTonnes;
+
+    /** Переназначено, т. */
+    private BigDecimal reassignedWeightTonnes;
+
+    /** Неисправимый брак по результатам доработки, т. */
+    private BigDecimal scrappedWeightTonnes;
     private String status;
 
     private Long steelGradeId;
@@ -60,4 +70,7 @@ public class NonconformingProductResponse {
     private String workpieceKey;
     private String steelCordConstruction;
     private Long brigade;
+
+    /** Отдельные действия по доработке: дата, вид, масса, примечание. */
+    private List<ReworkActionResponse> reworkActions;
 }

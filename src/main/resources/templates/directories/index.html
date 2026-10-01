@@ -35,6 +35,9 @@
                 <i class="bi bi-eye-slash"></i>
             </button>
         </div>
+        <a th:href="@{/help}" class="btn-help" title="Инструкция для пользователей" aria-label="Инструкция">
+            <i class="bi bi-question-circle-fill"></i>
+        </a>
         <form th:action="@{/logout}" method="post" class="m-0">
             <button type="submit" class="btn-logout">
                 <i class="bi bi-box-arrow-right"></i> Выйти
@@ -65,6 +68,10 @@
         <div class="nav-divider"></div>
         <a th:href="@{/directories}" class="nav-item active">
             <i class="bi bi-gear"></i> Справочники
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/help}" class="nav-item">
+            <i class="bi bi-question-circle"></i> Инструкция
         </a>
     </aside>
 
@@ -116,7 +123,6 @@
                             <tr>
                                 <th style="width:110px;">Код</th>
                                 <th>Название</th>
-                                <th style="width:160px;">Тип</th>
                                 <th style="width:190px;" th:if="${canEdit or canDelete}">Действия</th>
                             </tr>
                             </thead>
@@ -187,12 +193,6 @@
                     <input type="text" class="form-control" id="defectCode" maxlength="20"
                            placeholder="Если не заполнить — подставится следующий свободный">
                 </div>
-                <div class="form-check mb-2">
-                    <input class="form-check-input" type="checkbox" id="defectReworkable" checked>
-                    <label class="form-check-label small" for="defectReworkable">
-                        Исправимый (если снять — неисправимый брак)
-                    </label>
-                </div>
                 <div class="text-danger small d-none" id="defectFormError"></div>
             </form>
         </div>
@@ -256,17 +256,12 @@
 
         const body = document.getElementById('defectTableBody');
         if (!rows.length) {
-            body.innerHTML = '<tr><td colspan="4" class="text-center text-secondary py-4">'
+            body.innerHTML = '<tr><td colspan="3" class="text-center text-secondary py-4">'
                 + (query ? 'Ничего не найдено' : 'Справочник пуст') + '</td></tr>';
             return;
         }
 
         body.innerHTML = rows.map(function (item) {
-            const reworkable = item.reworkable !== false;
-            const badge = reworkable
-                ? '<span class="badge bg-success">исправимый</span>'
-                : '<span class="badge bg-danger">неисправимый</span>';
-
             let actions = '';
             if (CAN_EDIT || CAN_DELETE) {
                 actions = '<td class="text-nowrap text-end">';
@@ -284,7 +279,6 @@
             return '<tr>'
                 + '<td class="text-secondary">' + escapeHtml(item.defectCode) + '</td>'
                 + '<td>' + escapeHtml(item.defectName) + '</td>'
-                + '<td>' + badge + '</td>'
                 + actions
                 + '</tr>';
         }).join('');
@@ -296,7 +290,6 @@
         document.getElementById('defectId').value = '';
         document.getElementById('defectName').value = '';
         document.getElementById('defectCode').value = '';
-        document.getElementById('defectReworkable').checked = true;
         document.getElementById('defectModalTitle').textContent = 'Новый вид дефекта';
 
         if (id) {
@@ -305,7 +298,6 @@
                 document.getElementById('defectId').value = item.id;
                 document.getElementById('defectName').value = item.defectName || '';
                 document.getElementById('defectCode').value = item.defectCode || '';
-                document.getElementById('defectReworkable').checked = item.reworkable !== false;
                 document.getElementById('defectModalTitle').textContent = 'Изменение вида дефекта';
             }
         }
@@ -322,7 +314,6 @@
         const id = document.getElementById('defectId').value;
         const name = document.getElementById('defectName').value.trim();
         const code = document.getElementById('defectCode').value.trim();
-        const reworkable = document.getElementById('defectReworkable').checked;
         const formError = document.getElementById('defectFormError');
 
         if (!name) {
@@ -331,7 +322,7 @@
             return;
         }
 
-        const payload = {defectName: name, defectCode: code || null, reworkable: reworkable};
+        const payload = {defectName: name, defectCode: code || null};
         try {
             if (id) {
                 await api('PUT', DEFECT_URL + '/' + id, payload);

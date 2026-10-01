@@ -8,6 +8,10 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
+/**
+ * Принудительная кодировка UTF-8 для запросов, ответов и JSON.
+ * Без этого русские тексты в отчётах и сообщения выводятся некорректно.
+ */
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class WebConfig {

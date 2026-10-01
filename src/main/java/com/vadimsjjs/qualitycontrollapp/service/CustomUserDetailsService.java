@@ -14,6 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * Загрузка пользователя Spring Security по табельному номеру из справочника V_PERSONAL_STPC2.
+ *
+ * <p>Если срок действия пользователя истёк (END_DATE) — вход запрещается.
+ * Роль берётся из ROLE_NAME и используется в {@link com.vadimsjjs.qualitycontrollapp.security.RoleChecker}.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

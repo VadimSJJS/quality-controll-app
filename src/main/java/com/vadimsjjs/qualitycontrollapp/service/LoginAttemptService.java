@@ -5,6 +5,11 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Блокировка входа после неудачных попыток: 8 попыток — блокировка на 15 минут.
+ *
+ * <p>Счётчики хранятся в памяти JVM, поэтому после перезапуска приложения блокировки сбрасываются.
+ */
 @Service
 public class LoginAttemptService {
 

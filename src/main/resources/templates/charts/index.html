@@ -39,6 +39,9 @@
                 <i class="bi bi-eye-slash"></i>
             </button>
         </div>
+        <a th:href="@{/help}" class="btn-help" title="Инструкция для пользователей" aria-label="Инструкция">
+            <i class="bi bi-question-circle-fill"></i>
+        </a>
         <form th:action="@{/logout}" method="post" class="m-0">
             <button type="submit" class="btn-logout">
                 <i class="bi bi-box-arrow-right"></i> Выйти
@@ -69,6 +72,10 @@
         <div class="nav-divider"></div>
         <a th:href="@{/directories}" class="nav-item">
             <i class="bi bi-gear"></i> Справочники
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/help}" class="nav-item">
+            <i class="bi bi-question-circle"></i> Инструкция
         </a>
     </aside>
 
@@ -105,7 +112,7 @@
             <div class="report-card mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-semibold mb-0">
-                        <i class="bi bi-bar-chart-line-fill text-warning"></i> Диаграмма Парето — Распределение по видам дефектов
+                        <i class="bi bi-bar-chart-line-fill text-warning"></i> <span id="paretoChartTitle">Диаграмма Парето — Распределение по видам дефектов</span>
                         <span class="text-secondary small fw-normal ms-2">(Рисунок 11)</span>
                     </h6>
                     <div class="d-flex gap-2">
@@ -132,8 +139,18 @@
                         <input type="date" class="form-control form-control-sm" id="paretoDateTo">
                     </div>
                     <div class="col-md-3">
+                        <label class="form-label filter-label">Тип группировки</label>
+                        <select class="form-select form-select-sm" id="paretoGrouping">
+                            <option value="defect">По видам дефектов</option>
+                            <option value="cause">По причинам</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <button class="btn btn-primary btn-sm" onclick="loadParetoReport()">
                             <i class="bi bi-search"></i> Применить
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="exportParetoExcel()">
+                            <i class="bi bi-file-earmark-excel"></i> Excel
                         </button>
                     </div>
                 </div>
@@ -474,12 +491,103 @@
                             </tbody>
                         </table>
                     </div>
+<script>
+    let distributionChart = null;
+
+    function distributionQuery() {
+        const from = document.getElementById('distributionDateFrom').value;
+        const to = document.getElementById('distributionDateTo').value;
+        if (!from || !to) {
+            alert('Пожалуйста, выберите период');
+            return null;
+        }
+        return `dimension=${document.getElementById('distributionDimension').value}&dateFrom=${from}&dateTo=${to}`;
+    }
+
+    function loadDistributionReport() {
+        const query = distributionQuery();
+        if (!query) return;
+        const body = document.getElementById('distributionTableBody');
+        body.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">Загрузка данных...</td></tr>';
+        fetch(`/api/reports/distribution?${query}`)
+            .then(response => { if (!response.ok) throw new Error('Ошибка загрузки данных'); return response.json(); })
+            .then(data => renderDistribution(data))
+            .catch(error => { body.innerHTML = `<tr><td colspan="3" class="text-danger">${error.message}</td></tr>`; });
+    }
+
+    function renderDistribution(data) {
+        const header = document.getElementById('distributionTableHeader');
+        const body = document.getElementById('distributionTableBody');
+        const foot = document.getElementById('distributionTableFoot');
+        const label = data.dimension === 'brigade' ? 'Бригада' : 'Оборудование';
+        header.innerHTML = `<th>${label}</th>${data.defectTypes.map(t => `<th class="text-end">${t}</th>`).join('')}<th class="text-end">Итого, т</th>`;
+        if (!data.rows || data.rows.length === 0) {
+            body.innerHTML = `<tr><td colspan="${data.defectTypes.length + 2}" class="text-center text-secondary py-3">Нет данных за выбранный период</td></tr>`;
+            foot.innerHTML = '';
+        } else {
+            body.innerHTML = data.rows.map(row => `<tr><td>${row.key}</td>${data.defectTypes.map(t => `<td class="text-end">${Number(row.byDefect[t] || 0).toFixed(3)}</td>`).join('')}<td class="text-end fw-bold">${Number(row.total || 0).toFixed(3)}</td></tr>`).join('');
+            foot.innerHTML = `<tr class="fw-bold"><td>Итого</td>${data.defectTypes.map(t => `<td class="text-end">${Number(data.rows.reduce((s, r) => s + Number(r.byDefect[t] || 0), 0)).toFixed(3)}</td>`).join('')}<td class="text-end">${Number(data.totalWeight || 0).toFixed(3)}</td></tr>`;
+        }
+        if (distributionChart) distributionChart.destroy();
+        distributionChart = new Chart(document.getElementById('distributionChart'), {
+            type: 'bar',
+            data: { labels: data.rows.map(r => r.key), datasets: data.defectTypes.map(t => ({ label: t, data: data.rows.map(r => Number(r.byDefect[t] || 0)), backgroundColor: '#4f81bd' })) },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true, title: { display: true, text: label } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Масса, т' } } }, plugins: { legend: { position: 'bottom' } } }
+        });
+    }
+
+    function exportDistributionExcel() {
+        const query = distributionQuery();
+        if (query) window.location.href = `/api/reports/export/excel/distribution?${query}`;
+    }
+
+    function exportParetoExcel() {
+        const site = document.getElementById('paretoSite').value;
+        if (!site) { alert('Выберите участок'); return; }
+        const from = document.getElementById('paretoDateFrom').value;
+        const to = document.getElementById('paretoDateTo').value;
+        const grouping = document.getElementById('paretoGrouping').value;
+        if (!from || !to) { alert('Выберите период'); return; }
+        window.location.href = `/api/reports/export/excel/pareto?siteCode=${encodeURIComponent(site)}&groupingType=${encodeURIComponent(grouping)}&dateFrom=${from}&dateTo=${to}`;
+    }
+</script>
+
+
                 </div>
             </div>
 
-        </div>
+            <div class="report-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-semibold mb-0">
+                        <i class="bi bi-diagram-3-fill text-primary"></i> Распределение по оборудованию и бригадам
+                        <span class="text-secondary small fw-normal ms-2">(Рисунки 9–10)</span>
+                    </h6>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="distributionDimension" style="width: 220px">
+                            <option value="equipment">По оборудованию</option>
+                            <option value="brigade">По бригадам</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadDistributionReport()">Применить</button>
+                        <button class="btn btn-outline-success btn-sm" onclick="exportDistributionExcel()">Excel</button>
+                    </div>
+                </div>
+                <div class="row g-3 align-items-end mb-3">
+                    <div class="col-md-3"><label class="form-label filter-label">Дата с</label><input type="date" class="form-control form-control-sm" id="distributionDateFrom"></div>
+                    <div class="col-md-3"><label class="form-label filter-label">Дата по</label><input type="date" class="form-control form-control-sm" id="distributionDateTo"></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover" id="distributionTable">
+                        <thead class="table-light"><tr id="distributionTableHeader"></tr></thead>
+                        <tbody id="distributionTableBody"><tr><td colspan="3" class="text-center text-secondary">Загрузка данных...</td></tr></tbody>
+                        <tfoot id="distributionTableFoot"></tfoot>
+                    </table>
+                </div>
+                <div class="mt-3" style="height: 420px"><canvas id="distributionChart"></canvas></div>
+            </div>
 
+        </div>
     </main>
+
 </div>
 
 <script src="/js/password-toggle.js"></script>
@@ -902,6 +1010,10 @@
 
     function loadParetoReport() {
         const siteCode = document.getElementById('paretoSite').value;
+        const groupingType = document.getElementById('paretoGrouping').value;
+        document.getElementById('paretoChartTitle').textContent = groupingType === 'cause'
+            ? 'Диаграмма Парето — Распределение по причинам'
+            : 'Диаграмма Парето — Распределение по видам дефектов';
         const dateFrom = document.getElementById('paretoDateFrom').value;
         const dateTo = document.getElementById('paretoDateTo').value;
 
@@ -915,7 +1027,7 @@
             return;
         }
 
-        const url = `/api/reports/pareto?siteCode=${encodeURIComponent(siteCode)}&groupingType=defect&dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        const url = `/api/reports/pareto?siteCode=${encodeURIComponent(siteCode)}&groupingType=${encodeURIComponent(groupingType)}&dateFrom=${dateFrom}&dateTo=${dateTo}`;
         console.log('📊 Запрос Парето:', url);
         console.log('   Участок:', siteCode);
         console.log('   Период:', dateFrom, '—', dateTo);
@@ -1156,7 +1268,10 @@
         
         document.getElementById('paretoDateFrom').value = formatDateInput(firstDay);
         document.getElementById('paretoDateTo').value = formatDateInput(today);
+        document.getElementById('distributionDateFrom').value = formatDateInput(firstDay);
+        document.getElementById('distributionDateTo').value = formatDateInput(today);
         loadParetoSites();
+        loadDistributionReport();
     });
 </script>
 

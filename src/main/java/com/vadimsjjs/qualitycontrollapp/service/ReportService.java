@@ -1,5 +1,7 @@
 package com.vadimsjjs.qualitycontrollapp.service;
 
+import com.vadimsjjs.qualitycontrollapp.dto.DistributionReport;
+
 import com.vadimsjjs.qualitycontrollapp.dto.DefectFilterDto;
 import com.vadimsjjs.qualitycontrollapp.dto.EquipmentDefectReport;
 import com.vadimsjjs.qualitycontrollapp.dto.ParetoReport;
@@ -21,10 +23,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.function.Function;
+
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Ключевые расчёты и выборки для аналитики и отчётов.
+ *
+ * <p>Все данные берутся из таблицы несоответствующей продукции через {@code findDefects()},
+ * который применяет общий набор фильтров из ТЗ (даты, участок, дефект, причина, диаметр и т.д.).
+ *
+ * <p>Уровень несоответствующей продукции считается по формуле Приложения Б ТЗ:
+ * ПНПц = НΣ / ПΣ × 100 %, где НΣ — масса несоответствующей продукции, т,
+ * ПΣ — производство за тот же период.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,10 +52,13 @@ public class ReportService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
+    /** Допустимый уровень несоответствующей продукции по цеху, % (Приложение А, Рис. 8). */
     private static final BigDecimal PLANT_ALLOWABLE_TOTAL = new BigDecimal("0.55");
 
+    /** Допустимый уровень неисправимой (брака) продукции по цеху, %. */
     private static final BigDecimal PLANT_ALLOWABLE_IRREPARABLE_TOTAL = new BigDecimal("0.04");
 
+    /** Допустимый уровень неисправимой продукции по участкам, %. */
     private static final Map<String, BigDecimal> SITE_ALLOWABLE_IRREPARABLE = Map.of(
             "ГСВ", new BigDecimal("0.00"),
             "ТТГУ", new BigDecimal("0.01"),
@@ -56,6 +73,11 @@ public class ReportService {
                 .orElseThrow(() -> new IllegalArgumentException("Участок с кодом '" + siteCode + "' не найден"));
     }
 
+    /**
+     * Единая точка выборки записей для всех отчётов.
+     *
+     * @param forcedSiteId участок, заданный параметром отчёта (иначе берётся из фильтра)
+     */
     private List<NonconformingProduct> findDefects(DefectFilterDto filter, Long forcedSiteId) {
         Long siteId = forcedSiteId != null ? forcedSiteId : filter.getProductionSiteId();
         return nonconformingRepository.findWithFilter(
@@ -1150,6 +1172,12 @@ public class ReportService {
                 .build();
     }
 
+    /**
+     * Диаграмма Парето по видам дефектов или по причинам.
+     * Сортировка — по убыванию массы, дополнительно считается накопительный процент.
+     *
+     * @param groupingType {@code defect} — по видам дефектов, иначе — по причинам
+     */
     @Transactional(readOnly = true)
     public ParetoReport getParetoReport(String siteCode, String groupingType,
                                         DefectFilterDto filter) {
@@ -1226,5 +1254,84 @@ public class ReportService {
                 .items(items)
                 .totalWeight(totalWeight)
                 .build();
+    }
+
+    /**
+     * Распределение массы несоответствующей продукции по оборудованию или бригадам
+     * с разбивкой по видам дефектов (Приложение А, Рис. 9 и Рис. 10).
+     *
+     * @param dimension {@code equipment} — по оборудованию, {@code brigade} — по бригадам
+     */
+    @Transactional(readOnly = true)
+    public DistributionReport getDistributionReport(String dimension, DefectFilterDto filter) {
+        if (!"equipment".equals(dimension) && !"brigade".equals(dimension)) {
+            throw new IllegalArgumentException("Поддерживаются только группировки equipment и brigade");
+        }
+        if (filter.getDateFrom() == null || filter.getDateTo() == null) {
+            throw new IllegalArgumentException("Укажите период отчёта");
+        }
+
+        List<NonconformingProduct> defects = findDefects(filter, null).stream()
+                .filter(d -> d.getDefectType() != null)
+                .filter(d -> "equipment".equals(dimension)
+                        ? d.getEquipmentKey() != null && !d.getEquipmentKey().isBlank()
+                        : d.getManufacturerBrigade() != null)
+                .toList();
+
+        List<String> defectTypes = defects.stream()
+                .map(d -> d.getDefectType().getDefectName())
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+
+        Function<NonconformingProduct, String> keyExtractor = "equipment".equals(dimension)
+                ? NonconformingProduct::getEquipmentKey
+                : d -> String.valueOf(d.getManufacturerBrigade());
+
+        Map<String, List<NonconformingProduct>> groups = defects.stream()
+                .collect(Collectors.groupingBy(keyExtractor));
+
+        Comparator<String> keyComparator = (left, right) -> {
+            long leftNumber = parseSortNumber(left);
+            long rightNumber = parseSortNumber(right);
+            int numeric = Long.compare(leftNumber, rightNumber);
+            return numeric != 0 ? numeric : left.compareToIgnoreCase(right);
+        };
+
+        List<DistributionReport.Row> rows = groups.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(keyComparator))
+                .map(entry -> {
+                    Map<String, BigDecimal> byDefect = entry.getValue().stream()
+                            .collect(Collectors.groupingBy(
+                                    d -> d.getDefectType().getDefectName(),
+                                    Collectors.reducing(BigDecimal.ZERO,
+                                            NonconformingProduct::getWeightTonnes,
+                                            BigDecimal::add)));
+                    defectTypes.forEach(type -> byDefect.putIfAbsent(type, BigDecimal.ZERO));
+                    return DistributionReport.Row.builder()
+                            .key(entry.getKey())
+                            .total(sumWeight(entry.getValue()))
+                            .byDefect(byDefect)
+                            .build();
+                })
+                .toList();
+
+        return DistributionReport.builder()
+                .dimension(dimension)
+                .periodFrom(filter.getDateFrom().format(DATE_FORMATTER))
+                .periodTo(filter.getDateTo().format(DATE_FORMATTER))
+                .defectTypes(defectTypes)
+                .rows(rows)
+                .totalWeight(sumWeight(defects))
+                .build();
+    }
+
+    private long parseSortNumber(String value) {
+        try {
+            return Long.parseLong(value);
+        } catch (NumberFormatException ignored) {
+            return Long.MAX_VALUE;
+        }
     }
 }

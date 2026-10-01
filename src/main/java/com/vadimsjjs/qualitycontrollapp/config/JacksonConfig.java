@@ -11,6 +11,9 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Настройка JSON: даты в формате ISO-8601 (а не timestamp), ответы в UTF-8.
+ */
 @Configuration
 public class JacksonConfig {
 

@@ -13,6 +13,10 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
+/**
+ * Справочник производственных участков. ALLOWABLE_DEFECT_PERCENT — допустимый
+ * уровень несоответствующей продукции по участку, % от произведённого.
+ */
 @Entity
 @Table(name = "HLP_PRODUCTION_SITE")
 @Getter

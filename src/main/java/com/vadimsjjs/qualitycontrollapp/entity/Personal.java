@@ -11,6 +11,12 @@ import org.hibernate.annotations.Immutable;
 
 import java.time.LocalDate;
 
+/**
+ * Персонал СтПЦ-2 из представления V_PERSONAL_STPC2 (программа «Персонал»).
+ *
+ * <p>Только чтение: {@code @Immutable} запрещает изменять записи этого справочника из приложения.
+ * Роль (ROLE_NAME) и пароль берутся отсюда при входе пользователя.
+ */
 @Entity
 @Immutable
 @Table(name = "V_PERSONAL_STPC2")

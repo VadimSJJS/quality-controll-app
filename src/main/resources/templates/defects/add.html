@@ -37,6 +37,9 @@
                 <i class="bi bi-eye-slash"></i>
             </button>
         </div>
+        <a th:href="@{/help}" class="btn-help" title="Инструкция для пользователей" aria-label="Инструкция">
+            <i class="bi bi-question-circle-fill"></i>
+        </a>
         <form th:action="@{/logout}" method="post" class="m-0">
             <button type="submit" class="btn-logout">
                 <i class="bi bi-box-arrow-right"></i> Выйти
@@ -70,6 +73,10 @@
         <div class="nav-divider"></div>
         <a th:href="@{/directories}" class="nav-item">
             <i class="bi bi-gear"></i> Справочники
+        </a>
+        <div class="nav-divider"></div>
+        <a th:href="@{/help}" class="nav-item">
+            <i class="bi bi-question-circle"></i> Инструкция
         </a>
     </aside>
 
@@ -113,6 +120,12 @@
                 <div class="card-body">
                     <form id="defectForm">
 
+                        <div class="alert alert-success d-none" id="lastSavedId" role="alert">
+                            <i class="bi bi-check-circle"></i>
+                            Запись сохранена. Участок <span></span> остаётся выбранным — введите следующую катушку
+                            или нажмите «Сменить участок».
+                        </div>
+
                         <input type="hidden" id="defectId" th:value="${defectId}">
                         <input type="hidden" id="isEdit" th:value="${isEdit}">
 
@@ -124,6 +137,9 @@
                                 <select class="form-select" id="productionSiteId" required>
                                     <option value="">Выберите участок</option>
                                 </select>
+                                <button type="button" class="btn btn-link btn-sm p-0 mt-1 d-none" id="changeSiteBtn">
+                                    <i class="bi bi-arrow-repeat"></i> Сменить участок
+                                </button>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="detectionDate" style="display:block;">
@@ -139,11 +155,6 @@
                                        placeholder="Начните вводить или выберите">
                                 <datalist id="defectTypeSuggestions"></datalist>
                                 <div class="form-text">Подсказки появляются при вводе. Нет нужного? Впишите своё название — оно добавится в справочник.</div>
-                            </div>
-
-                            <div class="col-md-3 dynamic-field" data-field="brigade" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Номер бригады</label>
-                                <input type="number" class="form-control" id="brigade" placeholder="1-4">
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="diameter" style="display:none;">
@@ -186,10 +197,13 @@
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="operatorPersonalNumber" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Оператор</label>
-                                <input type="text" class="form-control" id="operatorPersonalNumberDisplay"
-                                       th:value="${personalNo}" readonly disabled style="background:#f1f5f9;">
-                                <div class="form-text text-secondary small">Автоматически из учётной записи</div>
+                                <label class="form-label fw-semibold small text-secondary">Табельный номер оператора</label>
+                                <input type="text" class="form-control" id="operatorPersonalNumber"
+                                       inputmode="numeric" pattern="\d{4,6}" maxlength="6"
+                                       autocomplete="off" placeholder="От 4 до 6 цифр">
+                                <div class="invalid-feedback d-none" id="operatorPersonalNumberError">
+                                    Табельный номер должен содержать от 4 до 6 цифр
+                                </div>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="manufacturerBrigade" style="display:none;">
@@ -203,31 +217,25 @@
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="weightTonnes" style="display:block;">
-                                <label class="form-label fw-semibold small text-secondary">Масса (т) <span class="text-danger">*</span></label>
+                                <label class="form-label fw-semibold small text-secondary">Задержано, т <span class="text-danger">*</span></label>
                                 <input type="number" step="0.001" class="form-control" id="weightTonnes" placeholder="0.000" required>
-                            </div>
-
-                            <div class="col-md-3 dynamic-field" data-field="defectCategory" style="display:none;">
-                                <label class="form-label fw-semibold small text-secondary">Вид несоответствия <span class="text-danger">*</span></label>
-                                <select class="form-select" id="defectCategory">
-                                    <option value="">Выберите вид</option>
-                                    <option value="REPAIRABLE">Исправимое</option>
-                                    <option value="IRREPARABLE">Неисправимое (Брак)</option>
-                                </select>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="defectCause" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Причина</label>
-                                <select class="form-select" id="defectCauseId">
-                                    <option value="">—</option>
-                                </select>
+                                <input type="text" class="form-control" id="defectCauseName"
+                                       list="defectCauseSuggestions" autocomplete="off"
+                                       placeholder="Выберите или впишите">
+                                <datalist id="defectCauseSuggestions"></datalist>
+                                <div class="form-text">Нет нужной? Впишите своё — добавится в справочник.</div>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="defectSubcause" style="display:none;">
                                 <label class="form-label fw-semibold small text-secondary">Подпричина</label>
-                                <select class="form-select" id="defectSubcauseId">
-                                    <option value="">—</option>
-                                </select>
+                                <input type="text" class="form-control" id="defectSubcauseName"
+                                       list="defectSubcauseSuggestions" autocomplete="off"
+                                       placeholder="Сначала выберите причину">
+                                <datalist id="defectSubcauseSuggestions"></datalist>
                             </div>
 
                             <div class="col-md-3 dynamic-field" data-field="detectionSource" style="display:block;">
@@ -270,6 +278,21 @@
                                     <input type="date" class="form-control" id="reworkDate">
                                 </div>
 
+                                <div class="col-md-3 dynamic-field" data-field="restoredWeightTonnes">
+                                    <label class="form-label">Восстановлено (т)</label>
+                                    <input type="number" step="0.001" min="0" class="form-control" id="restoredWeightTonnes" placeholder="0.000">
+                                </div>
+
+                                <div class="col-md-3 dynamic-field" data-field="reassignedWeightTonnes">
+                                    <label class="form-label">Переназначено (т)</label>
+                                    <input type="number" step="0.001" min="0" class="form-control" id="reassignedWeightTonnes" placeholder="0.000">
+                                </div>
+
+                                <div class="col-md-3 dynamic-field" data-field="scrappedWeightTonnes">
+                                    <label class="form-label">Брак, неисправимо (т)</label>
+                                    <input type="number" step="0.001" min="0" class="form-control" id="scrappedWeightTonnes" placeholder="0.000">
+                                </div>
+
                                 <div class="col-md-3 dynamic-field" data-field="reworkType">
                                     <label class="form-label">Вид доработки</label>
                                     <select class="form-select" id="reworkTypeId">
@@ -277,27 +300,59 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-3 dynamic-field" data-field="reworkQuantity">
-                                    <label class="form-label">Количество доработки (шт)</label>
-                                    <input type="number" class="form-control" id="reworkQuantity" placeholder="0">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="reworkWeightTonnes">
-                                    <label class="form-label">Масса доработки (т)</label>
-                                    <input type="number" step="0.001" class="form-control" id="reworkWeightTonnes" placeholder="0.000">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="irreparableWeightTonnes" style="display:none;">
-                                    <label class="form-label">Масса неисправимого брака (т)</label>
-                                    <input type="number" step="0.001" class="form-control" id="irreparableWeightTonnes" placeholder="0.000">
+                                <div class="col-12">
+                                    <div class="form-text" style="color:#0a6; font-size:14px;">
+                                        Задержанную продукцию распределите по трём полям: сколько восстановлено,
+                                        сколько переназначено и сколько ушло в неисправимый брак.
+                                        Сумма трёх полей не должна превышать массу «Задержано, т».
+                                    </div>
+                                    <div class="form-text" id="reworkSumHint" style="color:#c00;"></div>
                                 </div>
 
                                 <div class="col-md-3 dynamic-field" data-field="note">
                                     <label class="form-label">Примечание</label>
-                                    <input type="text" class="form-control" id="note" placeholder="Дополнительная информация">
+                                    <input type="text" class="form-control" id="note" placeholder="Дополнительная информания">
                                 </div>
 
                             </div>
+
+                            <hr class="my-3">
+
+                            <h6 class="fw-semibold text-success mb-2">
+                                <i class="bi bi-list-check"></i> Действия по доработке
+                            </h6>
+                            <p class="text-muted small mb-2">
+                                Каждое действие — отдельная строка: что сделано, когда и сколько.
+                                Так видна вся история доработки: восстановили часть, позже переназначили другую,
+                                    затем списали остаток в брак. Сумма действий не должна превышать массу «Задержано, т».
+                            </p>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle" id="reworkActionsTable">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 150px;">Дата</th>
+                                            <th style="width: 260px;">Вид доработки</th>
+                                            <th style="width: 140px;">Количество, т</th>
+                                            <th>Примечание</th>
+                                            <th style="width: 60px;"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reworkActionsBody"></tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <th colspan="2">Итого по действиям</th>
+                                            <th id="reworkActionsTotal">0.000</th>
+                                            <th colspan="2"></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-success btn-sm" id="addReworkActionBtn">
+                                <i class="bi bi-plus-circle"></i> Добавить действие
+                            </button>
+                            <div class="form-text" id="reworkActionsHint" style="color:#c00;"></div>
                         </div>
 
                         <div class="mt-4 pt-3 border-top">
@@ -338,7 +393,7 @@
             hide: [
                 'brigade', 'diameter', 'productCode', 'reelNumber', 'unitNumber',
                 'workpieceKey', 'operatorPersonalNumber', 'manufacturerBrigade',
-                'defectCause', 'defectSubcause', 'defectCategory', 'steelCordConstruction',
+                'defectCause', 'defectSubcause', 'steelCordConstruction',
                 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -358,7 +413,7 @@
             ],
             hide: [
                 'diameter', 'productCode', 'reelNumber', 'unitNumber', 'workpieceKey',
-                'operatorPersonalNumber', 'manufacturerBrigade', 'defectCategory',
+                'operatorPersonalNumber', 'manufacturerBrigade',
                 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -379,7 +434,7 @@
                 'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey', 'defectCategory',
+                'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
                 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -400,7 +455,7 @@
                 'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
             ],
             hide: [
-                'manufacturerWorkshop', 'bundleNumber', 'unitNumber', 'defectCategory',
+                'manufacturerWorkshop', 'bundleNumber', 'unitNumber',
                 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -422,7 +477,7 @@
             ],
             hide: [
                 'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
@@ -443,7 +498,7 @@
             ],
             hide: [
                 'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
-                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
@@ -465,7 +520,7 @@
             ],
             hide: [
                 'steelGradeId', 'unitNumber', 'manufacturerWorkshop', 'bundleNumber',
-                'defectCategory', 'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
+                'steelCordConstruction', 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
         },
@@ -486,7 +541,7 @@
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey', 'defectCategory',
+                'bundleNumber', 'workpieceKey',
                 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -508,7 +563,7 @@
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
-                'bundleNumber', 'workpieceKey', 'defectCategory',
+                'bundleNumber', 'workpieceKey',
                 'equipmentKey', 'irreparableWeightTonnes'
             ],
             showRework: true
@@ -568,11 +623,17 @@
             } else {
                 container.style.display = 'none';
                 const input = field.querySelector('input, select');
-                if (input && input.id !== 'operatorPersonalNumberDisplay') {
+                if (input) {
                     if (input.tagName === 'SELECT') {
                         input.selectedIndex = 0;
                     } else {
                         input.value = '';
+                    }
+                    // сбрасываем подсветку ошибки валидации
+                    input.classList.remove('is-invalid');
+                    const feedback = field.querySelector('.invalid-feedback');
+                    if (feedback) {
+                        feedback.classList.add('d-none');
                     }
                 }
             }
@@ -665,7 +726,6 @@
             types.forEach(t => {
                 const opt = document.createElement('option');
                 opt.value = t.defectName;
-                opt.label = t.reworkable === false ? 'неисправимый' : 'исправимый';
                 typeList.appendChild(opt);
             });
             typeInput.addEventListener('input', () => {
@@ -693,14 +753,7 @@
             });
 
             const causes = await fetchJson('/directories/defect-causes', 'Ошибка загрузки причин');
-            const causeSelect = document.getElementById('defectCauseId');
-            causeSelect.innerHTML = '<option value="">—</option>';
-            causes.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.causeName;
-                causeSelect.appendChild(opt);
-            });
+            fillSuggestions('defectCauseSuggestions', causes, c => c.causeName);
 
             await loadSteelGrades();
 
@@ -719,29 +772,214 @@
         }
     }
 
-    async function loadSubcauses(causeId, selectedId) {
-        const subcauseSelect = document.getElementById('defectSubcauseId');
-        subcauseSelect.innerHTML = '<option value="">—</option>';
+    /** Возвращает число из поля или null, если поле пустое. */
+    function numOrNull(id) {
+        const raw = document.getElementById(id).value;
+        return raw === '' || raw === null ? null : parseFloat(raw);
+    }
 
-        if (!causeId) return;
+    /** Идентификаторы полей, которые очищаем после сохранения (участок и дата остаются). */
+    const ENTRY_FIELD_IDS = [
+        'detectionSourceId', 'weightTonnes', 'defectTypeName', 'defectCauseName', 'defectSubcauseName',
+        'quantity', 'productCode', 'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
+        'workpieceKey', 'manufacturerBrigade', 'manufacturerWorkshop', 'bundleNumber',
+        'steelCordConstruction', 'equipmentKey', 'operatorPersonalNumber', 'note',
+        'reworkDate', 'restoredWeightTonnes', 'reassignedWeightTonnes', 'scrappedWeightTonnes'
+    ];
+
+    /**
+     * Очищает форму после сохранения, оставляя выбранный участок.
+     * Нужно для ввода нескольких единиц продукции подряд без повторного выбора участка.
+     */
+    function resetFormForNextEntry() {
+        ENTRY_FIELD_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        const body = document.getElementById('reworkActionsBody');
+        if (body) body.innerHTML = '';
+        const siteCode = document.getElementById('productionSiteId').value;
+        document.getElementById('detectionDate').value = new Date().toISOString().split('T')[0];
+        updateReworkSumHint();
+        updateReworkActionsTotal();
+        window.scrollTo({top: 0, behavior: 'smooth'});
+
+        const savedId = document.getElementById('lastSavedId');
+        if (savedId) {
+            savedId.classList.remove('d-none');
+            savedId.querySelector('span').textContent = siteCode;
+        }
+    }
+
+    /** Снимает выбор участка, чтобы можно было перейти на другой участок. */
+    function changeProductionSite() {
+        const siteSelect = document.getElementById('productionSiteId');
+        siteSelect.value = '';
+        localStorage.removeItem('lastProductionSite');
+        updateFields('');
+        document.getElementById('reworkBlock').style.display = 'none';
+        const saved = document.getElementById('lastSavedId');
+        if (saved) saved.classList.add('d-none');
+    }
+
+    const REWORK_TYPE_OPTIONS = [
+        {value: 1, label: 'Восстановлено'},
+        {value: 2, label: 'Переназначено'},
+        {value: 3, label: 'Несоответствующая неисправимая (брак)'}
+    ];
+
+    /** Добавляет пустую строку действия по доработке. */
+    function addReworkActionRow(action) {
+        const body = document.getElementById('reworkActionsBody');
+        if (!body) return;
+        const tr = document.createElement('tr');
+
+        const tdDate = document.createElement('td');
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.className = 'form-control form-control-sm';
+        dateInput.value = (action && action.actionDate) ? action.actionDate : new Date().toISOString().split('T')[0];
+        tdDate.appendChild(dateInput);
+
+        const tdType = document.createElement('td');
+        const typeSelect = document.createElement('select');
+        typeSelect.className = 'form-select form-select-sm';
+        REWORK_TYPE_OPTIONS.forEach(o => {
+            const opt = document.createElement('option');
+            opt.value = o.value;
+            opt.textContent = o.label;
+            typeSelect.appendChild(opt);
+        });
+        typeSelect.value = (action && action.actionType) ? String(action.actionType) : '1';
+        tdType.appendChild(typeSelect);
+
+        const tdWeight = document.createElement('td');
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.step = '0.001';
+        weightInput.min = '0';
+        weightInput.className = 'form-control form-control-sm';
+        weightInput.placeholder = '0.000';
+        if (action && action.weightTonnes != null) weightInput.value = action.weightTonnes;
+        weightInput.addEventListener('input', updateReworkActionsTotal);
+        tdWeight.appendChild(weightInput);
+
+        const tdNote = document.createElement('td');
+        const noteInput = document.createElement('input');
+        noteInput.type = 'text';
+        noteInput.className = 'form-control form-control-sm';
+        noteInput.placeholder = 'Примечание';
+        if (action && action.note) noteInput.value = action.note;
+        tdNote.appendChild(noteInput);
+
+        const tdDel = document.createElement('td');
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'btn btn-sm btn-outline-danger';
+        delBtn.title = 'Удалить строку';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', function() {
+            tr.remove();
+            updateReworkActionsTotal();
+        });
+        tdDel.appendChild(delBtn);
+
+        tr.append(tdDate, tdType, tdWeight, tdNote, tdDel);
+        body.appendChild(tr);
+        updateReworkActionsTotal();
+    }
+
+    /** Сумма масс по строкам действий и проверка, что она не больше задержанной. */
+    function updateReworkActionsTotal() {
+        const body = document.getElementById('reworkActionsBody');
+        const hint = document.getElementById('reworkActionsHint');
+        if (!body) return;
+        let total = 0;
+        body.querySelectorAll('tr').forEach(tr => {
+            const input = tr.querySelector('input[type=number]');
+            if (input && input.value !== '') total += parseFloat(input.value) || 0;
+        });
+        const totalCell = document.getElementById('reworkActionsTotal');
+        if (totalCell) totalCell.textContent = total.toFixed(3);
+
+        if (hint) {
+            const held = parseFloat(document.getElementById('weightTonnes').value) || 0;
+            if (total > held + 0.0001) {
+                hint.textContent = 'Сумма действий (' + total.toFixed(3) + ' т) больше, чем задержано (' + held.toFixed(3) + ' т)';
+            } else if (total > 0) {
+                hint.textContent = 'Распределено по действиям ' + total.toFixed(3) + ' т из ' + held.toFixed(3) + ' т. '
+                    + (held - total > 0.0001 ? 'Осталось: ' + (held - total).toFixed(3) + ' т' : 'Задержанный объём распределён полностью');
+            } else {
+                hint.textContent = '';
+            }
+        }
+    }
+
+    /** Собирает строки действий по доработке для отправки на сервер. */
+    function collectReworkActions() {
+        const body = document.getElementById('reworkActionsBody');
+        if (!body) return [];
+        const actions = [];
+        body.querySelectorAll('tr').forEach(tr => {
+            const date = tr.querySelector('input[type=date]').value;
+            const type = parseInt(tr.querySelector('select').value, 10);
+            const weightRaw = tr.querySelector('input[type=number]').value;
+            const note = tr.querySelectorAll('input[type=text]')[0];
+            const weight = weightRaw === '' ? null : parseFloat(weightRaw);
+            if (!date || weight == null || weight <= 0) return;
+            actions.push({actionDate: date, actionType: type, weightTonnes: weight, note: note ? (note.value || null) : null});
+        });
+        return actions;
+    }
+
+    /** Показывает под полями доработки, сколько тонн распределено и сколько осталось. */
+    function updateReworkSumHint() {
+        const hint = document.getElementById('reworkSumHint');
+        if (!hint) return;
+        const restored = numOrNull('restoredWeightTonnes') || 0;
+        const reassigned = numOrNull('reassignedWeightTonnes') || 0;
+        const scrapped = numOrNull('scrappedWeightTonnes') || 0;
+        const held = numOrNull('weightTonnes') || 0;
+        const sum = restored + reassigned + scrapped;
+        if (sum === 0) {
+            hint.textContent = '';
+            return;
+        }
+        const rest = held - sum;
+        hint.textContent = 'Распределено ' + sum.toFixed(3) + ' т из ' + held.toFixed(3) + ' т. '
+            + (rest > 0.0001
+                ? 'Осталось нераспределёнными: ' + rest.toFixed(3) + ' т'
+                : 'Превышение: ' + Math.abs(rest).toFixed(3) + ' т');
+    }
+
+    /** Заполняет datalist подсказками значениями справочника. */
+    function fillSuggestions(listId, items, nameOf) {
+        const list = document.getElementById(listId);
+        list.innerHTML = '';
+        items.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = nameOf(item);
+            list.appendChild(opt);
+        });
+    }
+
+    /** Подгружает подпричины выбранной причины в datalist подсказок. */
+    async function loadSubcauses(causeName) {
+        const subInput = document.getElementById('defectSubcauseName');
+        const list = document.getElementById('defectSubcauseSuggestions');
+        subInput.value = '';
+        subInput.placeholder = causeName ? 'Выберите или впишите' : 'Сначала выберите причину';
+        list.innerHTML = '';
+        if (!causeName) return;
 
         try {
-            const subcauses = await fetchJson(`/directories/defect-causes/${causeId}/subcauses`, 'Ошибка загрузки подпричин');
-            subcauses.forEach(sub => {
-                const opt = document.createElement('option');
-                opt.value = sub.id;
-                opt.textContent = sub.causeName;
-                if (selectedId && sub.id == selectedId) {
-                    opt.selected = true;
-                }
-                subcauseSelect.appendChild(opt);
-            });
-            if (subcauses.length === 0) {
-                subcauseSelect.innerHTML = '<option value="">— (нет подпричин)</option>';
-            }
+            const all = await fetchJson('/directories/defect-causes', 'Ошибка загрузки подпричин');
+            const parent = all.find(c => (c.causeName || '').toLowerCase() === causeName.toLowerCase());
+            if (!parent) return;
+            const subcauses = await fetchJson(`/directories/defect-causes/${parent.id}/subcauses`, 'Ошибка загрузки подпричин');
+            fillSuggestions('defectSubcauseSuggestions', subcauses, s => s.causeName);
         } catch (error) {
             console.error('Ошибка загрузки подпричин:', error);
-            subcauseSelect.innerHTML = '<option value="">— (ошибка загрузки)</option>';
         }
     }
 
@@ -758,15 +996,19 @@
             document.getElementById('productionSiteId').value = data.productionSiteId || '';
             document.getElementById('defectTypeName').value = data.defectTypeName || '';
             document.getElementById('detectionSourceId').value = data.detectionSourceId || '';
-            document.getElementById('defectCauseId').value = data.defectCauseId || '';
+            document.getElementById('defectCauseName').value = data.defectCauseName || '';
             document.getElementById('reworkTypeId').value = data.reworkTypeId || '';
             document.getElementById('reworkDate').value = data.reworkDate || '';
-            document.getElementById('reworkWeightTonnes').value = data.reworkWeightTonnes || '';
-            document.getElementById('irreparableWeightTonnes').value = data.irreparableWeightTonnes || '';
+            document.getElementById('restoredWeightTonnes').value = data.restoredWeightTonnes ?? '';
+            document.getElementById('reassignedWeightTonnes').value = data.reassignedWeightTonnes ?? '';
+            document.getElementById('scrappedWeightTonnes').value = data.scrappedWeightTonnes ?? '';
             document.getElementById('equipmentKey').value = data.equipmentKey || '';
-            document.getElementById('operatorPersonalNumberDisplay').value = data.operatorPersonalNumber || '';
+            document.getElementById('operatorPersonalNumber').value = data.operatorPersonalNumber || '';
 
-            if (data.brigade) document.getElementById('brigade').value = data.brigade;
+            if (data.defectCauseName) await loadSubcauses(data.defectCauseName);
+            if (data.defectSubcauseName) document.getElementById('defectSubcauseName').value = data.defectSubcauseName;
+            updateReworkSumHint();
+
             if (data.diameterId) document.getElementById('diameterId').value = data.diameterId;
             if (data.productCode) document.getElementById('productCode').value = data.productCode;
             if (data.reelNumber) document.getElementById('reelNumber').value = data.reelNumber;
@@ -779,7 +1021,11 @@
             if (data.manufacturerWorkshop) document.getElementById('manufacturerWorkshop').value = data.manufacturerWorkshop;
             if (data.bundleNumber) document.getElementById('bundleNumber').value = data.bundleNumber;
             if (data.steelCordConstruction) document.getElementById('steelCordConstruction').value = data.steelCordConstruction;
-            if (data.reworkQuantity) document.getElementById('reworkQuantity').value = data.reworkQuantity;
+
+            // Отдельные действия по доработке — восстанавливаем список строк.
+            if (data.reworkActions && data.reworkActions.length) {
+                data.reworkActions.forEach(a => addReworkActionRow(a));
+            }
 
             if (data.defectCauseId) {
                 await loadSubcauses(data.defectCauseId, data.defectSubcauseId);
@@ -795,11 +1041,6 @@
             alert('Ошибка загрузки данных для редактирования');
         }
     }
-
-    document.getElementById('defectCauseId').addEventListener('change', function() {
-        const causeId = this.value;
-        loadSubcauses(causeId, null);
-    });
 
     document.getElementById('defectForm').addEventListener('submit', async function(e) {
         console.log('🚀 Обработчик submit сработал!');
@@ -831,6 +1072,56 @@
             return;
         }
 
+        // Табельный номер оператора: если введён — только 4–6 цифр
+        const operatorInput = document.getElementById('operatorPersonalNumber');
+        const operatorError = document.getElementById('operatorPersonalNumberError');
+        const operatorValue = operatorInput ? operatorInput.value.trim() : '';
+        if (operatorValue && !/^\d{4,6}$/.test(operatorValue)) {
+            operatorInput.classList.add('is-invalid');
+            operatorError.classList.remove('d-none');
+            operatorInput.focus();
+            submitBtn.disabled = false;
+            return;
+        }
+        if (operatorInput) {
+            operatorInput.classList.remove('is-invalid');
+            operatorError.classList.add('d-none');
+        }
+
+        /**
+         * Проверяет, что сумма «восстановлено + переназначено + брак» не превышает задержанную массу.
+         * Требование пользователей: доработка не может превышать объём задержания.
+         */
+        const restored = numOrNull('restoredWeightTonnes') || 0;
+        const reassigned = numOrNull('reassignedWeightTonnes') || 0;
+        const scrapped = numOrNull('scrappedWeightTonnes') || 0;
+        const held = parseFloat(document.getElementById('weightTonnes').value) || 0;
+        const sum = restored + reassigned + scrapped;
+        if (sum > held + 0.0001) {
+            alert('Сумма доработки больше, чем задержано.\n\n'
+                + 'Задержано: ' + held.toFixed(3) + ' т\n'
+                + 'Восстановлено: ' + restored.toFixed(3) + ' т\n'
+                + 'Переназначено: ' + reassigned.toFixed(3) + ' т\n'
+                + 'Брак: ' + scrapped.toFixed(3) + ' т');
+            submitBtn.disabled = false;
+            submitText.textContent = isEdit ? 'Обновить' : 'Сохранить';
+            return;
+        }
+        updateReworkSumHint();
+        updateReworkActionsTotal();
+
+        // Сумма отдельных действий по доработке тоже не должна превышать задержанную массу.
+        const actions = collectReworkActions();
+        const actionsSum = actions.reduce((s, a) => s + a.weightTonnes, 0);
+        if (actionsSum > held + 0.0001) {
+            alert('Сумма действий по доработке больше, чем задержано.\n\n'
+                + 'Задержано: ' + held.toFixed(3) + ' т\n'
+                + 'Сумма действий: ' + actionsSum.toFixed(3) + ' т');
+            submitBtn.disabled = false;
+            submitText.textContent = isEdit ? 'Обновить' : 'Сохранить';
+            return;
+        }
+
         submitBtn.disabled = true;
         submitText.textContent = 'Сохранение...';
 
@@ -840,17 +1131,16 @@
             detectionSourceId: document.getElementById('detectionSourceId').value ? parseInt(document.getElementById('detectionSourceId').value) : null,
             weightTonnes: document.getElementById('weightTonnes').value ? parseFloat(document.getElementById('weightTonnes').value) : null,
             defectTypeName: document.getElementById('defectTypeName').value.trim() || null,
-            defectCategory: document.getElementById('defectCategory').value || null,
-            defectCauseId: document.getElementById('defectCauseId').value ? parseInt(document.getElementById('defectCauseId').value) : null,
-            defectSubcauseId: document.getElementById('defectSubcauseId').value ? parseInt(document.getElementById('defectSubcauseId').value) : null,
+            defectCauseName: document.getElementById('defectCauseName').value.trim() || null,
+            defectSubcauseName: document.getElementById('defectSubcauseName').value.trim() || null,
             note: document.getElementById('note').value || null,
             reworkDate: document.getElementById('reworkDate').value || null,
             reworkTypeId: document.getElementById('reworkTypeId').value ? parseInt(document.getElementById('reworkTypeId').value) : null,
-            reworkWeightTonnes: document.getElementById('reworkWeightTonnes').value ? parseFloat(document.getElementById('reworkWeightTonnes').value) : null,
-            irreparableWeightTonnes: document.getElementById('irreparableWeightTonnes').value ? parseFloat(document.getElementById('irreparableWeightTonnes').value) : null,
+            restoredWeightTonnes: numOrNull('restoredWeightTonnes'),
+            reassignedWeightTonnes: numOrNull('reassignedWeightTonnes'),
+            scrappedWeightTonnes: numOrNull('scrappedWeightTonnes'),
             equipmentKey: document.getElementById('equipmentKey').value || null,
-            operatorPersonalNumber: document.getElementById('operatorPersonalNumberDisplay').value ? parseInt(document.getElementById('operatorPersonalNumberDisplay').value) : null,
-            brigade: document.getElementById('brigade').value ? parseInt(document.getElementById('brigade').value) : null,
+            operatorPersonalNumber: operatorValue ? parseInt(operatorValue, 10) : null,
             diameterId: document.getElementById('diameterId').value ? parseInt(document.getElementById('diameterId').value) : null,
             productCode: document.getElementById('productCode').value || null,
             reelNumber: document.getElementById('reelNumber').value || null,
@@ -863,7 +1153,7 @@
             manufacturerWorkshop: document.getElementById('manufacturerWorkshop').value || null,
             bundleNumber: document.getElementById('bundleNumber').value || null,
             steelCordConstruction: document.getElementById('steelCordConstruction').value || null,
-            reworkQuantity: document.getElementById('reworkQuantity').value ? parseInt(document.getElementById('reworkQuantity').value) : null
+            reworkActions: collectReworkActions()
         };
 
         const url = isEdit ? `/api/defects/${defectId}` : '/api/defects';
@@ -899,7 +1189,14 @@
             const result = await response.json();
             console.log('✅ Успешно сохранено:', result);
 
-            window.location.href = '/defects';
+            localStorage.setItem('lastProductionSite', document.getElementById('productionSiteId').value);
+            if (isEdit) {
+                window.location.href = '/defects';
+                return;
+            }
+            // Режим ввода нескольких единиц подряд: участок уже выбран,
+            // очищаем только поля самой записи и ждём следующую катушку.
+            resetFormForNextEntry();
         } catch (error) {
             console.error('Ошибка:', error);
             alert('Ошибка при сохранении записи: ' + error.message);
@@ -918,11 +1215,6 @@
 
             const siteSelect = document.getElementById('productionSiteId');
             if (siteSelect.options.length > 1) {
-                // siteSelect.selectedIndex = 1;
-                // const firstOption = siteSelect.options[1];
-                // const siteCode = firstOption.dataset.siteCode || '';
-                // updateFields(siteCode);
-
                 const allDynamic = document.querySelectorAll('.dynamic-field');
                 allDynamic.forEach(f => {
                     if(f.dataset.field !== 'productionSite') {
@@ -930,8 +1222,50 @@
                     }
                 });
                 document.getElementById('reworkBlock').style.display = 'none';
+
+                // Запоминаем последний выбранный участок, чтобы не выбирать его каждый раз.
+                const lastSite = localStorage.getItem('lastProductionSite');
+                if (lastSite && [...siteSelect.options].some(o => o.value === lastSite)) {
+                    siteSelect.value = lastSite;
+                    const opt = siteSelect.options[siteSelect.selectedIndex];
+                    updateFields(opt.dataset.siteCode || '');
+                    document.getElementById('reworkBlock').style.display = 'block';
+                }
             }
         }
+
+        // Подсказка по сумме доработки обновляется при вводе в любое из трёх полей.
+        ['weightTonnes', 'restoredWeightTonnes', 'reassignedWeightTonnes', 'scrappedWeightTonnes']
+            .forEach(id => document.getElementById(id).addEventListener('input', updateReworkSumHint));
+
+        // Выбор причины подгружает подпричины.
+        document.getElementById('defectCauseName')
+            .addEventListener('change', e => loadSubcauses(e.target.value.trim()));
+
+        // Добавление строки действия по доработке.
+        const addActionBtn = document.getElementById('addReworkActionBtn');
+        if (addActionBtn) {
+            addActionBtn.addEventListener('click', function() {
+                addReworkActionRow(null);
+            });
+        }
+
+        // Смена участка — отдельная кнопка, участок выбирается один раз на серию записей.
+        const changeSiteBtn = document.getElementById('changeSiteBtn');
+        if (changeSiteBtn) {
+            changeSiteBtn.addEventListener('click', changeProductionSite);
+        }
+
+        // При выборе участка показываем кнопку смены участка.
+        const siteSelectForBtn = document.getElementById('productionSiteId');
+        if (siteSelectForBtn) {
+            siteSelectForBtn.addEventListener('change', function() {
+                if (this.value && changeSiteBtn) changeSiteBtn.classList.remove('d-none');
+            });
+            if (siteSelectForBtn.value && changeSiteBtn) changeSiteBtn.classList.remove('d-none');
+        }
+
+        updateReworkActionsTotal();
     });
 </script>
 

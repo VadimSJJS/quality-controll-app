@@ -2,6 +2,8 @@ package com.vadimsjjs.qualitycontrollapp.service;
 
 import com.vadimsjjs.qualitycontrollapp.dto.NonconformingProductRequest;
 import com.vadimsjjs.qualitycontrollapp.dto.NonconformingProductResponse;
+import com.vadimsjjs.qualitycontrollapp.dto.ReworkActionRequest;
+import com.vadimsjjs.qualitycontrollapp.dto.ReworkActionResponse;
 import com.vadimsjjs.qualitycontrollapp.entity.*;
 import com.vadimsjjs.qualitycontrollapp.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,23 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Основная бизнес-логика учёта несоответствующей продукции: создание, изменение,
+ * удаление и выборка записей с фильтрами из ТЗ (даты, участок, дефект, причина, подпричина,
+ * диаметр, конструкция металлокорда, код, плавка, марка стали, оборудование, оператор, бригада).
+ *
+ * <p>Все изменения записываются в журнал аудита через {@link com.vadimsjjs.qualitycontrollapp.aspect.AuditAspect}.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class NonconformingProductService {
+
+    /** Коды видов доработки в действиях: 1 — восстановлено, 2 — переназначено, 3 — брак. */
+    public static final int REWORK_RESTORED = 1;
+    public static final int REWORK_REASSIGNED = 2;
+    public static final int REWORK_SCRAPPED = 3;
 
     private final NonconformingProductRepository repository;
     private final ProductionSiteRepository productionSiteRepository;
@@ -177,12 +191,19 @@ public class NonconformingProductService {
             DefectCause cause = defectCauseRepository.findById(request.getDefectCauseId())
                     .orElseThrow(() -> new RuntimeException("Причина не найдена"));
             entity.setDefectCause(cause);
+        } else if (hasText(request.getDefectCauseName())) {
+            entity.setDefectCause(resolveOrCreateCause(request.getDefectCauseName(), null));
         }
 
         if (request.getDefectSubcauseId() != null) {
             DefectCause subcause = defectCauseRepository.findById(request.getDefectSubcauseId())
                     .orElseThrow(() -> new RuntimeException("Подпричина не найдена"));
             entity.setDefectSubcause(subcause);
+        } else if (hasText(request.getDefectSubcauseName())) {
+            if (entity.getDefectCause() == null) {
+                throw new RuntimeException("Сначала укажите причину, потом подпричину");
+            }
+            entity.setDefectSubcause(resolveOrCreateCause(request.getDefectSubcauseName(), entity.getDefectCause()));
         }
 
         if (request.getReworkTypeId() != null) {
@@ -223,9 +244,8 @@ public class NonconformingProductService {
         entity.setBrigade(request.getBrigade());
 
         entity.setReworkDate(request.getReworkDate());
-        entity.setReworkWeightTonnes(request.getReworkWeightTonnes());
-        entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
-
+        applyReworkResults(entity, request);
+        applyReworkActions(entity, request);
         return entity;
     }
 
@@ -257,6 +277,8 @@ public class NonconformingProductService {
             DefectCause cause = defectCauseRepository.findById(request.getDefectCauseId())
                     .orElseThrow(() -> new RuntimeException("Причина не найдена"));
             entity.setDefectCause(cause);
+        } else if (hasText(request.getDefectCauseName())) {
+            entity.setDefectCause(resolveOrCreateCause(request.getDefectCauseName(), null));
         } else {
             entity.setDefectCause(null);
         }
@@ -265,6 +287,11 @@ public class NonconformingProductService {
             DefectCause subcause = defectCauseRepository.findById(request.getDefectSubcauseId())
                     .orElseThrow(() -> new RuntimeException("Подпричина не найдена"));
             entity.setDefectSubcause(subcause);
+        } else if (hasText(request.getDefectSubcauseName())) {
+            if (entity.getDefectCause() == null) {
+                throw new RuntimeException("Сначала укажите причину, потом подпричину");
+            }
+            entity.setDefectSubcause(resolveOrCreateCause(request.getDefectSubcauseName(), entity.getDefectCause()));
         } else {
             entity.setDefectSubcause(null);
         }
@@ -316,7 +343,202 @@ public class NonconformingProductService {
         entity.setManufacturerWorkshop(request.getManufacturerWorkshop());
         entity.setEquipmentKey(request.getEquipmentKey());
         entity.setReworkDate(request.getReworkDate());
-        entity.setReworkWeightTonnes(request.getReworkWeightTonnes());
+        applyReworkResults(entity, request);
+        applyReworkActions(entity, request);
+    }
+
+    /**
+     * Распределяет задержанную массу между тремя результатами доработки.
+     *
+     * <p>REWORK_WEIGHT_TONNES остаётся итогом «восстановлено + переназначено» —
+     * на него опираются существующие отчёты, поэтому обратная совместимость сохраняется.
+     * Проверка «не больше задержанного» выполняется в DTO, здесь — страховка для
+     * случаев вызова сервиса напрямую.
+     */
+    private void applyReworkResults(NonconformingProduct entity, NonconformingProductRequest request) {
+        BigDecimal restored = nz(request.getRestoredWeightTonnes());
+        BigDecimal reassigned = nz(request.getReassignedWeightTonnes());
+        BigDecimal scrapped = nz(request.getScrappedWeightTonnes());
+
+        BigDecimal totalResult = restored.add(reassigned).add(scrapped);
+        if (totalResult.signum() > 0 && request.getWeightTonnes() != null
+                && totalResult.compareTo(request.getWeightTonnes()) > 0) {
+            throw new RuntimeException("Сумма восстановлено + переназначено + брак ("
+                    + totalResult.stripTrailingZeros().toPlainString()
+                    + " т) превышает задержанную массу ("
+                    + request.getWeightTonnes().stripTrailingZeros().toPlainString() + " т)");
+        }
+
+        entity.setRestoredWeightTonnes(totalResult.signum() == 0 ? null : restored);
+        entity.setReassignedWeightTonnes(totalResult.signum() == 0 ? null : reassigned);
+        entity.setReworkWeightTonnes(restored.add(reassigned));
+
+        if (totalResult.signum() > 0 && request.getScrappedWeightTonnes() != null) {
+            entity.setIrreparableWeightTonnes(scrapped);
+        }
+    }
+
+    /**
+     * Сохраняет отдельные действия по доработке записи и пересчитывает итоги записи
+     * по этим действиям.
+     *
+     * <p>Действия — источник истины по «как именно доработана продукция»: восстановлено,
+     * переназначено, неисправимый брак. Итоговые поля записи приводятся в соответствие
+     * с действиями, чтобы отчёты и сводные таблицы считали по факту.
+     *
+     * <p>Если действий нет, ничего не меняется — работают три поля записи.
+     */
+    private void applyReworkActions(NonconformingProduct entity, NonconformingProductRequest request) {
+        List<ReworkActionRequest> actions = request.getReworkActions();
+        if (actions == null || actions.isEmpty()) {
+            return;
+        }
+
+        BigDecimal total = BigDecimal.ZERO;
+        BigDecimal restored = BigDecimal.ZERO;
+        BigDecimal reassigned = BigDecimal.ZERO;
+        BigDecimal scrapped = BigDecimal.ZERO;
+        LocalDate lastDate = null;
+
+        for (ReworkActionRequest actionRequest : actions) {
+            if (actionRequest.getActionDate() == null || actionRequest.getWeightTonnes() == null) {
+                continue;
+            }
+            BigDecimal weight = actionRequest.getWeightTonnes();
+            if (weight.signum() <= 0) {
+                continue;
+            }
+            total = total.add(weight);
+            int type = actionRequest.getActionType() == null ? 0 : actionRequest.getActionType();
+            if (type == REWORK_RESTORED) {
+                restored = restored.add(weight);
+            } else if (type == REWORK_REASSIGNED) {
+                reassigned = reassigned.add(weight);
+            } else if (type == REWORK_SCRAPPED) {
+                scrapped = scrapped.add(weight);
+            }
+            if (lastDate == null || actionRequest.getActionDate().isAfter(lastDate)) {
+                lastDate = actionRequest.getActionDate();
+            }
+        }
+
+        if (total.signum() == 0) {
+            return;
+        }
+        if (request.getWeightTonnes() != null && total.compareTo(request.getWeightTonnes()) > 0) {
+            throw new RuntimeException("Сумма доработок ("
+                    + total.stripTrailingZeros().toPlainString()
+                    + " т) превышает задержанную массу ("
+                    + request.getWeightTonnes().stripTrailingZeros().toPlainString() + " т)");
+        }
+
+        entity.getReworkActions().clear();
+        for (ReworkActionRequest actionRequest : actions) {
+            if (actionRequest.getActionDate() == null || actionRequest.getWeightTonnes() == null
+                    || actionRequest.getWeightTonnes().signum() <= 0) {
+                continue;
+            }
+            ReworkAction action = new ReworkAction();
+            action.setNonconformingProduct(entity);
+            action.setActionDate(actionRequest.getActionDate());
+            action.setActionType(actionRequest.getActionType() == null ? REWORK_RESTORED : actionRequest.getActionType());
+            action.setWeightTonnes(actionRequest.getWeightTonnes());
+            action.setNote(actionRequest.getNote());
+            entity.getReworkActions().add(action);
+        }
+
+        entity.setRestoredWeightTonnes(restored.signum() == 0 ? null : restored);
+        entity.setReassignedWeightTonnes(reassigned.signum() == 0 ? null : reassigned);
+        entity.setReworkWeightTonnes(restored.add(reassigned));
+        entity.setIrreparableWeightTonnes(scrapped.signum() == 0 ? null : scrapped);
+        if (lastDate != null) {
+            entity.setReworkDate(lastDate);
+        }
+    }
+
+    private static BigDecimal nz(BigDecimal value) {
+        return value == null ? BigDecimal.ZERO : value;
+    }
+
+    private static boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    /**
+     * Ищет причину по названию без учёта регистра, а если не нашла — добавляет в справочник.
+     * Работает так же, как свободный ввод вида дефекта.
+     *
+     * @param parentCause родительская причина; null — создаётся причина верхнего уровня
+     */
+    private DefectCause resolveOrCreateCause(String name, DefectCause parentCause) {
+        String trimmed = name.trim();
+        List<DefectCause> found = parentCause == null
+                ? defectCauseRepository.findByCauseNameIgnoreCase(trimmed)
+                : defectCauseRepository.findByParentAndNameIgnoreCase(parentCause.getId(), trimmed);
+
+        DefectCause existing = found.stream()
+                .filter(c -> parentCause == null ? c.getParentCause() == null : parentCause.equals(c.getParentCause()))
+                .findFirst()
+                .orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+
+        DefectCause created = new DefectCause();
+        created.setCauseName(trimmed);
+        created.setCauseCode(nextCauseCode(parentCause));
+        created.setParentCause(parentCause);
+        DefectCause saved = defectCauseRepository.save(created);
+        log.info("Добавлена новая {} в справочник: '{}' (код {})",
+                parentCause == null ? "причина" : "подпричина", trimmed, saved.getCauseCode());
+        return saved;
+    }
+
+    /** Следующий свободный код причины: для причины C09, для подпричины C09-01. */
+    private String nextCauseCode(DefectCause parentCause) {
+        if (parentCause != null) {
+            long max = defectCauseRepository.findByParentCauseId(parentCause.getId()).stream()
+                    .map(DefectCause::getCauseCode)
+                    .filter(code -> code != null && code.matches(parentCause.getCauseCode() + "-\\d+"))
+                    .mapToLong(code -> Long.parseLong(code.substring(code.lastIndexOf('-') + 1)))
+                    .max()
+                    .orElse(0L);
+            return parentCause.getCauseCode() + "-" + String.format("%02d", max + 1);
+        }
+        long max = defectCauseRepository.findByParentCauseIsNull().stream()
+                .map(DefectCause::getCauseCode)
+                .filter(code -> code != null && code.matches("C\\d+"))
+                .mapToLong(code -> Long.parseLong(code.substring(1)))
+                .max()
+                .orElse(0L);
+        return String.format("C%02d", max + 1);
+    }
+
+    /** Название вида доработки для кода действия из справочника. */
+    private String actionTypeName(Integer actionType) {
+        if (actionType == null) {
+            return null;
+        }
+        return reworkTypeRepository.findById(actionType.longValue())
+                .map(ReworkType::getReworkName)
+                .orElse(null);
+    }
+
+    /** Отдельные действия по доработке в виде ответа API. */
+    private List<ReworkActionResponse> toActionResponses(NonconformingProduct entity) {
+        if (entity.getReworkActions() == null || entity.getReworkActions().isEmpty()) {
+            return List.of();
+        }
+        return entity.getReworkActions().stream()
+                .map(a -> ReworkActionResponse.builder()
+                        .id(a.getId())
+                        .actionDate(a.getActionDate())
+                        .actionType(a.getActionType())
+                        .actionTypeName(actionTypeName(a.getActionType()))
+                        .weightTonnes(a.getWeightTonnes())
+                        .note(a.getNote())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private NonconformingProductResponse toResponse(NonconformingProduct entity) {
@@ -350,6 +572,9 @@ public class NonconformingProductService {
                 .operatorPersonalNumber(entity.getOperatorPersonalNumber())
                 .reworkDate(entity.getReworkDate())
                 .reworkWeightTonnes(entity.getReworkWeightTonnes())
+                .restoredWeightTonnes(entity.getRestoredWeightTonnes())
+                .reassignedWeightTonnes(entity.getReassignedWeightTonnes())
+                .scrappedWeightTonnes(entity.getIrreparableWeightTonnes())
                 .status(determineStatus(entity))
                 .steelGradeId(entity.getSteelGrade() != null ? resolveSteelGradeId(entity.getSteelGrade()) : null)
                 .steelGrade(entity.getSteelGrade())
@@ -359,6 +584,7 @@ public class NonconformingProductService {
                 .workpieceKey(entity.getWorkpieceKey())
                 .steelCordConstruction(entity.getSteelCordConstruction())
                 .brigade(entity.getBrigade())
+                .reworkActions(toActionResponses(entity))
                 .build();
     }
 

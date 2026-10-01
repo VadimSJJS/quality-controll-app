@@ -11,6 +11,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Аутентификация по табельному номеру и паролю.
+ *
+ * <p>После 8 неудачных попыток вход блокируется на 15 минут (см. {@link LoginAttemptService}).
+ * Пароль и роль берутся из справочника персонала V_PERSONAL_STPC2.
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
