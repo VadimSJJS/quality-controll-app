@@ -22,7 +22,7 @@ public class ExcelController {
     public ResponseEntity<byte[]> downloadTemplate() {
         try {
             byte[] template = excelService.generateTemplate();
-
+            System.out.println("");
             String filename = "Шаблон_ввода_данных_по_несоответствующей_продукции.xlsx";
 
             return ResponseEntity.ok()
