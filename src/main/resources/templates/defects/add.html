@@ -551,10 +551,32 @@
         });
     }
 
+    /**
+     * Нормализует код участка: обрезает пробелы и считает '_' и '-' одним символом.
+     * В базе коды трёх участков записаны с подчёркиванием (УТВ_МК), а в конфиге —
+     * с дефисом (УТВ-МК); без нормализации последние участки не находили поля.
+     */
+    function normalizeSiteCode(code) {
+        return String(code || '').trim().replace(/\s+/g, '').replace(/_/g, '-').toUpperCase();
+    }
+
+    /** Ищет конфиг полей участка с учётом нормализации кода. */
+    function findSiteConfig(siteCode) {
+        const normalized = normalizeSiteCode(siteCode);
+        if (!normalized) return null;
+        const keys = Object.keys(siteFields);
+        for (let i = 0; i < keys.length; i++) {
+            if (normalizeSiteCode(keys[i]) === normalized) {
+                return siteFields[keys[i]];
+            }
+        }
+        return null;
+    }
+
     function updateFields(siteCode) {
-        const fields = siteFields[siteCode];
+        const fields = findSiteConfig(siteCode);
         if (!fields) {
-            console.warn('Нет полей для участка:', siteCode);
+            if (siteCode) console.warn('Нет полей для участка:', siteCode);
             return;
         }
 

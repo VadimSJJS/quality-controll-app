@@ -68,6 +68,17 @@ public class ReportService {
             "КУ-2", new BigDecimal("0.07")
     );
 
+    /**
+     * Код участка в виде ключа норматива: в базе коды УТВ-участков записаны
+     * с подчёркиванием (УТВ_МК), а в нормативах — с дефисом (УТВ-МК).
+     */
+    private static String normalizeSiteCode(String siteCode) {
+        if (siteCode == null) {
+            return "";
+        }
+        return siteCode.trim().replace('_', '-');
+    }
+
     private ProductionSite getProductionSiteByCode(String siteCode) {
         return productionSiteRepository.findBySiteCode(siteCode)
                 .orElseThrow(() -> new IllegalArgumentException("Участок с кодом '" + siteCode + "' не найден"));
@@ -775,7 +786,7 @@ public class ReportService {
                     BigDecimal produced = producedBySite.getOrDefault(siteName, BigDecimal.ZERO);
                     BigDecimal allowable = reworkable
                             ? reworkableAllowableBySiteName.getOrDefault(siteName, BigDecimal.ZERO)
-                            : SITE_ALLOWABLE_IRREPARABLE.getOrDefault(siteCodeByName.get(siteName), BigDecimal.ZERO);
+                            : SITE_ALLOWABLE_IRREPARABLE.getOrDefault(normalizeSiteCode(siteCodeByName.get(siteName)), BigDecimal.ZERO);
                     BigDecimal percent = calcPercent(mass, produced);
                     rows.add(ReportDto.ReportByPlant.SiteRow.builder()
                             .siteName(siteName)
