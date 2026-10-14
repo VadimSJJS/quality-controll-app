@@ -243,6 +243,26 @@
     </div>
 </div>
 
+<!-- Карточка записи: полная информация без ухода со страницы -->
+<div class="modal fade" id="defectModal" tabindex="-1" aria-labelledby="defectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="defectModalLabel">Карточка записи</h5>
+                <button type="button" class="btn-close" data-close-defect-modal aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body" id="defectDetailsBody"
+                 style="max-height: calc(100vh - 200px); overflow-y: auto;"></div>
+            <div class="modal-footer">
+                <a href="#" id="defectEditLink" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil"></i> Редактировать
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" data-close-defect-modal>Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="/js/password-toggle.js"></script>
 <script>
     // Управление модалкой импорта на чистом JS (без jQuery/Bootstrap JS)
@@ -293,6 +313,51 @@
         });
 
         window.__closeImportModal = closeModal;
+    })();
+
+    // Управление модалкой «Карточка записи» — тот же чистый JS без jQuery.
+    (function () {
+        var modal = document.getElementById('defectModal');
+        if (!modal) return;
+
+        function openModal() {
+            modal.style.display = 'block';
+            modal.classList.add('show');
+            document.body.classList.add('modal-open');
+            var backdrop = document.getElementById('defectModalBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'defectModalBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+            document.body.classList.remove('modal-open');
+            var backdrop = document.getElementById('defectModalBackdrop');
+            if (backdrop) backdrop.parentNode.removeChild(backdrop);
+        }
+
+        var closeButtons = modal.querySelectorAll('[data-close-defect-modal]');
+        for (var i = 0; i < closeButtons.length; i++) {
+            closeButtons[i].addEventListener('click', closeModal);
+        }
+
+        // Клик по фону
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
+
+        // Esc
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal.style.display === 'block') closeModal();
+        });
+
+        window.__openDefectModal = openModal;
+        window.__closeDefectModal = closeModal;
     })();
 </script>
 
@@ -385,7 +450,8 @@
             })
             .then(data => {
                 totalPages = data.totalPages || 0;
-                renderTable(data.content || []);
+                defectsCache = data.content || [];
+                renderTable(defectsCache);
                 renderPagination(data);
                 updateInfo(data);
             })
@@ -433,6 +499,10 @@
                 <td class="py-3">${d.equipmentKey || '—'}</td>
                 <td class="py-3">${statusMap[d.status] || '—'}</td>
                 <td class="px-4 py-3 text-center">
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-1"
+                            onclick="showDefectDetails(${d.id})" title="Просмотреть запись">
+                        <i class="bi bi-eye"></i>
+                    </button>
                     <a href="/defects/edit/${d.id}" class="btn btn-sm btn-outline-primary me-1" title="Редактировать">
                         <i class="bi bi-pencil"></i>
                     </a>
@@ -545,6 +615,154 @@
             month: '2-digit',
             year: 'numeric'
         });
+    }
+
+    // ===== Просмотр полной информации о записи (модальное окно) =====
+
+    // Данные текущей страницы журнала — карточка строится из них без лишних запросов.
+    let defectsCache = [];
+
+    /** Экранирование значений из БД при вставке в HTML. */
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /** Поле карточки: подпись и значение (пустое → «—»). */
+    function detailField(label, value, wide) {
+        const empty = value === null || value === undefined || value === '';
+        const text = empty ? '—' : escapeHtml(value);
+        return `<div class="${wide ? 'col-12' : 'col-md-4 col-6'} mb-2">
+                    <div class="text-secondary small">${label}</div>
+                    <div class="fw-semibold text-dark">${text}</div>
+                </div>`;
+    }
+
+    /** Поле карточки с массой в тоннах (три знака). */
+    function detailTonnes(label, value) {
+        return detailField(label, (value === null || value === undefined) ? null : Number(value).toFixed(3));
+    }
+
+    /** Блок карточки с заголовком и сеткой полей. */
+    function detailSection(title, fieldsHtml) {
+        return `<div class="mb-3">
+                    <h6 class="fw-bold text-dark mb-2">${title}</h6>
+                    <div class="row g-2">${fieldsHtml}</div>
+                </div>`;
+    }
+
+    /** Собирает HTML карточки по данным записи. */
+    function renderDefectDetails(d) {
+        const statusMap = {
+            'REWORKED': '<span class="badge badge-status reworked">✅ Восстановлена</span>',
+            'NOT_REWORKED': '<span class="badge badge-status pending">⏳ Ожидает</span>',
+            'DEFECT': '<span class="badge badge-status defect">❌ Брак</span>'
+        };
+
+        document.getElementById('defectModalLabel').textContent =
+            'Карточка записи №' + d.id + ' от ' + formatDate(d.detectionDate);
+
+        const detection = detailSection('🔎 Выявление', [
+            detailField('Дата выявления', formatDate(d.detectionDate)),
+            detailField('Участок', d.productionSiteName),
+            detailField('Кем выявлено', d.detectionSourceName),
+            detailField('Вид несоответствия', d.defectTypeName),
+            detailField('Причина', d.defectCauseName),
+            detailField('Подпричина', d.defectSubcauseName),
+            `<div class="col-md-4 col-6 mb-2">
+                <div class="text-secondary small">Статус</div>
+                <div>${statusMap[d.status] || '—'}</div>
+            </div>`
+        ].join(''));
+
+        const product = detailSection('📦 Продукция', [
+            detailTonnes('Задержано, т', d.weightTonnes),
+            detailTonnes('Неисправимый брак, т', d.irreparableWeightTonnes),
+            detailField('Количество', d.quantity),
+            detailField('Плавка', d.heatNumber),
+            detailField('№ катушки', d.reelNumber),
+            detailField('№ бухты / кассеты', d.bundleNumber),
+            detailField('№ продукта', d.productCode),
+            detailField('№ единицы', d.unitNumber),
+            detailField('Марка стали', d.steelGrade),
+            detailField('Диаметр', d.diameterValue),
+            detailField('Конструкция металлокорда', d.steelCordConstruction),
+            detailField('Заготовка', d.workpieceKey),
+            detailField('Оборудование', d.equipmentKey),
+            detailField('Цех изготовителя', d.manufacturerWorkshop),
+            detailField('Бригада изготовителя', d.manufacturerBrigade),
+            detailField('Табельный № оператора', d.operatorPersonalNumber)
+        ].join(''));
+
+        let actionsHtml;
+        if (d.reworkActions && d.reworkActions.length) {
+            actionsHtml = `
+                <div class="table-responsive mt-2">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 120px;">Дата</th>
+                                <th>Вид доработки</th>
+                                <th class="text-end" style="width: 130px;">Количество, т</th>
+                                <th>Примечание</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${d.reworkActions.map(a => `
+                            <tr>
+                                <td>${formatDate(a.actionDate)}</td>
+                                <td>${escapeHtml(a.actionTypeName)}</td>
+                                <td class="text-end">${a.weightTonnes != null ? Number(a.weightTonnes).toFixed(3) : '—'}</td>
+                                <td>${escapeHtml(a.note)}</td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            actionsHtml = '<div class="text-secondary small mt-1">Действий по доработке не было.</div>';
+        }
+
+        const rework = detailSection('🔧 Доработка', [
+            detailField('Дата доработки', d.reworkDate ? formatDate(d.reworkDate) : null),
+            detailField('Вид доработки', d.reworkTypeName),
+            detailTonnes('Восстановлено, т', d.restoredWeightTonnes),
+            detailTonnes('Переназначено, т', d.reassignedWeightTonnes),
+            detailTonnes('Брак, т', d.scrappedWeightTonnes),
+            detailTonnes('Итого доработано, т', d.reworkWeightTonnes)
+        ].join('')) + actionsHtml;
+
+        const noteBlock = d.note
+            ? detailSection('📝 Примечание', detailField('Примечание', d.note, true))
+            : '';
+
+        document.getElementById('defectDetailsBody').innerHTML =
+            detection + product + rework + noteBlock;
+        document.getElementById('defectEditLink').setAttribute('href', '/defects/edit/' + d.id);
+    }
+
+    /** Открывает карточку: данные берутся из загруженной страницы, при нехватке — запрос к API. */
+    function showDefectDetails(id) {
+        const cached = defectsCache.find(item => item.id === id);
+        if (cached) {
+            renderDefectDetails(cached);
+            window.__openDefectModal();
+            return;
+        }
+        fetch('/api/defects/' + id)
+            .then(response => {
+                if (!response.ok) throw new Error('запись не найдена');
+                return response.json();
+            })
+            .then(d => {
+                renderDefectDetails(d);
+                window.__openDefectModal();
+            })
+            .catch(error => alert('Не удалось загрузить запись: ' + error.message));
     }
 
     document.addEventListener('DOMContentLoaded', function() {

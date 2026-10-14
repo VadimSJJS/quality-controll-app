@@ -265,7 +265,9 @@ public class NonconformingProductService {
         }
 
         entity.setWeightTonnes(request.getWeightTonnes());
-        entity.setIrreparableWeightTonnes(request.getIrreparableWeightTonnes());
+        if (request.getIrreparableWeightTonnes() != null) {
+            entity.setIrreparableWeightTonnes(request.getIrreparableWeightTonnes());
+        }
 
         if (request.getDefectTypeId() != null) {
             DefectType defectType = defectTypeRepository.findById(request.getDefectTypeId())
@@ -307,9 +309,9 @@ public class NonconformingProductService {
             ReworkType reworkType = reworkTypeRepository.findById(request.getReworkTypeId())
                     .orElseThrow(() -> new RuntimeException("Вид доработки не найден"));
             entity.setReworkType(reworkType);
-        } else {
-            entity.setReworkType(null);
         }
+        // Без явного вида значение не трогаем: при наличии действий
+        // applyReworkActions выведет его из последнего действия.
 
         if (request.getDiameterId() != null) {
             Diameter diameter = diameterRepository.findById(request.getDiameterId())
@@ -342,7 +344,9 @@ public class NonconformingProductService {
         entity.setBundleNumber(request.getBundleNumber());
         entity.setManufacturerWorkshop(request.getManufacturerWorkshop());
         entity.setEquipmentKey(request.getEquipmentKey());
-        entity.setReworkDate(request.getReworkDate());
+        if (request.getReworkDate() != null) {
+            entity.setReworkDate(request.getReworkDate());
+        }
         applyReworkResults(entity, request);
         applyReworkActions(entity, request);
     }
@@ -356,6 +360,13 @@ public class NonconformingProductService {
      * случаев вызова сервиса напрямую.
      */
     private void applyReworkResults(NonconformingProduct entity, NonconformingProductRequest request) {
+        // Форма вводит доработку только через отдельные действия и сводные поля не шлёт:
+        // если ничего не передано — накопленные значения записи не трогаем.
+        if (request.getRestoredWeightTonnes() == null
+                && request.getReassignedWeightTonnes() == null
+                && request.getScrappedWeightTonnes() == null) {
+            return;
+        }
         BigDecimal restored = nz(request.getRestoredWeightTonnes());
         BigDecimal reassigned = nz(request.getReassignedWeightTonnes());
         BigDecimal scrapped = nz(request.getScrappedWeightTonnes());
@@ -386,11 +397,30 @@ public class NonconformingProductService {
      * переназначено, неисправимый брак. Итоговые поля записи приводятся в соответствие
      * с действиями, чтобы отчёты и сводные таблицы считали по факту.
      *
-     * <p>Если действий нет, ничего не меняется — работают три поля записи.
+     * <p>Если действий не передано, ничего не меняется; пустой список — значит,
+     * пользователь убрал все действия, и результаты доработки сбрасываются.
      */
     private void applyReworkActions(NonconformingProduct entity, NonconformingProductRequest request) {
         List<ReworkActionRequest> actions = request.getReworkActions();
-        if (actions == null || actions.isEmpty()) {
+        if (actions == null) {
+            return;
+        }
+        if (actions.isEmpty()) {
+            // Форма прислала пустой список — пользователь убрал все действия:
+            // сбрасываем результаты доработки записи.
+            entity.getReworkActions().clear();
+            if (request.getRestoredWeightTonnes() == null
+                    && request.getReassignedWeightTonnes() == null
+                    && request.getScrappedWeightTonnes() == null) {
+                entity.setRestoredWeightTonnes(null);
+                entity.setReassignedWeightTonnes(null);
+                entity.setReworkWeightTonnes(null);
+                entity.setIrreparableWeightTonnes(request.getIrreparableWeightTonnes());
+                entity.setReworkDate(request.getReworkDate());
+                if (request.getReworkTypeId() == null) {
+                    entity.setReworkType(null);
+                }
+            }
             return;
         }
 
@@ -433,6 +463,7 @@ public class NonconformingProductService {
         }
 
         entity.getReworkActions().clear();
+        ReworkAction latestAction = null;
         for (ReworkActionRequest actionRequest : actions) {
             if (actionRequest.getActionDate() == null || actionRequest.getWeightTonnes() == null
                     || actionRequest.getWeightTonnes().signum() <= 0) {
@@ -445,6 +476,16 @@ public class NonconformingProductService {
             action.setWeightTonnes(actionRequest.getWeightTonnes());
             action.setNote(actionRequest.getNote());
             entity.getReworkActions().add(action);
+            if (latestAction == null
+                    || !action.getActionDate().isBefore(latestAction.getActionDate())) {
+                latestAction = action;
+            }
+        }
+
+        // Поле «Вид доработки» в форме убрано — выводим вид записи из последнего действия.
+        if (latestAction != null && latestAction.getActionType() != null) {
+            reworkTypeRepository.findById(latestAction.getActionType().longValue())
+                    .ifPresent(entity::setReworkType);
         }
 
         entity.setRestoredWeightTonnes(restored.signum() == 0 ? null : restored);

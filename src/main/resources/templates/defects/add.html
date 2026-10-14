@@ -265,58 +265,16 @@
                                 <input type="text" class="form-control" id="equipmentKey" placeholder="Номер стана/агрегата">
                             </div>
 
+                            <div class="col-md-3 dynamic-field" data-field="note">
+                                <label class="form-label">Примечание</label>
+                                <input type="text" class="form-control" id="note" placeholder="Дополнительная информация">
+                            </div>
+
                         </div>
 
                         <hr>
 
                         <div id="reworkBlock" style="display:block;">
-                            <h6 class="fw-semibold text-success mb-3"><i class="bi bi-arrow-repeat"></i> Информация о доработке</h6>
-                            <div class="row g-3">
-
-                                <div class="col-md-3 dynamic-field" data-field="reworkDate">
-                                    <label class="form-label">Дата доработки</label>
-                                    <input type="date" class="form-control" id="reworkDate">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="restoredWeightTonnes">
-                                    <label class="form-label">Восстановлено (т)</label>
-                                    <input type="number" step="0.001" min="0" class="form-control" id="restoredWeightTonnes" placeholder="0.000">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="reassignedWeightTonnes">
-                                    <label class="form-label">Переназначено (т)</label>
-                                    <input type="number" step="0.001" min="0" class="form-control" id="reassignedWeightTonnes" placeholder="0.000">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="scrappedWeightTonnes">
-                                    <label class="form-label">Брак, неисправимо (т)</label>
-                                    <input type="number" step="0.001" min="0" class="form-control" id="scrappedWeightTonnes" placeholder="0.000">
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="reworkType">
-                                    <label class="form-label">Вид доработки</label>
-                                    <select class="form-select" id="reworkTypeId">
-                                        <option value="">—</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-12">
-                                    <div class="form-text" style="color:#0a6; font-size:14px;">
-                                        Задержанную продукцию распределите по трём полям: сколько восстановлено,
-                                        сколько переназначено и сколько ушло в неисправимый брак.
-                                        Сумма трёх полей не должна превышать массу «Задержано, т».
-                                    </div>
-                                    <div class="form-text" id="reworkSumHint" style="color:#c00;"></div>
-                                </div>
-
-                                <div class="col-md-3 dynamic-field" data-field="note">
-                                    <label class="form-label">Примечание</label>
-                                    <input type="text" class="form-control" id="note" placeholder="Дополнительная информания">
-                                </div>
-
-                            </div>
-
-                            <hr class="my-3">
 
                             <h6 class="fw-semibold text-success mb-2">
                                 <i class="bi bi-list-check"></i> Действия по доработке
@@ -381,14 +339,12 @@
             order: [
                 'productionSite', 'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'note'
+                'detectionSource', 'note'
             ],
             show: [
                 'detectionDate', 'defectType', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
-                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'note'
+                'detectionSource', 'note'
             ],
             hide: [
                 'brigade', 'diameter', 'productCode', 'reelNumber', 'unitNumber',
@@ -403,13 +359,13 @@
                 'productionSite', 'detectionDate', 'brigade', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'heatNumber', 'steelGradeId',
                 'manufacturerWorkshop', 'bundleNumber', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'diameter', 'productCode', 'reelNumber', 'unitNumber', 'workpieceKey',
@@ -424,14 +380,14 @@
                 'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'steelGradeId', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
@@ -445,14 +401,14 @@
                 'reelNumber', 'heatNumber', 'steelGradeId', 'workpieceKey',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'steelGradeId', 'workpieceKey', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'manufacturerWorkshop', 'bundleNumber', 'unitNumber',
@@ -466,14 +422,14 @@
                 'reelNumber', 'heatNumber', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
@@ -487,14 +443,14 @@
                 'reelNumber', 'heatNumber', 'unitNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'quantity', 'weightTonnes',
                 'defectType', 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'steelGradeId', 'manufacturerWorkshop', 'bundleNumber', 'workpieceKey',
@@ -508,15 +464,14 @@
                 'reelNumber', 'heatNumber',
                 'operatorPersonalNumber', 'manufacturerBrigade', 'workpieceKey',
                 'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
-                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'note'
+                'detectionSource', 'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'diameter', 'productCode', 'reelNumber',
                 'heatNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
                 'workpieceKey', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             hide: [
                 'steelGradeId', 'unitNumber', 'manufacturerWorkshop', 'bundleNumber',
@@ -530,14 +485,13 @@
                 'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'steelCordConstruction', 'productCode',
                 'reelNumber', 'unitNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
                 'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
-                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'note'
+                'detectionSource', 'note'
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
@@ -552,14 +506,13 @@
                 'productCode', 'reelNumber', 'unitNumber', 'operatorPersonalNumber',
                 'manufacturerBrigade', 'quantity', 'weightTonnes', 'defectType',
                 'defectCause', 'defectSubcause', 'detectionSource',
-                'reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'note'
+                'note'
             ],
             show: [
                 'detectionDate', 'brigade', 'steelCordConstruction', 'productCode',
                 'reelNumber', 'unitNumber', 'operatorPersonalNumber', 'manufacturerBrigade',
                 'quantity', 'weightTonnes', 'defectType', 'defectCause', 'defectSubcause',
-                'detectionSource', 'reworkDate', 'reworkType', 'reworkQuantity',
-                'reworkWeightTonnes', 'note'
+                'detectionSource', 'note'
             ],
             hide: [
                 'diameter', 'heatNumber', 'steelGradeId', 'manufacturerWorkshop',
@@ -643,42 +596,14 @@
             reorderFields(fields.order, '.row.g-3.mb-4');
         }
 
+        // В блоке доработки осталась только таблица действий — показываем/прячем её целиком.
         const reworkBlock = document.getElementById('reworkBlock');
-        const reworkRow = reworkBlock.querySelector('.row.g-3');
-
         if (fields.showRework) {
             reworkBlock.style.display = 'block';
-            const reworkFields = reworkRow.querySelectorAll('.dynamic-field');
-
-            reworkFields.forEach(field => {
-                const container = field.closest('.col-md-3');
-                if (container) {
-                    if (fields.show.includes(field.dataset.field)) {
-                        container.style.display = 'block';
-                    } else {
-                        container.style.display = 'none';
-                        const input = field.querySelector('input, select');
-                        if (input) {
-                            if (input.tagName === 'SELECT') input.selectedIndex = 0;
-                            else input.value = '';
-                        }
-                    }
-                }
-            });
-
-            if (fields.order) {
-                const reworkOrder = fields.order.filter(f =>
-                    ['reworkDate', 'reworkType', 'reworkQuantity', 'reworkWeightTonnes', 'irreparableWeightTonnes', 'note'].includes(f)
-                );
-                reorderFields(reworkOrder, '#reworkBlock .row.g-3');
-            }
-
         } else {
             reworkBlock.style.display = 'none';
-            reworkRow.querySelectorAll('input, select').forEach(input => {
-                if (input.tagName === 'SELECT') input.selectedIndex = 0;
-                else input.value = '';
-            });
+            const reworkBody = document.getElementById('reworkActionsBody');
+            if (reworkBody) reworkBody.innerHTML = '';
         }
     }
 
@@ -742,16 +667,6 @@
                 sourceSelect.appendChild(opt);
             });
 
-            const reworks = await fetchJson('/directories/rework-types', 'Ошибка загрузки видов доработки');
-            const reworkSelect = document.getElementById('reworkTypeId');
-            reworkSelect.innerHTML = '<option value="">—</option>';
-            reworks.forEach(r => {
-                const opt = document.createElement('option');
-                opt.value = r.id;
-                opt.textContent = r.reworkName;
-                reworkSelect.appendChild(opt);
-            });
-
             const causes = await fetchJson('/directories/defect-causes', 'Ошибка загрузки причин');
             fillSuggestions('defectCauseSuggestions', causes, c => c.causeName);
 
@@ -772,19 +687,12 @@
         }
     }
 
-    /** Возвращает число из поля или null, если поле пустое. */
-    function numOrNull(id) {
-        const raw = document.getElementById(id).value;
-        return raw === '' || raw === null ? null : parseFloat(raw);
-    }
-
     /** Идентификаторы полей, которые очищаем после сохранения (участок и дата остаются). */
     const ENTRY_FIELD_IDS = [
         'detectionSourceId', 'weightTonnes', 'defectTypeName', 'defectCauseName', 'defectSubcauseName',
         'quantity', 'productCode', 'reelNumber', 'heatNumber', 'steelGradeId', 'unitNumber',
         'workpieceKey', 'manufacturerBrigade', 'manufacturerWorkshop', 'bundleNumber',
-        'steelCordConstruction', 'equipmentKey', 'operatorPersonalNumber', 'note',
-        'reworkDate', 'restoredWeightTonnes', 'reassignedWeightTonnes', 'scrappedWeightTonnes'
+        'steelCordConstruction', 'equipmentKey', 'operatorPersonalNumber', 'note'
     ];
 
     /**
@@ -800,7 +708,6 @@
         if (body) body.innerHTML = '';
         const siteCode = document.getElementById('productionSiteId').value;
         document.getElementById('detectionDate').value = new Date().toISOString().split('T')[0];
-        updateReworkSumHint();
         updateReworkActionsTotal();
         window.scrollTo({top: 0, behavior: 'smooth'});
 
@@ -932,26 +839,6 @@
         return actions;
     }
 
-    /** Показывает под полями доработки, сколько тонн распределено и сколько осталось. */
-    function updateReworkSumHint() {
-        const hint = document.getElementById('reworkSumHint');
-        if (!hint) return;
-        const restored = numOrNull('restoredWeightTonnes') || 0;
-        const reassigned = numOrNull('reassignedWeightTonnes') || 0;
-        const scrapped = numOrNull('scrappedWeightTonnes') || 0;
-        const held = numOrNull('weightTonnes') || 0;
-        const sum = restored + reassigned + scrapped;
-        if (sum === 0) {
-            hint.textContent = '';
-            return;
-        }
-        const rest = held - sum;
-        hint.textContent = 'Распределено ' + sum.toFixed(3) + ' т из ' + held.toFixed(3) + ' т. '
-            + (rest > 0.0001
-                ? 'Осталось нераспределёнными: ' + rest.toFixed(3) + ' т'
-                : 'Превышение: ' + Math.abs(rest).toFixed(3) + ' т');
-    }
-
     /** Заполняет datalist подсказками значениями справочника. */
     function fillSuggestions(listId, items, nameOf) {
         const list = document.getElementById(listId);
@@ -997,17 +884,11 @@
             document.getElementById('defectTypeName').value = data.defectTypeName || '';
             document.getElementById('detectionSourceId').value = data.detectionSourceId || '';
             document.getElementById('defectCauseName').value = data.defectCauseName || '';
-            document.getElementById('reworkTypeId').value = data.reworkTypeId || '';
-            document.getElementById('reworkDate').value = data.reworkDate || '';
-            document.getElementById('restoredWeightTonnes').value = data.restoredWeightTonnes ?? '';
-            document.getElementById('reassignedWeightTonnes').value = data.reassignedWeightTonnes ?? '';
-            document.getElementById('scrappedWeightTonnes').value = data.scrappedWeightTonnes ?? '';
             document.getElementById('equipmentKey').value = data.equipmentKey || '';
             document.getElementById('operatorPersonalNumber').value = data.operatorPersonalNumber || '';
 
             if (data.defectCauseName) await loadSubcauses(data.defectCauseName);
             if (data.defectSubcauseName) document.getElementById('defectSubcauseName').value = data.defectSubcauseName;
-            updateReworkSumHint();
 
             if (data.diameterId) document.getElementById('diameterId').value = data.diameterId;
             if (data.productCode) document.getElementById('productCode').value = data.productCode;
@@ -1088,26 +969,7 @@
             operatorError.classList.add('d-none');
         }
 
-        /**
-         * Проверяет, что сумма «восстановлено + переназначено + брак» не превышает задержанную массу.
-         * Требование пользователей: доработка не может превышать объём задержания.
-         */
-        const restored = numOrNull('restoredWeightTonnes') || 0;
-        const reassigned = numOrNull('reassignedWeightTonnes') || 0;
-        const scrapped = numOrNull('scrappedWeightTonnes') || 0;
         const held = parseFloat(document.getElementById('weightTonnes').value) || 0;
-        const sum = restored + reassigned + scrapped;
-        if (sum > held + 0.0001) {
-            alert('Сумма доработки больше, чем задержано.\n\n'
-                + 'Задержано: ' + held.toFixed(3) + ' т\n'
-                + 'Восстановлено: ' + restored.toFixed(3) + ' т\n'
-                + 'Переназначено: ' + reassigned.toFixed(3) + ' т\n'
-                + 'Брак: ' + scrapped.toFixed(3) + ' т');
-            submitBtn.disabled = false;
-            submitText.textContent = isEdit ? 'Обновить' : 'Сохранить';
-            return;
-        }
-        updateReworkSumHint();
         updateReworkActionsTotal();
 
         // Сумма отдельных действий по доработке тоже не должна превышать задержанную массу.
@@ -1134,11 +996,6 @@
             defectCauseName: document.getElementById('defectCauseName').value.trim() || null,
             defectSubcauseName: document.getElementById('defectSubcauseName').value.trim() || null,
             note: document.getElementById('note').value || null,
-            reworkDate: document.getElementById('reworkDate').value || null,
-            reworkTypeId: document.getElementById('reworkTypeId').value ? parseInt(document.getElementById('reworkTypeId').value) : null,
-            restoredWeightTonnes: numOrNull('restoredWeightTonnes'),
-            reassignedWeightTonnes: numOrNull('reassignedWeightTonnes'),
-            scrappedWeightTonnes: numOrNull('scrappedWeightTonnes'),
             equipmentKey: document.getElementById('equipmentKey').value || null,
             operatorPersonalNumber: operatorValue ? parseInt(operatorValue, 10) : null,
             diameterId: document.getElementById('diameterId').value ? parseInt(document.getElementById('diameterId').value) : null,
@@ -1233,10 +1090,6 @@
                 }
             }
         }
-
-        // Подсказка по сумме доработки обновляется при вводе в любое из трёх полей.
-        ['weightTonnes', 'restoredWeightTonnes', 'reassignedWeightTonnes', 'scrappedWeightTonnes']
-            .forEach(id => document.getElementById(id).addEventListener('input', updateReworkSumHint));
 
         // Выбор причины подгружает подпричины.
         document.getElementById('defectCauseName')
