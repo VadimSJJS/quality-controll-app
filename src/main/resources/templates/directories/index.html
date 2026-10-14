@@ -221,7 +221,15 @@
         let data = null;
         try { data = text ? JSON.parse(text) : null; } catch (e) { data = text; }
         if (!response.ok) {
-            throw new Error((data && data.message) || ('Ошибка ' + response.status));
+            if (response.status === 401) throw new Error('Сессия истекла, войдите заново');
+            if (response.status === 403) throw new Error('Нет прав на это действие');
+            // Сервер отдаёт текст ошибки в error (или message); также бывает details у валидации.
+            let serverMessage = null;
+            if (data && typeof data === 'object') {
+                serverMessage = data.message || data.error
+                    || (data.details ? Object.values(data.details).join(', ') : null);
+            }
+            throw new Error(serverMessage || ('Ошибка ' + response.status));
         }
         return data;
     }

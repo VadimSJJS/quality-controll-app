@@ -33,10 +33,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
         log.error("Ошибка: {}", ex.getMessage(), ex);
-        
+
         Map<String, String> response = new HashMap<>();
         response.put("error", ex.getMessage());
-        
+        // Дублируем в message: так текст ошибки понимают все клиенты,
+        // включая страницу справочников.
+        response.put("message", ex.getMessage());
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
