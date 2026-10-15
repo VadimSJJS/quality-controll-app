@@ -137,4 +137,19 @@ public class NonconformingProduct {
             fetch = FetchType.LAZY)
     @OrderBy("actionDate ASC, id ASC")
     private List<ReworkAction> reworkActions = new ArrayList<>();
+
+    /**
+     * Оборудование записи — это номер стана/агрегата.
+     *
+     * <p>Значение может лежать в двух полях: {@code EQUIPMENT_KEY} (туда пишет импорт из Excel,
+     * колонка «номер стана») и {@code UNIT_NUMBER} (туда пишет форма добавления записи).
+     * Возвращаем заполненное, чтобы карточка, журнал и отчёты по оборудованию показывали
+     * номер стана независимо от того, каким способом запись была заведена.
+     */
+    public String resolveEquipment() {
+        if (equipmentKey != null && !equipmentKey.isBlank()) {
+            return equipmentKey;
+        }
+        return (unitNumber != null && !unitNumber.isBlank()) ? unitNumber : null;
+    }
 }

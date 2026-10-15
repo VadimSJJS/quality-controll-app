@@ -377,8 +377,8 @@ public class ReportService {
         List<NonconformingProduct> defects = findDefects(filter, site.getId());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()
-                .filter(d -> d.getEquipmentKey() != null)
-                .collect(Collectors.groupingBy(NonconformingProduct::getEquipmentKey));
+                .filter(d -> d.resolveEquipment() != null)
+                .collect(Collectors.groupingBy(NonconformingProduct::resolveEquipment));
 
         List<ReportDto.ReportByEquipment.EquipmentGroup> groupList = groups.entrySet().stream()
                 .map(entry -> {
@@ -1115,8 +1115,8 @@ public class ReportService {
 
     private List<EquipmentDefectReport.EquipmentRow> buildEquipmentRows(List<NonconformingProduct> defects) {
         Map<String, List<NonconformingProduct>> byEquipment = defects.stream()
-                .filter(d -> d.getEquipmentKey() != null && !d.getEquipmentKey().isEmpty())
-                .collect(Collectors.groupingBy(NonconformingProduct::getEquipmentKey));
+                .filter(d -> d.resolveEquipment() != null && !d.resolveEquipment().isEmpty())
+                .collect(Collectors.groupingBy(NonconformingProduct::resolveEquipment));
 
         List<EquipmentDefectReport.EquipmentRow> rows = new ArrayList<>();
 
@@ -1285,7 +1285,7 @@ public class ReportService {
         List<NonconformingProduct> defects = findDefects(filter, null).stream()
                 .filter(d -> d.getDefectType() != null)
                 .filter(d -> "equipment".equals(dimension)
-                        ? d.getEquipmentKey() != null && !d.getEquipmentKey().isBlank()
+                        ? d.resolveEquipment() != null && !d.resolveEquipment().isBlank()
                         : d.getManufacturerBrigade() != null)
                 .toList();
 
@@ -1297,7 +1297,7 @@ public class ReportService {
                 .toList();
 
         Function<NonconformingProduct, String> keyExtractor = "equipment".equals(dimension)
-                ? NonconformingProduct::getEquipmentKey
+                ? NonconformingProduct::resolveEquipment
                 : d -> String.valueOf(d.getManufacturerBrigade());
 
         Map<String, List<NonconformingProduct>> groups = defects.stream()

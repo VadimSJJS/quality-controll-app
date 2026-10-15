@@ -63,7 +63,8 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "AND (:productCode IS NULL OR n.PRODUCT_CODE = :productCode) " +
             "AND (:heatNumber IS NULL OR n.HEAT_NUMBER = :heatNumber) " +
             "AND (:steelGrade IS NULL OR n.STEEL_GRADE = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.EQUIPMENT_KEY = :equipmentKey) " +
+            "AND (:equipmentKey IS NULL OR n.EQUIPMENT_KEY = :equipmentKey OR n.UNIT_NUMBER = :equipmentKey " +
+            "     OR n.WORKPIECE_KEY = :equipmentKey OR n.WORKPIECE_KEY LIKE :equipmentKey || '-%') " +
             "AND (:operatorPersonalNumber IS NULL OR n.OPERATOR_PERSONAL_NUMBER = :operatorPersonalNumber) " +
             "AND (:manufacturerBrigade IS NULL OR n.MANUFACTURER_BRIGADE = :manufacturerBrigade) " +
             "AND (:detectionSourceId IS NULL OR n.ID_DETECTION_SOURCE = :detectionSourceId) " +
@@ -102,7 +103,8 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "AND (:productCode IS NULL OR n.productCode = :productCode) " +
             "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
             "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey) " +
+            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey " +
+            "     OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE concat(:equipmentKey, '-%')) " +
             "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
             "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade) " +
             "AND (:detectionSourceId IS NULL OR n.detectionSource.id = :detectionSourceId)")
@@ -147,7 +149,8 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
             "AND (:productCode IS NULL OR n.productCode = :productCode) " +
             "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
             "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey) " +
+            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey " +
+            "     OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE concat(:equipmentKey, '-%')) " +
             "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
             "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)")
     List<NonconformingProduct> findWithFilter(

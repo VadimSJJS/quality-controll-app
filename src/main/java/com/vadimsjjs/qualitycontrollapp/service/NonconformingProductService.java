@@ -219,7 +219,7 @@ public class NonconformingProductService {
         entity.setManufacturerBrigade(request.getManufacturerBrigade());
         entity.setBundleNumber(request.getBundleNumber());
         entity.setManufacturerWorkshop(request.getManufacturerWorkshop());
-        entity.setEquipmentKey(request.getEquipmentKey());
+        entity.setEquipmentKey(resolveEquipment(request));
         if (request.getOperatorPersonalNumber() != null) {
             entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
         }
@@ -298,9 +298,6 @@ public class NonconformingProductService {
             entity.setDefectSubcause(null);
         }
 
-        if (request.getEquipmentKey() != null) {
-            entity.setEquipmentKey(request.getEquipmentKey());
-        }
         if (request.getOperatorPersonalNumber() != null) {
             entity.setOperatorPersonalNumber(request.getOperatorPersonalNumber());
         }
@@ -343,7 +340,7 @@ public class NonconformingProductService {
         entity.setManufacturerBrigade(request.getManufacturerBrigade());
         entity.setBundleNumber(request.getBundleNumber());
         entity.setManufacturerWorkshop(request.getManufacturerWorkshop());
-        entity.setEquipmentKey(request.getEquipmentKey());
+        entity.setEquipmentKey(resolveEquipment(request));
         if (request.getReworkDate() != null) {
             entity.setReworkDate(request.getReworkDate());
         }
@@ -506,6 +503,19 @@ public class NonconformingProductService {
     }
 
     /**
+     * Оборудование записи — это номер стана. Форма присылает его в поле «Номер стана»
+     * ({@code unitNumber}), а импорт из Excel — в поле «Оборудование» ({@code equipmentKey}).
+     * Сохраняем номер стана в {@code EQUIPMENT_KEY}, чтобы отчёты и фильтр по оборудованию
+     * работали единообразно; запасное значение берём из {@code unitNumber}.
+     */
+    private static String resolveEquipment(NonconformingProductRequest request) {
+        if (hasText(request.getEquipmentKey())) {
+            return request.getEquipmentKey();
+        }
+        return hasText(request.getUnitNumber()) ? request.getUnitNumber() : null;
+    }
+
+    /**
      * Ищет причину по названию без учёта регистра, а если не нашла — добавляет в справочник.
      * Работает так же, как свободный ввод вида дефекта.
      *
@@ -607,7 +617,7 @@ public class NonconformingProductService {
                 .manufacturerBrigade(entity.getManufacturerBrigade())
                 .bundleNumber(entity.getBundleNumber())
                 .manufacturerWorkshop(entity.getManufacturerWorkshop())
-                .equipmentKey(entity.getEquipmentKey())
+                .equipmentKey(entity.resolveEquipment())
                 .diameterId(entity.getDiameter() != null ? entity.getDiameter().getId() : null)
                 .diameterValue(entity.getDiameter() != null ? entity.getDiameter().getDiameter() : null)
                 .operatorPersonalNumber(entity.getOperatorPersonalNumber())
