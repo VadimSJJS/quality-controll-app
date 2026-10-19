@@ -171,11 +171,11 @@
                             <thead class="table-light">
                             <tr>
                                 <th class="py-3 px-4 fw-semibold small text-secondary">Дата</th>
-                                <th class="py-3 fw-semibold small text-secondary">Участок</th>
-                                <th class="py-3 fw-semibold small text-secondary">Вид несоотв.</th>
-                                <th class="py-3 fw-semibold small text-secondary text-end">Масса (т)</th>
-                                <th class="py-3 fw-semibold small text-secondary">Кем выявл.</th>
+                                <th class="py-3 fw-semibold small text-secondary">Диаметр</th>
                                 <th class="py-3 fw-semibold small text-secondary">Оборудование</th>
+                                <th class="py-3 fw-semibold small text-secondary">Вид несоотв.</th>
+                                <th class="py-3 fw-semibold small text-secondary">№ катушки</th>
+                                <th class="py-3 fw-semibold small text-secondary text-end">Масса (т)</th>
                                 <th class="py-3 fw-semibold small text-secondary">Статус</th>
                                 <th class="py-3 px-4 fw-semibold small text-secondary text-center">Действия</th>
                             </tr>
@@ -492,11 +492,11 @@
         tbody.innerHTML = defects.map(d => `
             <tr>
                 <td class="px-4 py-3">${formatDate(d.detectionDate)}</td>
-                <td class="py-3">${d.productionSiteName || '—'}</td>
-                <td class="py-3">${d.defectTypeName || '—'}</td>
-                <td class="py-3 text-end">${d.weightTonnes ? d.weightTonnes.toFixed(3) : '—'}</td>
-                <td class="py-3"><span class="badge bg-secondary bg-opacity-10 text-secondary">${d.detectionSourceName || '—'}</span></td>
+                <td class="py-3">${d.diameterValue || '—'}</td>
                 <td class="py-3">${d.equipmentKey || '—'}</td>
+                <td class="py-3">${d.defectTypeName || '—'}</td>
+                <td class="py-3">${d.reelNumber || '—'}</td>
+                <td class="py-3 text-end">${d.weightTonnes ? d.weightTonnes.toFixed(3) : '—'}</td>
                 <td class="py-3">${statusMap[d.status] || '—'}</td>
                 <td class="px-4 py-3 text-center">
                     <button type="button" class="btn btn-sm btn-outline-secondary me-1"
