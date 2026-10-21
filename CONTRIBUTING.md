@@ -26,14 +26,7 @@ src/main/java/com/vadimsjjs/qualitycontrollapp/
 
 Шаблоны: `defects/` (журнал, форма), `reports/`, `charts/`, `directories/`, `layouts/base.html`.
 
-## Известные проблемы
-
-**N+1 запросы.** На странице журнала 20 записей → 44 SQL-запроса (20 к `REWORK_ACTION`, по 2–8 к каждой ассоциации). При росте данных будет тормозить.
-Фиксы: `@BatchSize(size = 25)` на lazy-ассоциациях (быстро) или `JOIN FETCH` в JPQL (правильно).
-
-**Два пути записи доработки.** Excel-импорт (`ExcelImportExportService`) пишет `reworkWeightTonnes` напрямую, а веб-форма (`NonconformingProductService.applyReworkActions`) сохраняет в `ReworkAction` и вычисляет `restoredWeightTonnes`/`reassignedWeightTonnes`. Импорт должен создавать `ReworkAction` так же, как и форма.
-
-**show-sql=true** по умолчанию в `application.properties` — на продакшене раздувает логи. Перенести в профиль `dev`.
+## Текущие проблемы
 
 ## Критические правила
 
