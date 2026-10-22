@@ -35,6 +35,7 @@ public class ExcelImportExportService {
     private final DefectCauseRepository defectCauseRepository;
     private final ReworkTypeRepository reworkTypeRepository;
     private final DiameterRepository diameterRepository;
+    private final ReworkAggregator reworkAggregator;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final int DATA_START_ROW = 6;
@@ -308,34 +309,70 @@ public class ExcelImportExportService {
         product.setDetectionSource(source);
 
         // ===== REWORK FIELDS (all optional) =====
-        product.setReworkDate(getDateCell(row, COL_REWORK_DATE));
+        // В шаблоне Excel колонка «вид доработки» — это вид РАБОТЫ из справочника
+        // HLP_REWORK_TYPE (восстановление, перевивка, расплетка), он кладётся в
+        // NONCONFORMING_PRODUCT.ID_REWORK_TYPE. У действия по доработке (ReworkAction)
+        // свой смысл: ACTION_TYPE — это РЕЗУЛЬТАТ (1 восстановлено, 2 переназначено,
+        // 3 брак), колонки с таким выбором в шаблоне нет, поэтому доработанная из Excel
+        // масса считается восстановленной.
+        //
+        // Итоги (восстановлено / переназначено / доработано / брак) пересчитываются
+        // через ReworkAggregator — так же, как это делает веб-форма, поэтому запись,
+        // заведённую из Excel, отчёты считают так же корректно, как заведённую из формы.
+        product.setReworkQuantity(getIntegerCell(row, COL_REWORK_QUANTITY));
 
-        String reworkTypeName = getStringCell(row, COL_REWORK_TYPE);
-        if (reworkTypeName != null && !reworkTypeName.trim().isEmpty()) {
-            ReworkType reworkType = reworkTypeRepository.findByReworkName(reworkTypeName.trim())
-                    .orElseThrow(() -> new RuntimeException("Вид доработки не найден: " + reworkTypeName));
-            product.setReworkType(reworkType);
-        }
-
-        if (getIntegerCell(row, COL_REWORK_QUANTITY) != null) {
-            product.setReworkQuantity(getIntegerCell(row, COL_REWORK_QUANTITY));
-        }
-
+        LocalDate reworkDate = getDateCell(row, COL_REWORK_DATE);
         Double reworkWeight = getDoubleCell(row, COL_REWORK_WEIGHT);
+        String reworkTypeName = getStringCell(row, COL_REWORK_TYPE);
+        String reworkNote = getStringCell(row, COL_REWORK_NOTE);
+
+        ReworkType reworkType = null;
+        if (reworkTypeName != null && !reworkTypeName.trim().isEmpty()) {
+            reworkType = reworkTypeRepository.findByReworkName(reworkTypeName.trim())
+                    .orElseThrow(() -> new RuntimeException("Вид доработки не найден: " + reworkTypeName));
+        }
+
+        // Действие заводим только когда есть чем и когда заполнить: дата и масса обязательны.
+        if (reworkWeight != null && reworkWeight > 0 && reworkDate != null) {
+            ReworkAction action = new ReworkAction();
+            action.setNonconformingProduct(product);
+            action.setActionDate(reworkDate);
+            action.setActionType(ReworkAggregator.REWORK_RESTORED);
+            action.setWeightTonnes(BigDecimal.valueOf(reworkWeight));
+            action.setNote(trimToLength(reworkNote, 200));
+            product.getReworkActions().add(action);
+            reworkAggregator.recomputeTotals(product);
+
+            // Агрегатор выводит «вид доработки» из результата действия — возвращаем
+            // вид работы, указанный пользователем в файле.
+            product.setReworkType(reworkType);
+            return product;
+        }
+
+        // Доработка заполнена не полностью (нет даты или массы) — действие не заводим,
+        // переносим в запись то, что есть, как это делал импорт раньше.
+        product.setReworkDate(reworkDate);
+        product.setReworkType(reworkType);
         if (reworkWeight != null) {
             product.setReworkWeightTonnes(BigDecimal.valueOf(reworkWeight));
+            log.warn("Доработка на {} т без даты — действие по доработке не создано", reworkWeight);
         }
-
-        String reworkNote = getStringCell(row, COL_REWORK_NOTE);
         if (reworkNote != null && !reworkNote.trim().isEmpty()) {
-            if (product.getNote() == null || product.getNote().isEmpty()) {
-                product.setNote(reworkNote.trim());
-            } else {
-                product.setNote(product.getNote() + " | " + reworkNote.trim());
-            }
+            product.setNote(product.getNote() == null || product.getNote().isEmpty()
+                    ? reworkNote.trim()
+                    : product.getNote() + " | " + reworkNote.trim());
         }
 
         return product;
+    }
+
+    /** Поле NOTE действия ограничено 200 символами — длинный текст из Excel обрезается. */
+    private static String trimToLength(String value, int maxLength) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.length() <= maxLength ? trimmed : trimmed.substring(0, maxLength);
     }
 
     private String getStringCell(Row row, int index) {

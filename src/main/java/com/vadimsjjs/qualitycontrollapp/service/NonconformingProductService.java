@@ -16,7 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -45,6 +48,7 @@ public class NonconformingProductService {
     private final ReworkTypeRepository reworkTypeRepository;
     private final DiameterRepository diameterRepository;
     private final SteelGradeRepository steelGradeRepository;
+    private final ReworkAggregator reworkAggregator;
 
     @Transactional
     public NonconformingProductResponse create(NonconformingProductRequest request) {
@@ -125,8 +129,9 @@ public class NonconformingProductService {
     }
 
     public Page<NonconformingProductResponse> findAll(Pageable pageable) {
+        Map<String, Long> index = steelGradeIdsByName();
         return repository.findAll(pageable)
-                .map(this::toResponse);
+                .map(e -> toResponse(e, index));
     }
 
     public Page<NonconformingProductResponse> findByFilters(
@@ -162,8 +167,9 @@ public class NonconformingProductService {
                 diameterId, steelCordConstruction, productCode, heatNumber, steelGrade,
                 equipmentKey, operatorPersonalNumber, manufacturerBrigade, detectionSourceId);
 
+        Map<String, Long> index = steelGradeIdsByName();
         List<NonconformingProductResponse> responses = content.stream()
-                .map(this::toResponse)
+                .map(e -> toResponse(e, index))
                 .collect(Collectors.toList());
 
         return new PageImpl<>(responses, pageable, total);
@@ -392,9 +398,10 @@ public class NonconformingProductService {
      *
      * <p>Действия — источник истины по «как именно доработана продукция»: восстановлено,
      * переназначено, неисправимый брак. Итоговые поля записи приводятся в соответствие
-     * с действиями, чтобы отчёты и сводные таблицы считали по факту.
+     * с действиями через {@link ReworkAggregator}, чтобы отчёты считали одинаково
+     * независимо от того, данные введены через веб-форму или импортированы из Excel.
      *
-     * <p>Если действий не передано, ничего не меняется; пустой список — значит,
+     * <p>Если действий не передано — ничего не меняется; пустой список — значит,
      * пользователь убрал все действия, и результаты доработки сбрасываются.
      */
     private void applyReworkActions(NonconformingProduct entity, NonconformingProductRequest request) {
@@ -421,77 +428,29 @@ public class NonconformingProductService {
             return;
         }
 
-        BigDecimal total = BigDecimal.ZERO;
-        BigDecimal restored = BigDecimal.ZERO;
-        BigDecimal reassigned = BigDecimal.ZERO;
-        BigDecimal scrapped = BigDecimal.ZERO;
-        LocalDate lastDate = null;
-
-        for (ReworkActionRequest actionRequest : actions) {
-            if (actionRequest.getActionDate() == null || actionRequest.getWeightTonnes() == null) {
+        List<ReworkAction> parsed = new ArrayList<>();
+        for (ReworkActionRequest ar : actions) {
+            if (ar.getActionDate() == null || ar.getWeightTonnes() == null
+                    || ar.getWeightTonnes().signum() <= 0) {
                 continue;
             }
-            BigDecimal weight = actionRequest.getWeightTonnes();
-            if (weight.signum() <= 0) {
-                continue;
-            }
-            total = total.add(weight);
-            int type = actionRequest.getActionType() == null ? 0 : actionRequest.getActionType();
-            if (type == REWORK_RESTORED) {
-                restored = restored.add(weight);
-            } else if (type == REWORK_REASSIGNED) {
-                reassigned = reassigned.add(weight);
-            } else if (type == REWORK_SCRAPPED) {
-                scrapped = scrapped.add(weight);
-            }
-            if (lastDate == null || actionRequest.getActionDate().isAfter(lastDate)) {
-                lastDate = actionRequest.getActionDate();
-            }
+            ReworkAction a = new ReworkAction();
+            a.setActionDate(ar.getActionDate());
+            a.setActionType(ar.getActionType() == null ? REWORK_RESTORED : ar.getActionType());
+            a.setWeightTonnes(ar.getWeightTonnes());
+            a.setNote(ar.getNote());
+            parsed.add(a);
         }
-
-        if (total.signum() == 0) {
+        if (parsed.isEmpty()) {
             return;
-        }
-        if (request.getWeightTonnes() != null && total.compareTo(request.getWeightTonnes()) > 0) {
-            throw new RuntimeException("Сумма доработок ("
-                    + total.stripTrailingZeros().toPlainString()
-                    + " т) превышает задержанную массу ("
-                    + request.getWeightTonnes().stripTrailingZeros().toPlainString() + " т)");
         }
 
         entity.getReworkActions().clear();
-        ReworkAction latestAction = null;
-        for (ReworkActionRequest actionRequest : actions) {
-            if (actionRequest.getActionDate() == null || actionRequest.getWeightTonnes() == null
-                    || actionRequest.getWeightTonnes().signum() <= 0) {
-                continue;
-            }
-            ReworkAction action = new ReworkAction();
-            action.setNonconformingProduct(entity);
-            action.setActionDate(actionRequest.getActionDate());
-            action.setActionType(actionRequest.getActionType() == null ? REWORK_RESTORED : actionRequest.getActionType());
-            action.setWeightTonnes(actionRequest.getWeightTonnes());
-            action.setNote(actionRequest.getNote());
-            entity.getReworkActions().add(action);
-            if (latestAction == null
-                    || !action.getActionDate().isBefore(latestAction.getActionDate())) {
-                latestAction = action;
-            }
+        for (ReworkAction a : parsed) {
+            a.setNonconformingProduct(entity);
+            entity.getReworkActions().add(a);
         }
-
-        // Поле «Вид доработки» в форме убрано — выводим вид записи из последнего действия.
-        if (latestAction != null && latestAction.getActionType() != null) {
-            reworkTypeRepository.findById(latestAction.getActionType().longValue())
-                    .ifPresent(entity::setReworkType);
-        }
-
-        entity.setRestoredWeightTonnes(restored.signum() == 0 ? null : restored);
-        entity.setReassignedWeightTonnes(reassigned.signum() == 0 ? null : reassigned);
-        entity.setReworkWeightTonnes(restored.add(reassigned));
-        entity.setIrreparableWeightTonnes(scrapped.signum() == 0 ? null : scrapped);
-        if (lastDate != null) {
-            entity.setReworkDate(lastDate);
-        }
+        reworkAggregator.recomputeTotals(entity);
     }
 
     private static BigDecimal nz(BigDecimal value) {
@@ -593,6 +552,18 @@ public class NonconformingProductService {
     }
 
     private NonconformingProductResponse toResponse(NonconformingProduct entity) {
+        return toResponse(entity, null);
+    }
+
+    private NonconformingProductResponse toResponse(NonconformingProduct entity, Map<String, Long> steelGradeIds) {
+        Long steelGradeId = null;
+        if (entity.getSteelGrade() != null) {
+            if (steelGradeIds == null) {
+                steelGradeId = resolveSteelGradeId(entity.getSteelGrade());
+            } else {
+                steelGradeId = steelGradeIds.get(entity.getSteelGrade());
+            }
+        }
         return NonconformingProductResponse.builder()
                 .id(entity.getId())
                 .detectionDate(entity.getDetectionDate())
@@ -627,7 +598,7 @@ public class NonconformingProductService {
                 .reassignedWeightTonnes(entity.getReassignedWeightTonnes())
                 .scrappedWeightTonnes(entity.getIrreparableWeightTonnes())
                 .status(determineStatus(entity))
-                .steelGradeId(entity.getSteelGrade() != null ? resolveSteelGradeId(entity.getSteelGrade()) : null)
+                .steelGradeId(steelGradeId)
                 .steelGrade(entity.getSteelGrade())
                 .unitNumber(entity.getUnitNumber())
                 .quantity(entity.getQuantity())
@@ -639,13 +610,28 @@ public class NonconformingProductService {
                 .build();
     }
 
+    /**
+     * Идентификатор марки стали по её названию — нужно для выпадающего списка в форме.
+     * В записи марка хранится текстом, а не ссылкой на справочник.
+     */
     private Long resolveSteelGradeId(String steelGrade) {
-        if (steelGrade == null) return null;
-        return steelGradeRepository.findAll().stream()
-                .filter(s -> steelGrade.equals(s.getSteelGrade()))
+        return steelGradeRepository.findBySteelGrade(steelGrade)
                 .map(SteelGrade::getId)
-                .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Индекс «название марки стали → идентификатор» для целой выборки: строится один раз
+     * вместо запроса к справочнику на каждую строку страницы.
+     */
+    private Map<String, Long> steelGradeIdsByName() {
+        Map<String, Long> index = new HashMap<>();
+        for (SteelGrade grade : steelGradeRepository.findAll()) {
+            if (grade.getSteelGrade() != null) {
+                index.putIfAbsent(grade.getSteelGrade(), grade.getId());
+            }
+        }
+        return index;
     }
 
     private String determineStatus(NonconformingProduct entity) {

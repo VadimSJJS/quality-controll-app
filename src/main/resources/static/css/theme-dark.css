@@ -1,0 +1,57 @@
+/* Темная тема для приложения */
+
+:root {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-tertiary: #3d3d3d;
+    --border-primary: #404040;
+    --border-secondary: #555555;
+    --text-primary: #e0e0e0;
+    --text-secondary: #b0b0b0;
+    --text-tertiary: #888888;
+    --accent-primary: #e8b830;
+    --accent-secondary: #1a3a5c;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --card-bg: #2a2a2a;
+    --hover-bg: #383838;
+}
+
+body.dark-theme {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Верхняя панель */
+body.dark-theme .topbar {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    box-shadow: 0 1px 3px var(--shadow);
+}
+
+body.dark-theme .topbar .brand .logo-text {
+    color: var(--text-primary);
+}
+
+body.dark-theme .topbar .brand .logo-text .accent {
+    color: var(--accent-primary);
+}
+
+body.dark-theme .topbar .brand .logo-sub {
+    color: var(--text-secondary);
+}
+
+body.dark-theme .topbar .user-area .user-name {
+    color: var(--text-primary);
+}
+
+body.dark-theme .btn-logout {
+    border: 1px solid var(--border-secondary);
+    color: var(--text-secondary);
+    background: transparent;
+}
+
+body.dark-theme .btn-logout:hover {
+    background: var(--hover-bg);
+    border-color: var(--border-primary);
+    color: var(--text-primary);
+}
