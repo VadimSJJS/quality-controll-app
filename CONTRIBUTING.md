@@ -36,6 +36,13 @@ src/main/java/com/vadimsjjs/qualitycontrollapp/
 
 **Коды действий по доработке.** Централизованы в `enums/ReworkActionType` (`RESTORED=1`, `REASSIGNED=2`, `SCRAPPED=3`); магические числа в сервисах не используются.
 
+## Критические правила
+
+- **Оборудование = номер стана.** `NonconformingProduct.resolveEquipment()` — используйте его везде, а не `getEquipmentKey()`. Значение может быть в `EQUIPMENT_KEY` (Excel) или `UNIT_NUMBER` (форма).
+- **Фильтры продублированы.** `findWithFiltersNative` (журнал, ROWNUM-пагинация) и `findWithFilter` (отчёты, JPQL). Меняйте условия синхронно.
+- **Oracle 11g.** Нет `LIMIT`/`FETCH FIRST`, нет поддержки Flyway Community Edition. Миграции — вручную через SQL*Plus, пагинация — через ROWNUM. `spring.jpa.hibernate.ddl-auto=none` — схему из приложения не менять.
+- **Кодировка.** Данные перенесены из старой системы (CP1251 прочитался как UTF-8). Для исправления: `POST /api/seed/fix-encoding` (ADMIN).
+
 ## Как добавить поле в запись
 
 1. Колонка в БД → `entity/NonconformingProduct.java` → DTO в `dto/`.
