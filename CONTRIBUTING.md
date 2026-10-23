@@ -105,7 +105,6 @@ src/main/java/com/vadimsjjs/qualitycontrollapp/
 ## Отладка
 
 - SQL в логах включается профилем `dev`: `SPRING_PROFILES_ACTIVE=dev` (или `--spring.profiles.active=dev`), см. `application-dev.properties`.
-- Логи сервера — `logs/app.log`.
 - При старте печатается эффективная SSL-конфигурация — там видно кейстор/пароль/алиас.
 
 ## Перед коммитом

@@ -73,333 +73,251 @@
     </div>
 </header>
 
-<div class="main-wrapper">
-
-    <aside class="sidebar">
-        <a th:href="@{/}" class="nav-item">
-            <i class="bi bi-house-door"></i> Главная
-        </a>
-        <a th:href="@{/defects}" class="nav-item">
-            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
-        </a>
-        <a th:href="@{/defects/add}" class="nav-item">
-            <i class="bi bi-plus-circle"></i> Добавить запись
-        </a>
-        <div class="nav-divider"></div>
-        <a th:href="@{/reports}" class="nav-item">
-            <i class="bi bi-file-earmark-text"></i> Отчёты
-        </a>
-        <a th:href="@{/charts}" class="nav-item">
-            <i class="bi bi-graph-up-arrow"></i> Аналитика
-        </a>
-        <div class="nav-divider"></div>
-        <a th:href="@{/directories}" class="nav-item">
-            <i class="bi bi-gear"></i> Справочники
-        </a>
-        <div class="nav-divider"></div>
-        <a th:href="@{/help}" class="nav-item active">
-            <i class="bi bi-question-circle"></i> Инструкция
-        </a>
-    </aside>
-
-    <main class="content">
-
-        <div class="top-bar d-flex justify-content-between align-items-center">
-            <div>
-                <span class="page-title">❓ Инструкция</span>
-                <nav aria-label="breadcrumb" class="d-inline-block ms-3">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a th:href="@{/}" href="#">Главная</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Инструкция</li>
-                    </ol>
+<main class="layout">
+    <div class="container">
+        <div class="row">
+            <aside class="col-lg-2 col-xl-3 sidebar">
+                <nav>
+                    <h5 class="sidebar-heading">Разделы</h5>
+                    <div class="sidebar-nav">
+                        <a th:href="@{/}" class="sidebar-link active">
+                            <i class="bi bi-house-door"></i> Главная
+                        </a>
+                        <a th:href="@{/defects}" class="sidebar-link">
+                            <i class="bi bi-clipboard-data"></i> Журнал несоответствий
+                        </a>
+                        <a th:href="@{/defects/add}" class="sidebar-link">
+                            <i class="bi bi-plus-circle"></i> Добавить запись
+                        </a>
+                        <div class="sidebar-divider"></div>
+                        <a th:href="@{/reports}" class="sidebar-link">
+                            <i class="bi bi-file-earmark-text"></i> Отчёты
+                        </a>
+                        <a th:href="@{/charts}" class="sidebar-link">
+                            <i class="bi bi-graph-up-arrow"></i> Аналитика
+                        </a>
+                        <div class="sidebar-divider"></div>
+                        <a th:href="@{/directories}" class="sidebar-link">
+                            <i class="bi bi-gear"></i> Справочники
+                        </a>
+                        <div class="sidebar-divider"></div>
+                        <a th:href="@{/help}" class="sidebar-link">
+                            <i class="bi bi-question-circle"></i> Инструкция
+                        </a>
+                    </div>
                 </nav>
-            </div>
-            <div class="d-flex align-items-center gap-3">
-                <span class="text-secondary small">
-                    <i class="bi bi-person"></i>
-                    <span sec:authentication="name"></span>
-                </span>
+            </aside>
+            <div class="col-lg-10 col-xl-9">
+                <div class="page-header">
+                    <h1>Инструкция для пользователей</h1>
+                    <p class="lead">БМЗ · СтПЦ-2</p>
+                </div>
+
+                <div class="help-toc">
+                    <a href="#step1">1. Основная информация</a>
+                    <a href="#step2">2. Виды несоответствий</a>
+                    <a href="#step3">3. Журнал несоответствий</a>
+                    <a href="#step4">4. Добавление записи</a>
+                    <a href="#step5">5. Фильтры и поиск</a>
+                    <a href="#step6">6. Диагностика и решение проблем</a>
+                    <a href="#faq">FAQ</a>
+                </div>
+
+                <div id="content">
+                    <div class="help-card" id="step1">
+                        <h5><i class="bi bi-info-circle"></i> 1. Основная информация</h5>
+                        <p>Добро пожаловать в систему учёта несоответствующей продукции БМЗ. Эта система предназначена для отслеживания и документирования всех выявленных дефектов на производстве.</p>
+                        <p>Основные возможности:</p>
+                        <ul>
+                            <li>Регистрация несоответствий продукции</li>
+                            <li>Фильтрация и поиск записей</li>
+                            <li>Генерация отчетов и аналитики</li>
+                            <li>Экспорт данных в Excel</li>
+                        </ul>
+                    </div>
+
+                    <div class="help-card" id="step2">
+                        <h5><i class="bi bi-container"></i> 2. Виды несоответствий</h5>
+                        <p>В системе используются виды несоответствий из справочника. Вы можете:</p>
+                        <ul>
+                            <li>Просматривать список видов дефектов</li>
+                            <li>Добавлять новые виды дефектов (только для администраторов и OTK)</li>
+                            <li>Редактировать существующие виды</li>
+                            <li>Удалять виды, которые не используются в записях</li>
+                        </ul>
+                        <p>Важно: удалить вид дефекта можно только если он ещё не был использован вниках записях, иначе это испортит отчеты.</p>
+                    </div>
+
+                    <div class="help-card" id="step3">
+                        <h5><i class="bi bi-jersey-numbers"></i> 3. Журнал несоответствий</h5>
+                        <p>Журнал содержит все зарегистрированные записи несоответствий. Здесь вы можете:</p>
+                        <ul>
+                            <li>Просматривать список записей с постраничной навигацией</li>
+                            <li>Применять фильтры для narrowing down результатов</li>
+                            <li>Сортировать записи по различным критериям (по дате, по очереди добавления)</li>
+                            <li>Экспортировать данные в Excel</li>
+                            <li>Импортировать данные из шаблона Excel</li>
+                        </ul>
+                        <p>Структура журнала включает 24 колонки данных, соответствующие Приложению А в документации.</p>
+                        <p>Доступные фильтры: по дате, по участку, по виду несоответствия, по номеру катушки, по диаметру, по массе, по статусу.</p>
+                    </div>
+
+                    <div class="help-card" id="step4">
+                        <h5><i class="bi bi-pencil-square"></i> 4. Добавление записи</h5>
+                        <p>Для добавления новой записи несоответствия заполните форму следующими обязательными полями:</p>
+                        <ul>
+                            <li>Дата выявления — когда дефект был обнаружен</li>
+                            <li>Участок — производственное место (код автоматически подставляется при выборе)</li>
+                            <li>Источник выявления — где произошла регистрация</li>
+                            <li>Вес — масса продукции в тоннах (должна быть положительным числом)</li>
+                            <li>Вид несоответствия — из справочника (можно добавить новое название)</li>
+                            <li>Оператор — табельный номер (4–6 цифр)</li>
+                        </ul>
+                        <p>Дополнительные поля по участкам:</p>
+                        <ul>
+                            <li>На канатке: возможно указание подпричины и примечаний (убедитесь, что выбрана причина перед вводом подпричины)</li>
+                            <li>На гальванике: ввод диаметра — marque сталей подтягивается автоматически при вводе номера плавки (whs_100)</li>
+                            <li>Восстановление массы: сумма восстановлено + переназначено + брак = общая масса (валидация суммы)</li>
+                        </ul>
+                        <p>После сохранения запись перезагружается через 2.5 секунды для отображения обновленных данных.</p>
+                    </div>
+
+                    <div class="help-card" id="step5">
+                        <h5><i class="bi bi-filter"></i> 5. Фильтры и поиск</h5>
+                        <p>В журнале доступны следующие фильтры:</p>
+                        <ul>
+                            <li>По дате выявления</li>
+                            <li>По участке/ставению</li>
+                            <li>По виду несоответствия</li>
+                            <li>По номеру катушки</li>
+                            <li>По диаметру</li>
+                            <li>По массе/весу</li>
+                            <li>По статусу</li>
+                        </ul>
+                        <p>Фильтры сохраняются в локальном хранилище браузера (localStorage), и при переключении вкладок данные сохраняются.</p>
+                        <p>Для сброса всех фильтров нажмите кнопку "Сбросить" в панели фильтров.</p>
+                        <p>Для сложного поиска используйте комбинацию нескольких фильтров одновременно.</p>
+                        <p>Колонка "Номер стана" это и есть "Оборудование" — используйте поле оборудования для фильтрации.</p>
+                    </div>
+
+                    <div class="help-card" id="step6">
+                        <h5><i class="bi bi-lightbulb"></i> 6. Диагностика и решение проблем</h5>
+                        <p><strong>Частые вопросы и решения:</strong></p>
+                        <div class="accordion" id="problemAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q1" aria-expanded="false" aria-controls="q1">
+                                        <span class="accordion-icon"></span> Не сохраняется запись при вводе диаметра на гальванике
+                                    </button>
+                                </h2>
+                                <div id="q1" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>Проверьте валидацию: диаметр должен быть числом с допустимым диапазоном. Кнопка сохранения может "зависать" при некорректных значениях полей. Убедитесь, что все обязательные поля заполнены корректно.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q2" aria-expanded="false" aria-controls="q2">
+                                        <span class="accordion-icon"></span> Фильтр по номеру катушки не работает
+                                    </button>
+                                </h2>
+                                <div id="q2" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>Убедитесь, что введен корректный номер катушки. Фильтр ищет точные совпадения в поле <code>reelNumber</code>. Используйте частичный поиск, вводя начало номера катушки. <span class="help-note">Совет: номер катушки должен соответствовать оборудованию (стàn), проверьте поле «Оборудование» в карточке записи.</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q3" aria-expanded="false" aria-controls="q3">
+                                        <span class="accordion-icon"></span> Фильтры сбрасываются при смене вкладки
+                                    </button>
+                                </h2>
+                                <div id="q3" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>Фильтры сохраняются в localStorage браузера. Если они сбрасываются, попробуйте очистить кэш браузера или убедись, что используете один и тот же браузер.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q4" aria-expanded="false" aria-controls="q4">
+                                        <span class="accordion-icon"></span> На канатке вместо подпричины появляется примечание
+                                    </button>
+                                </h2>
+                                <div id="q4" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>Убедитесь, что перед вводом подпричины выбрана причина дефекта. Поле подпричины становится доступным только после выбора причины.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q5" aria-expanded="false" aria-controls="q5">
+                                        <span class="accordion-icon"></span> Последние 3 участка не сохраняются
+                                    </button>
+                                </h2>
+                                <div id="q5" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>При добавлении серии записей на одном участке система запоминает последний выбранный участок. Если записи не сохраняются, проверьте транзакционность формы и наличие обязательных полей.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q6" aria-expanded="false" aria-controls="q6">
+                                        <span class="accordion-icon"></span> Подтягивание марки стали по номеру плавки
+                                    </button>
+                                </h2>
+                                <div id="q6" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>При вводе номера плавки (heat number) система автоматически подтягивает марку стали из справочника (функция whs_100). <span class="help-note">Если марка не подтягивается: проверьте, что номер плавки существует в справочнике сталей, или попробуйте ввести число без ведущих нулей.</span> Если марка все равно не подтягивается, возможно, нужна перезагрузка страницы или очистка кэша браузера.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#q7" aria-expanded="false" aria-controls="q7">
+                                        <span class="accordion-icon"></span> Кто исправил + перемот + линия инспекции
+                                    </button>
+                                </h2>
+                                <div id="q7" class="accordion-body collapse" data-bs-parent="#problemAccordion">
+                                    <div class="accordion-content">
+                                        <p>В записи о несоответствии фиксируется оператор (табельный номер), который进行了 the recording. Дополнительные поля "номер перемотки" и "линия инспекции" доступны в настройках участка. <span class="help-note">Для доступа к полям перемотки и линии инспекции: зайдите в настройки участка (админка) и убедитесь, что включены соответствующие опции. Номер перемотки — это номер станка/рельса, а линия инспекции — линия производственного контроля.</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="main-content">
-
-            <div class="mb-4">
-                <h4 class="mb-0 fw-bold text-dark">❓ Как работать с программой</h4>
-                <p class="text-secondary small mb-0">Короткая инструкция для сотрудников ОТК, ППБ и производственного персонала</p>
-            </div>
-
-            <div class="help-card" style="background:#eef4f9; border-color:#c5dcec;">
-                <h5><i class="bi bi-hand-index-thumb"></i> С чего начать</h5>
-                <p class="mb-0" style="font-size: 15px; line-height: 1.6;">
-                    Нажмите на раздел ниже, который вам сейчас нужен. Всё написано по шагам — 
-                    делайте действия по порядку, и всё получится. Ничего устанавливать не нужно: программа работает в браузере.
-                </p>
-                <div class="help-toc mt-2">
-                    <a href="#start">1. Как начать работу</a>
-                    <a href="#add">2. Как добавить запись о браке</a>
-                    <a href="#find">3. Как найти и изменить запись</a>
-                    <a href="#reports">4. Как посмотреть отчёты</a>
-                    <a href="#analytics">5. Как смотреть графики</a>
-                    <a href="#directory">6. Как вести справочник дефектов</a>
-                    <a href="#faq">7. Частые вопросы</a>
-                </div>
-            </div>
-
-            <div class="help-card" id="start">
-                <h5><i class="bi bi-1-circle-fill"></i> Как начать работу</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте программу</h6>
-                        <p>В браузере наберите адрес: <strong>https://devteam7:8082/</strong>. Всё делается в браузере — ничего устанавливать не нужно.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Войдите в систему</h6>
-                        <p>Введите свой <strong>табельный номер</strong> и <strong>пароль</strong>, нажмите «Войти». Табельный номер выдаёт отдел кадров.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Запомните, где что находится</h6>
-                        <p>Слева находится меню: <strong>Журнал несоответствий</strong> — просмотр записей, <strong>Добавить запись</strong> — ввод новой, <strong>Отчёты</strong> и <strong>Аналитика</strong> — графики и таблицы, <strong>Справочники</strong> — список дефектов.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="help-card" id="add">
-                <h5><i class="bi bi-pencil-square"></i> Как добавить запись о браке</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте «Добавить запись»</h6>
-                        <p>В меню слева нажмите <strong>Добавить запись</strong>. Так же можно нажать зелёную кнопку на главной странице.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Выберите участок</h6>
-                        <p>Самый первый и самый важный выбор. От участка зависит, какие поля нужно заполнить. Например, на канатном участке спрашивают конструкцию металлокорда, а на травлении — плавку и бунт.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Заполните обязательные поля</h6>
-                        <p>Поля со звёздочкой <strong style="color:#c00">*</strong> заполнить обязательно. Остальные — по возможности: чем больше данных, тем точнее отчёты.</p>
-                        <table class="table table-sm help-table mt-2 mb-0">
-                            <thead class="table-light">
-                            <tr><th>Поле</th><th>Что вписать</th></tr>
-                            </thead>
-                            <tbody>
-                            <tr><td>Дата выявления</td><td>Дата, когда обнаружили дефект</td></tr>
-                            <tr><td>Вид дефекта</td><td>Начните вводить — появятся подсказки. Можно выбрать из списка или вписать свой вариант</td></tr>
-                            <tr><td>Масса, т</td><td>Вес несоответствующей продукции в тоннах</td></tr>
-                            <tr><td>Кем выявлено</td><td>ОТК, цех, ЦЗЛ или возврат с последующего передела</td></tr>
-                            <tr><td>Причина</td><td>Выберите из справочника. Не знаете причину — оставьте пустым, это не обязательно</td></tr>
-                            <tr><td>Табельный номер оператора</td><td>От 4 до 6 цифр. Это оператор, который работал на участке (не ваш номер)</td></tr>
-                            <tr><td>Примечание</td><td>Например: «Акт Т46-2026 №12» или «Выдан ТП»</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">4</div>
-                    <div>
-                        <h6>Заполните доработку — если её проводили</h6>
-                        <p>Если продукцию доработали, укажите <strong>дату доработки</strong>, <strong>вид доработки</strong> (восстановлено или переназначено) и <strong>массу доработки</strong>. Если не дорабатывали — оставьте эти поля пустыми.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">5</div>
-                    <div>
-                        <h6>Нажмите «Сохранить»</h6>
-                        <p>После сохранения появится сообщение об успехе. Если вместо него появилась <strong style="color:#c00">красная надпись</strong> — проверьте обязательные поля, обычно подсвечивается именно незаполненное поле.</p>
-                    </div>
-                </div>
-                <div class="help-note mt-3">
-                    <strong>Важно:</strong> если в поле «Вид дефекта» написать новое название, программа сама добавит его в справочник. Проверьте написание — опечатка создаст отдельный дефект, и в отчётах цифры разойдутся.
-                </div>
-            </div>
-
-            <div class="help-card" id="find">
-                <h5><i class="bi bi-search"></i> Как найти и изменить запись</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте «Журнал несоответствий»</h6>
-                        <p>Здесь видны все записи, самые новые сверху. Записи выводятся по страницам — внизу кнопки «Назад» и «Вперёд».</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Отфильтруйте записи</h6>
-                        <p>Вверху есть поля фильтра: участок, вид дефекта, оборудование, табельный номер. Заполните нужное и нажмите «Найти» — так быстрее, чем листать страницы.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Исправьте или удалите</h6>
-                        <p>В каждой строке есть кнопки: <strong>✏️</strong> — изменить запись, <strong>🗑</strong> — удалить. После удаления отменить действие нельзя, поэтому проверьте, что выбрали нужную строку.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="help-card" id="reports">
-                <h5><i class="bi bi-file-earmark-text"></i> Как посмотреть отчёты</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте «Отчёты»</h6>
-                        <p>Вверху выберите тип отчёта кнопками: по участку, по виду продукции, по причинам, по бригадам, по оборудованию, по персоналу, по цеху.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Укажите период</h6>
-                        <p>Задайте «Дата с» и «Дата по» — отчёт сформируется только за этот период.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Нажмите «Сформировать»</h6>
-                        <p>Отчёт появится на странице. Если в отчёте пусто — проверьте период: возможно, за выбранные дни записей не было.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">4</div>
-                    <div>
-                        <h6>Скачайте отчёт в Excel</h6>
-                        <p>Кнопка <strong>Excel</strong> сохраняет файл на ваш компьютер. Его можно открыть в Excel, посмотреть, распечатать или отправить.</p>
-                    </div>
-                </div>
-                <div class="help-note mt-3">
-                    <strong>Обратите внимание:</strong> в сводном отчёте по цеху есть колонка «Допустимый уровень, %». Если значение в колонке «Несоответствующая, %» больше — уровень превышен, такая строка выделяется.
-                </div>
-            </div>
-
-            <div class="help-card" id="analytics">
-                <h5><i class="bi bi-graph-up-arrow"></i> Как смотреть графики (Аналитика)</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте «Аналитика»</h6>
-                        <p>Здесь графики: распределение по видам дефектов, по оборудованию, по бригадам и по персоналу.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Выберите период</h6>
-                        <p>Вверху есть кнопки быстрого выбора: «Сегодня», «Неделя», «Месяц», «Квартал» — они сразу подставляют даты. Либо поставьте даты вручную.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Диаграмма Парето — что смотреть</h6>
-                        <p>Столбики отсортированы от большего к меньшему. Красная линия — накопительный процент. То, что попало в первые 80% линии, — главные причины брака, на них и нужно обращать внимание.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">4</div>
-                    <div>
-                        <h6>Переключите вид группировки</h6>
-                        <p>В списке «Тип группировки» можно выбрать <strong>По видам дефектов</strong> или <strong>По причинам</strong>, затем нажать «Применить».</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">5</div>
-                    <div>
-                        <h6>Скачайте график в Excel</h6>
-                        <p>Кнопка <strong>Excel</strong> рядом с графиком сохраняет таблицу с данными и диаграмму — удобно вставить в документ или на печать.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="help-card" id="directory">
-                <h5><i class="bi bi-gear"></i> Как вести справочник дефектов</h5>
-                <div class="help-step">
-                    <div class="help-num">1</div>
-                    <div>
-                        <h6>Откройте «Справочники»</h6>
-                        <p>Здесь список всех видов несоответствий, которые используются в программе.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">2</div>
-                    <div>
-                        <h6>Добавьте новый дефект</h6>
-                        <p>Нажмите «Добавить вид дефекта», впишите название. Код проставляется автоматически — заполнять не нужно.</p>
-                    </div>
-                </div>
-                <div class="help-step">
-                    <div class="help-num">3</div>
-                    <div>
-                        <h6>Измените или удалите</h6>
-                        <p>Название можно исправить. Удалить можно только тот дефект, который ещё нигде не использовался — если он есть в записях, программа не даст удалить, чтобы не испортить отчёты.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="help-card" id="faq">
-                <h5><i class="bi bi-question-circle"></i> Частые вопросы</h5>
-                <table class="table table-sm help-table mb-0">
-                    <thead class="table-light">
-                    <tr><th style="width: 40%">Вопрос</th><th>Что делать</th></tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>Не открывается страница</td>
-                        <td>Проверьте, что адрес набран полностью: <strong>https://devteam7:8082/</strong>. Если браузер предупреждает о сертификате — обратитесь к администратору.</td>
-                    </tr>
-                    <tr>
-                        <td>Забыл пароль</td>
-                        <td>Обратитесь к администратору системы. Восстановить пароль самостоятельно нельзя.</td>
-                    </tr>
-                    <tr>
-                        <td>Не могу войти, пишет «слишком много попыток»</td>
-                        <td>Подождите 15 минут и попробуйте снова. Вводите табельный номер и пароль внимательно.</td>
-                    </tr>
-                    <tr>
-                        <td>Красная надпись при сохранении</td>
-                        <td>Не заполнено обязательное поле — оно подсвечивается. Проверьте также: масса должна быть числом, табельный номер — 4–6 цифр.</td>
-                    </tr>
-                    <tr>
-                        <td>В отчёте всё пусто</td>
-                        <td>Проверьте период: возможно, за выбранные даты записей не было. Также проверьте, выбран ли нужный участок.</td>
-                    </tr>
-                    <tr>
-                        <td>Не нахожу свою запись</td>
-                        <td>Воспользуйтесь фильтрами в журнале или найдите её по дате. Записи выводятся по страницам.</td>
-                    </tr>
-                    <tr>
-                        <td>Случайно удалил запись</td>
-                        <td>Сообщите администратору: все действия записываются в журнал, запись можно восстановить.</td>
-                    </tr>
-                    <tr>
-                        <td>В браузере старый вид графика</td>
-                        <td>Нажмите <strong>Ctrl + F5</strong> — это обновит страницу и загрузит свежую версию.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
-
-    </main>
-</div>
+<footer class="footer">
+    <div class="container">
+        <span class="text-muted">БМЗ · СтПЦ-2 | Учёт несоответствующей продукции</span>
+    </div>
+</footer>
 
 <script src="/js/password-toggle.js"></script>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const accordionElements = document.querySelectorAll('.accordion-item');
+        accordionElements.forEach(item => {
+            const button = item.querySelector('.accordion-button');
+            
+            button.addEventListener('click', function() {
+                accordionElements.forEach(other => {
+                    if (other !== item) {
+                        other.querySelector('.accordion-button').classList.add('collapsed');
+                        other.querySelector('.accordion-body').classList.remove('show');
+                    }
+                });
+            });
+        });
+    });
+</script>
 </body>
 </html>
