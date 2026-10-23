@@ -45,6 +45,8 @@ public class DefectFilterDto {
 
     private Long manufacturerBrigade;
 
+    private Long detectionSourceId;
+
     @AssertTrue(message = "Дата «с» должна быть не позже даты «по»")
     public boolean isDateRangeValid() {
         return dateFrom == null || dateTo == null || !dateFrom.isAfter(dateTo);

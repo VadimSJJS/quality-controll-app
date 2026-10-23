@@ -1,129 +1,26 @@
 package com.vadimsjjs.qualitycontrollapp.repository;
 
+import com.vadimsjjs.qualitycontrollapp.dto.DefectFilterDto;
 import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface NonconformingProductRepository extends JpaRepository<NonconformingProduct, Long> {
+public interface NonconformingProductRepository
+        extends JpaRepository<NonconformingProduct, Long>, JpaSpecificationExecutor<NonconformingProduct> {
 
-    /**
-     * Выборка с фильтрами и постраничности. Нативный SQL нужен из-за Oracle 11g:
-     * постраничный отбор выполняется через ROWNUM, а не через OFFSET/FETCH.
-     * Каждый параметр nullable — если он null, условие не применяется.
-     */
-    @Query(value = "SELECT * FROM ( " +
-            "SELECT a.*, ROWNUM rn FROM ( " +
-            "SELECT " +
-            "    ID_NONCONFORMING_PRODUCT, " +
-            "    DETECTION_DATE, " +
-            "    ID_PRODUCTION_SITE, " +
-            "    ID_DETECTION_SOURCE, " +
-            "    WEIGHT_TONNES, " +
-            "    IRREPARABLE_WEIGHT_TONNES, " +
-            "    ID_DEFECT_TYPE, " +
-            "    ID_DEFECT_CAUSE, " +
-            "    ID_DEFECT_SUBCAUSE, " +
-            "    NOTE, " +
-            "    PRODUCT_CODE, " +
-            "    REEL_NUMBER, " +
-            "    HEAT_NUMBER, " +
-            "    MANUFACTURER_BRIGADE, " +
-            "    BUNDLE_NUMBER, " +
-            "    MANUFACTURER_WORKSHOP, " +
-            "    EQUIPMENT_KEY, " +
-            "    ID_DIAMETER, " +
-            "    STEEL_CORD_CONSTRUCTION, " +
-            "    OPERATOR_PERSONAL_NUMBER, " +
-            "    BRIGADE, " +
-            "    STEEL_GRADE, " +
-            "    UNIT_NUMBER, " +
-            "    WORKPIECE_KEY, " +
-            "    QUANTITY, " +
-            "    REWORK_QUANTITY, " +
-            "    REWORK_DATE, " +
-            "    ID_REWORK_TYPE, " +
-            "    REWORK_WEIGHT_TONNES, " +
-            "    RESTORED_WEIGHT_TONNES, " +
-            "    REASSIGNED_WEIGHT_TONNES " +
-            "FROM NONCONFORMING_PRODUCT n " +
-            "WHERE (:dateFrom IS NULL OR n.DETECTION_DATE >= :dateFrom) " +
-            "AND (:dateTo IS NULL OR n.DETECTION_DATE <= :dateTo) " +
-            "AND (:siteId IS NULL OR n.ID_PRODUCTION_SITE = :siteId) " +
-            "AND (:defectTypeId IS NULL OR n.ID_DEFECT_TYPE = :defectTypeId) " +
-            "AND (:defectCauseId IS NULL OR n.ID_DEFECT_CAUSE = :defectCauseId) " +
-            "AND (:defectSubcauseId IS NULL OR n.ID_DEFECT_SUBCAUSE = :defectSubcauseId) " +
-            "AND (:diameterId IS NULL OR n.ID_DIAMETER = :diameterId) " +
-            "AND (:steelCordConstruction IS NULL OR n.STEEL_CORD_CONSTRUCTION = :steelCordConstruction) " +
-            "AND (:productCode IS NULL OR n.PRODUCT_CODE = :productCode) " +
-            "AND (:heatNumber IS NULL OR n.HEAT_NUMBER = :heatNumber) " +
-            "AND (:steelGrade IS NULL OR n.STEEL_GRADE = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.EQUIPMENT_KEY = :equipmentKey OR n.UNIT_NUMBER = :equipmentKey " +
-            "     OR n.WORKPIECE_KEY = :equipmentKey OR n.WORKPIECE_KEY LIKE :equipmentKey || '-%') " +
-            "AND (:operatorPersonalNumber IS NULL OR n.OPERATOR_PERSONAL_NUMBER = :operatorPersonalNumber) " +
-            "AND (:manufacturerBrigade IS NULL OR n.MANUFACTURER_BRIGADE = :manufacturerBrigade) " +
-            "AND (:detectionSourceId IS NULL OR n.ID_DETECTION_SOURCE = :detectionSourceId) " +
-            "ORDER BY n.DETECTION_DATE DESC " +
-            ") a WHERE ROWNUM <= :endRow " +
-            ") WHERE rn > :startRow",
-            nativeQuery = true)
-    List<NonconformingProduct> findWithFiltersNative(
-            @Param("dateFrom") LocalDate dateFrom,
-            @Param("dateTo") LocalDate dateTo,
-            @Param("siteId") Long siteId,
-            @Param("defectTypeId") Long defectTypeId,
-            @Param("defectCauseId") Long defectCauseId,
-            @Param("defectSubcauseId") Long defectSubcauseId,
-            @Param("diameterId") Long diameterId,
-            @Param("steelCordConstruction") String steelCordConstruction,
-            @Param("productCode") Long productCode,
-            @Param("heatNumber") String heatNumber,
-            @Param("steelGrade") String steelGrade,
-            @Param("equipmentKey") String equipmentKey,
-            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
-            @Param("manufacturerBrigade") Long manufacturerBrigade,
-            @Param("detectionSourceId") Long detectionSourceId,
-            @Param("startRow") int startRow,
-            @Param("endRow") int endRow);
 
-    @Query("SELECT COUNT(n) FROM NonconformingProduct n " +
-            "WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom) " +
-            "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
-            "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
-            "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId) " +
-            "AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId) " +
-            "AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId) " +
-            "AND (:diameterId IS NULL OR n.diameter.id = :diameterId) " +
-            "AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction) " +
-            "AND (:productCode IS NULL OR n.productCode = :productCode) " +
-            "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
-            "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey " +
-            "     OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE concat(:equipmentKey, '-%')) " +
-            "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
-            "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade) " +
-            "AND (:detectionSourceId IS NULL OR n.detectionSource.id = :detectionSourceId)")
-    long countWithFilters(
-            @Param("dateFrom") LocalDate dateFrom,
-            @Param("dateTo") LocalDate dateTo,
-            @Param("siteId") Long siteId,
-            @Param("defectTypeId") Long defectTypeId,
-            @Param("defectCauseId") Long defectCauseId,
-            @Param("defectSubcauseId") Long defectSubcauseId,
-            @Param("diameterId") Long diameterId,
-            @Param("steelCordConstruction") String steelCordConstruction,
-            @Param("productCode") Long productCode,
-            @Param("heatNumber") String heatNumber,
-            @Param("steelGrade") String steelGrade,
-            @Param("equipmentKey") String equipmentKey,
-            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
-            @Param("manufacturerBrigade") Long manufacturerBrigade,
-            @Param("detectionSourceId") Long detectionSourceId);
+
+
 
     /**
      * Используется ли вид дефекта в записях о несоответствующей продукции.
@@ -131,29 +28,140 @@ public interface NonconformingProductRepository extends JpaRepository<Nonconform
      */
     boolean existsByDefectType_Id(Long defectTypeId);
 
+
+
     /**
-     * Выборка записей по полному набору фильтров из ТЗ (п. 3.2):
-     * даты выявления, участок, вид несоответствия, причина, подпричина, диаметр,
-     * конструкция металлокорда, код, номер плавки, марка стали, оборудование,
-     * персональный номер оператора, бригада изготовителя.
+     * Загружает все записи с инициализированными связями
+     * Устраняет N+1 ленивой загрузки при формировании списка записей.
      */
-    @Query("SELECT n FROM NonconformingProduct n " +
-            "WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom) " +
-            "AND (:dateTo IS NULL OR n.detectionDate <= :dateTo) " +
-            "AND (:siteId IS NULL OR n.productionSite.id = :siteId) " +
-            "AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId) " +
-            "AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId) " +
-            "AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId) " +
-            "AND (:diameterId IS NULL OR n.diameter.id = :diameterId) " +
-            "AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction) " +
-            "AND (:productCode IS NULL OR n.productCode = :productCode) " +
-            "AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber) " +
-            "AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade) " +
-            "AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey " +
-            "     OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE concat(:equipmentKey, '-%')) " +
-            "AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber) " +
-            "AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)")
-    List<NonconformingProduct> findWithFilter(
+    @EntityGraph(attributePaths = {
+            "productionSite", "detectionSource", "defectType", "defectCause",
+            "defectSubcause", "diameter", "reworkType", "reworkActions"
+    })
+    @Query("SELECT n FROM NonconformingProduct n")
+    List<NonconformingProduct> findAllWithEagerLoading();
+
+    /**
+     * Загружает запись по ID с инициализированными связями (без N+1).
+     */
+    @EntityGraph(attributePaths = {
+            "productionSite", "detectionSource", "defectType", "defectCause",
+            "defectSubcause", "diameter", "reworkType", "reworkActions"
+    })
+    @Query("SELECT n FROM NonconformingProduct n WHERE n.id = :id")
+    Optional<NonconformingProduct> findByIdWithEagerLoading(@Param("id") Long id);
+
+    /**
+     * Суммарная масса несоответствующей продукции по видам дефектов (GROUP BY + SUM).
+     */
+    @Query(value = """
+            SELECT n.defectType.id AS defectTypeId,
+                   SUM(n.weightTonnes) AS totalWeight
+            FROM NonconformingProduct n
+            WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom)
+              AND (:dateTo IS NULL OR n.detectionDate <= :dateTo)
+              AND (:siteId IS NULL OR n.productionSite.id = :siteId)
+              AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId)
+              AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId)
+              AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId)
+              AND (:diameterId IS NULL OR n.diameter.id = :diameterId)
+              AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction)
+              AND (:productCode IS NULL OR n.productCode = :productCode)
+              AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber)
+              AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade)
+              AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey
+                   OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE CONCAT(:equipmentKey, '-%'))
+              AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber)
+              AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)
+              AND n.defectType IS NOT NULL
+            GROUP BY n.defectType.id
+            """)
+    List<Object[]> sumWeightByDefectType(
+            @Param("dateFrom") LocalDate dateFrom,
+            @Param("dateTo") LocalDate dateTo,
+            @Param("siteId") Long siteId,
+            @Param("defectTypeId") Long defectTypeId,
+            @Param("defectCauseId") Long defectCauseId,
+            @Param("defectSubcauseId") Long defectSubcauseId,
+            @Param("diameterId") Long diameterId,
+            @Param("steelCordConstruction") String steelCordConstruction,
+            @Param("productCode") Long productCode,
+            @Param("heatNumber") String heatNumber,
+            @Param("steelGrade") String steelGrade,
+            @Param("equipmentKey") String equipmentKey,
+            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
+            @Param("manufacturerBrigade") Long manufacturerBrigade);
+
+    /**
+     * Суммарная масса неисправимого брака по видам дефектов (GROUP BY + SUM).
+     */
+    @Query(value = """
+            SELECT n.defectType.id AS defectTypeId,
+                   SUM(n.irreparableWeightTonnes) AS irreparableWeight
+            FROM NonconformingProduct n
+            WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom)
+              AND (:dateTo IS NULL OR n.detectionDate <= :dateTo)
+              AND (:siteId IS NULL OR n.productionSite.id = :siteId)
+              AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId)
+              AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId)
+              AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId)
+              AND (:diameterId IS NULL OR n.diameter.id = :diameterId)
+              AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction)
+              AND (:productCode IS NULL OR n.productCode = :productCode)
+              AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber)
+              AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade)
+              AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey
+                   OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE CONCAT(:equipmentKey, '-%'))
+              AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber)
+              AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)
+              AND n.defectType IS NOT NULL
+              AND n.irreparableWeightTonnes IS NOT NULL
+              AND n.irreparableWeightTonnes > 0
+            GROUP BY n.defectType.id
+            """)
+    List<Object[]> sumIrreparableByDefectType(
+            @Param("dateFrom") LocalDate dateFrom,
+            @Param("dateTo") LocalDate dateTo,
+            @Param("siteId") Long siteId,
+            @Param("defectTypeId") Long defectTypeId,
+            @Param("defectCauseId") Long defectCauseId,
+            @Param("defectSubcauseId") Long defectSubcauseId,
+            @Param("diameterId") Long diameterId,
+            @Param("steelCordConstruction") String steelCordConstruction,
+            @Param("productCode") Long productCode,
+            @Param("heatNumber") String heatNumber,
+            @Param("steelGrade") String steelGrade,
+            @Param("equipmentKey") String equipmentKey,
+            @Param("operatorPersonalNumber") Long operatorPersonalNumber,
+            @Param("manufacturerBrigade") Long manufacturerBrigade);
+
+    /**
+     * Суммарная масса по участкам (GROUP BY + SUM) для отчёта по цеху.
+     */
+    @Query(value = """
+            SELECT n.productionSite.id AS siteId,
+                   SUM(n.weightTonnes) AS totalWeight,
+                   SUM(n.irreparableWeightTonnes) AS irreparableWeight
+            FROM NonconformingProduct n
+            WHERE (:dateFrom IS NULL OR n.detectionDate >= :dateFrom)
+              AND (:dateTo IS NULL OR n.detectionDate <= :dateTo)
+              AND (:siteId IS NULL OR n.productionSite.id = :siteId)
+              AND (:defectTypeId IS NULL OR n.defectType.id = :defectTypeId)
+              AND (:defectCauseId IS NULL OR n.defectCause.id = :defectCauseId)
+              AND (:defectSubcauseId IS NULL OR n.defectSubcause.id = :defectSubcauseId)
+              AND (:diameterId IS NULL OR n.diameter.id = :diameterId)
+              AND (:steelCordConstruction IS NULL OR n.steelCordConstruction = :steelCordConstruction)
+              AND (:productCode IS NULL OR n.productCode = :productCode)
+              AND (:heatNumber IS NULL OR n.heatNumber = :heatNumber)
+              AND (:steelGrade IS NULL OR n.steelGrade = :steelGrade)
+              AND (:equipmentKey IS NULL OR n.equipmentKey = :equipmentKey OR n.unitNumber = :equipmentKey
+                   OR n.workpieceKey = :equipmentKey OR n.workpieceKey LIKE CONCAT(:equipmentKey, '-%'))
+              AND (:operatorPersonalNumber IS NULL OR n.operatorPersonalNumber = :operatorPersonalNumber)
+              AND (:manufacturerBrigade IS NULL OR n.manufacturerBrigade = :manufacturerBrigade)
+              AND n.productionSite IS NOT NULL
+            GROUP BY n.productionSite.id
+            """)
+    List<Object[]> sumWeightBySite(
             @Param("dateFrom") LocalDate dateFrom,
             @Param("dateTo") LocalDate dateTo,
             @Param("siteId") Long siteId,

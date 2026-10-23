@@ -63,6 +63,7 @@ src/main/java/com/vadimsjjs/qualitycontrollapp/
 ├── repository/          # Spring Data JPA
 ├── service/             # Бизнес-логика
 ├── security/            # Аутентификация, роли
+├── enums/               # Перечисления
 ├── config/              # Настройки Spring
 └── QualityControllAppApplication.java
 ```
@@ -76,10 +77,6 @@ src/main/java/com/vadimsjjs/qualitycontrollapp/
 | ADMIN       | ✅       | ✅             | ✅       |
 
 Режим `app.security.full-access=true` (по умолчанию) даёт полный доступ всем авторизованным.
-
-## База данных
-
-Миграции применяются вручную через SQL*Plus (Flyway исключён из-за потери поддержки Oracle 11g в Community Edition).
 
 ## Конфигурация
 

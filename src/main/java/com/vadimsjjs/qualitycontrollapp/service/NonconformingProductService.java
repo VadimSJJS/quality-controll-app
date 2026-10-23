@@ -1,15 +1,16 @@
 package com.vadimsjjs.qualitycontrollapp.service;
 
+import com.vadimsjjs.qualitycontrollapp.dto.DefectFilterDto;
 import com.vadimsjjs.qualitycontrollapp.dto.NonconformingProductRequest;
 import com.vadimsjjs.qualitycontrollapp.dto.NonconformingProductResponse;
 import com.vadimsjjs.qualitycontrollapp.dto.ReworkActionRequest;
 import com.vadimsjjs.qualitycontrollapp.dto.ReworkActionResponse;
 import com.vadimsjjs.qualitycontrollapp.entity.*;
+import com.vadimsjjs.qualitycontrollapp.enums.ReworkActionType;
 import com.vadimsjjs.qualitycontrollapp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,11 +35,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class NonconformingProductService {
-
-    /** Коды видов доработки в действиях: 1 — восстановлено, 2 — переназначено, 3 — брак. */
-    public static final int REWORK_RESTORED = 1;
-    public static final int REWORK_REASSIGNED = 2;
-    public static final int REWORK_SCRAPPED = 3;
 
     private final NonconformingProductRepository repository;
     private final ProductionSiteRepository productionSiteRepository;
@@ -123,7 +119,7 @@ public class NonconformingProductService {
     }
 
     public NonconformingProductResponse findById(Long id) {
-        NonconformingProduct entity = repository.findById(id)
+        NonconformingProduct entity = repository.findByIdWithEagerLoading(id)
                 .orElseThrow(() -> new RuntimeException("Запись не найдена с ID: " + id));
         return toResponse(entity);
     }
@@ -152,27 +148,26 @@ public class NonconformingProductService {
             Long detectionSourceId,
             Pageable pageable) {
 
-        int pageNumber = pageable.getPageNumber();
-        int pageSize = pageable.getPageSize();
-        int startRow = pageNumber * pageSize;
-        int endRow = startRow + pageSize;
-
-        List<NonconformingProduct> content = repository.findWithFiltersNative(
-                dateFrom, dateTo, productionSiteId, defectTypeId, defectCauseId, defectSubcauseId,
-                diameterId, steelCordConstruction, productCode, heatNumber, steelGrade,
-                equipmentKey, operatorPersonalNumber, manufacturerBrigade, detectionSourceId, startRow, endRow);
-
-        long total = repository.countWithFilters(
-                dateFrom, dateTo, productionSiteId, defectTypeId, defectCauseId, defectSubcauseId,
-                diameterId, steelCordConstruction, productCode, heatNumber, steelGrade,
-                equipmentKey, operatorPersonalNumber, manufacturerBrigade, detectionSourceId);
+        DefectFilterDto filterDto = new DefectFilterDto();
+        filterDto.setDateFrom(dateFrom);
+        filterDto.setDateTo(dateTo);
+        filterDto.setProductionSiteId(productionSiteId);
+        filterDto.setDefectTypeId(defectTypeId);
+        filterDto.setDefectCauseId(defectCauseId);
+        filterDto.setDefectSubcauseId(defectSubcauseId);
+        filterDto.setDiameterId(diameterId);
+        filterDto.setSteelCordConstruction(steelCordConstruction);
+        filterDto.setProductCode(productCode);
+        filterDto.setHeatNumber(heatNumber);
+        filterDto.setSteelGrade(steelGrade);
+        filterDto.setEquipmentKey(equipmentKey);
+        filterDto.setOperatorPersonalNumber(operatorPersonalNumber);
+        filterDto.setManufacturerBrigade(manufacturerBrigade);
+        filterDto.setDetectionSourceId(detectionSourceId);
 
         Map<String, Long> index = steelGradeIdsByName();
-        List<NonconformingProductResponse> responses = content.stream()
-                .map(e -> toResponse(e, index))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(responses, pageable, total);
+        return repository.findAll(NonconformingProductSpecification.byFilter(filterDto), pageable)
+                .map(e -> toResponse(e, index));
     }
 
     private NonconformingProduct toEntity(NonconformingProductRequest request) {
@@ -436,7 +431,7 @@ public class NonconformingProductService {
             }
             ReworkAction a = new ReworkAction();
             a.setActionDate(ar.getActionDate());
-            a.setActionType(ar.getActionType() == null ? REWORK_RESTORED : ar.getActionType());
+            a.setActionType(ar.getActionType() == null ? ReworkActionType.RESTORED.getCode() : ar.getActionType());
             a.setWeightTonnes(ar.getWeightTonnes());
             a.setNote(ar.getNote());
             parsed.add(a);

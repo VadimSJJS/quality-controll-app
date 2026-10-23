@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/** Distribution of non-conforming product weight by a dimension and defect type. */
+/** Распределение массы несоответствующей продукции по размеру и виду дефекта. */
 @Data
 @Builder
 @NoArgsConstructor

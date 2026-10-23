@@ -1,6 +1,5 @@
 package com.vadimsjjs.qualitycontrollapp.controller.advice;
 
-import com.vadimsjjs.qualitycontrollapp.entity.Personal;
 import com.vadimsjjs.qualitycontrollapp.repository.PersonalRepository;
 import com.vadimsjjs.qualitycontrollapp.security.RoleChecker;
 import com.vadimsjjs.qualitycontrollapp.security.RoleResolver;

@@ -102,7 +102,7 @@ public class ReportController {
     @PreAuthorize("@roleChecker.canView()")
     public ResponseEntity<PersonnelDefectReport> getPersonnelDefectReportV2(
             @ModelAttribute @Valid DefectFilterDto filter) {
-        return ResponseEntity.ok(reportService.getPersonnelDefectReportV2(filter));
+        return ResponseEntity.ok(reportService.getPersonnelDefectReport(filter));
     }
 
     @GetMapping("/by-plant")

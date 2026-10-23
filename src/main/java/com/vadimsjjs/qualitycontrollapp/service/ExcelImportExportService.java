@@ -2,6 +2,7 @@ package com.vadimsjjs.qualitycontrollapp.service;
 
 import com.vadimsjjs.qualitycontrollapp.dto.ExcelImportResult;
 import com.vadimsjjs.qualitycontrollapp.entity.*;
+import com.vadimsjjs.qualitycontrollapp.enums.ReworkActionType;
 import com.vadimsjjs.qualitycontrollapp.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -337,7 +338,7 @@ public class ExcelImportExportService {
             ReworkAction action = new ReworkAction();
             action.setNonconformingProduct(product);
             action.setActionDate(reworkDate);
-            action.setActionType(ReworkAggregator.REWORK_RESTORED);
+            action.setActionType(ReworkActionType.RESTORED.getCode());
             action.setWeightTonnes(BigDecimal.valueOf(reworkWeight));
             action.setNote(trimToLength(reworkNote, 200));
             product.getReworkActions().add(action);

@@ -2,6 +2,7 @@ package com.vadimsjjs.qualitycontrollapp.service;
 
 import com.vadimsjjs.qualitycontrollapp.entity.NonconformingProduct;
 import com.vadimsjjs.qualitycontrollapp.entity.ReworkAction;
+import com.vadimsjjs.qualitycontrollapp.enums.ReworkActionType;
 import com.vadimsjjs.qualitycontrollapp.repository.ReworkTypeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,20 +23,11 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class ReworkAggregator {
 
-    /** Коды видов доработки в действиях: 1 — восстановлено, 2 — переназначено, 3 — брак. */
-    public static final int REWORK_RESTORED = 1;
-    public static final int REWORK_REASSIGNED = 2;
-    public static final int REWORK_SCRAPPED = 3;
-
     private final ReworkTypeRepository reworkTypeRepository;
 
     /**
      * Пересчитывает сводные поля записи по её действиям.
      *
-     * <p>Действия должны быть уже добавлены в {@code entity.getReworkActions()}.
-     * Если валидных действий нет или их сумма нулевая — сводные поля не меняются.
-     *
-     * @throws RuntimeException если сумма действий превышает задержанную массу
      */
     public void recomputeTotals(NonconformingProduct entity) {
         BigDecimal total = BigDecimal.ZERO;
@@ -53,11 +45,11 @@ public class ReworkAggregator {
             BigDecimal weight = action.getWeightTonnes();
             total = total.add(weight);
             int type = action.getActionType() == null ? 0 : action.getActionType();
-            if (type == REWORK_RESTORED) {
+            if (type == ReworkActionType.RESTORED.getCode()) {
                 restored = restored.add(weight);
-            } else if (type == REWORK_REASSIGNED) {
+            } else if (type == ReworkActionType.REASSIGNED.getCode()) {
                 reassigned = reassigned.add(weight);
-            } else if (type == REWORK_SCRAPPED) {
+            } else if (type == ReworkActionType.SCRAPPED.getCode()) {
                 scrapped = scrapped.add(weight);
             }
             if (lastDate == null || action.getActionDate().isAfter(lastDate)) {
